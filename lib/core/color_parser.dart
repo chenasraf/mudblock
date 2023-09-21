@@ -152,7 +152,6 @@ class Lexer implements ILexer, IReader {
   bool insideColor = false;
   bool insideBgColor = false;
   LexerValue? temp;
-  // bool escapeNext = false;
   List<TokenValue> tokens = [];
 
   Lexer(this.tokenizer);
@@ -164,19 +163,16 @@ class Lexer implements ILexer, IReader {
 
     while (!isDone) {
       final token = read();
-      debugPrint("lex token: $token");
       var cur = getToken(token);
       if (cur == null) {
         continue;
       }
-      debugPrint("lex adding: $cur");
       lexed.add(cur);
     }
     return lexed;
   }
 
   LexerValue? getToken(TokenValue token) {
-    debugPrint('getToken: $token');
     if (temp != null) {
       var ret = temp;
       temp = null;
@@ -185,22 +181,20 @@ class Lexer implements ILexer, IReader {
     switch (token.token) {
       case Token.esc:
         temp = LexerValue('', 0, 0);
-        // escapeNext = true;
         return getEscapedToken(read());
       default:
-        if (temp != null) {
-          temp!.text += token.raw;
-          return getEscapedToken(read());
+        temp ??= LexerValue('', 0, 0);
+        temp!.text += token.raw;
+        if (!isDone) {
+          return getToken(read());
+        } else {
+          return temp;
         }
-        return null;
     }
   }
 
   LexerValue? getEscapedToken(TokenValue? token) {
-    debugPrint('getEscapedToken: $token, insideColor: $insideColor, insideBgColor: $insideBgColor');
-    debugPrint('getEscapedToken temp: $temp');
     if (token == null) {
-      // escapeNext = false;
       return null;
     }
     switch (token.token) {
@@ -221,8 +215,6 @@ class Lexer implements ILexer, IReader {
       case Token.colorTerm:
         insideColor = false;
         insideBgColor = false;
-        // escapeNext = false;
-        debugPrint('colorTerm, isDone: $isDone, temp: $temp');
         if (isDone) {
           return temp;
         }
@@ -232,29 +224,42 @@ class Lexer implements ILexer, IReader {
         }
         return next;
       case Token.literal:
-      default:
         if (insideColor) {
-          debugPrint('insideColor: $insideColor, insideBgColor: $insideBgColor, raw: ${token.raw}');
+          if (int.tryParse(token.raw) == null) {
+            temp!.text += token.raw;
+            if (isDone) {
+              return temp;
+            }
+            return getEscapedToken(read());
+          }
           if (insideBgColor) {
             temp!.bgColor = int.parse(token.raw);
           } else {
-            debugPrint('Setting fgColor: ${token.raw}');
             temp!.fgColor = int.parse(token.raw);
           }
           if (isDone) {
-            debugPrint('isDone, returning temp: $temp');
             return temp;
           }
-          debugPrint('Not isDone, reading next');
           return getEscapedToken(read());
         } else {
-          // escapeNext = false;
           temp!.text += token.raw;
           if (isDone) {
             return temp;
           }
+          if (peek().token == Token.esc) {
+            var ret = temp;
+            temp = null;
+            return ret;
+          }
           return getToken(read());
         }
+      case Token.esc:
+        // temp!.text += token.raw;
+        if (isDone) {
+          return temp;
+        }
+
+        return getEscapedToken(read());
     }
   }
 
@@ -265,7 +270,7 @@ class Lexer implements ILexer, IReader {
   bool get isDone => index >= tokens.length;
 
   @override
-  peek() {
+  TokenValue peek() {
     if (isDone) {
       throw Exception('Cannot peek at end of input');
     }
@@ -273,7 +278,7 @@ class Lexer implements ILexer, IReader {
   }
 
   @override
-  read() {
+  TokenValue read() {
     if (isDone) {
       throw Exception('Cannot read at end of input');
     }

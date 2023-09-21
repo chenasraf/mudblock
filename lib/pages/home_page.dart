@@ -40,7 +40,7 @@ class _HomePageState extends State<HomePage> with GameStoreMixin {
                           for (final segment in ColorUtils.split(line))
                             TextSpan(
                               text: segment.text,
-                              style: consoleStyle.copyWith(color: Color(segment.themedColor)),
+                              style: consoleStyle.copyWith(color: Color(segment.themedFgColor)),
                             ),
                           const TextSpan(
                             text: newline,
