@@ -4,6 +4,7 @@ import 'package:ctelnet/ctelnet.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
+import 'color_utils.dart';
 import 'consts.dart';
 
 const maxLines = 2000;
@@ -12,6 +13,8 @@ class GameStore extends ChangeNotifier {
   final List<String> _lines = [];
   late final CTelnetClient _client;
   late final ScrollController scrollController;
+  final TextEditingController input = TextEditingController();
+  final FocusNode inputFocus = FocusNode();
 
   GameStore init() {
     addLine('Connecting...');
@@ -37,7 +40,8 @@ class GameStore extends ChangeNotifier {
   }
 
   void onData(String data) {
-    debugPrint('onData: $data');
+    debugPrint('onData:   $data');
+    debugPrint('stripped: ${ColorUtils.stripColor(data)}');
     // final pattern = RegExp("$newline|$ansiEscapePattern");
     // ignore: unnecessary_string_interpolations
     final pattern = RegExp("$newline");
@@ -59,6 +63,7 @@ class GameStore extends ChangeNotifier {
   void addLine(String line) {
     _lines.add(line);
     notifyListeners();
+    scrollToEnd();
   }
 
   void send(String line) {
@@ -69,11 +74,26 @@ class GameStore extends ChangeNotifier {
   void submitInput(String text) {
     addLine(text);
     send(text);
-    scrollController.animateTo(
-      scrollController.offset,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
+    scrollToEnd();
+    selectInput();
+  }
+
+  void scrollToEnd() {
+    Future.delayed(const Duration(milliseconds: 10), () {
+      scrollController.animateTo(
+        scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 50),
+        curve: Curves.easeIn,
+      );
+    });
+  }
+
+  void selectInput() {
+    input.selection = TextSelection(
+      baseOffset: 0,
+      extentOffset: input.text.length,
     );
+    inputFocus.requestFocus();
   }
 }
 

@@ -15,17 +15,20 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Mudblock',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
       home: Scaffold(
+        appBar: AppBar(
+          title: const Text('Mudblock'),
+        ),
         body: ChangeNotifierProvider(
           create: (_) => GameStore().init(),
           builder: (context, snapshot) {
             return const HomePage();
-          }
+          },
         ),
       ),
     );

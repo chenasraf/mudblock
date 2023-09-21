@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mudblock/core/color_utils.dart';
 import 'package:provider/provider.dart';
 
 import '../core/store.dart';
@@ -11,15 +12,20 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> with GameStoreMixin {
-  final TextEditingController _input = TextEditingController();
   @override
   Widget build(BuildContext context) {
-    const textStyle = TextStyle(color: Colors.white);
-    return Material(
-      color: Colors.black,
-      child: Column(
-        children: [
-          Expanded(
+    const consoleStyle = TextStyle(
+      color: Colors.white,
+      fontFamily: 'Courier New',
+      fontSize: 16,
+    );
+    final inputStyle = consoleStyle.copyWith(color: Colors.grey);
+
+    return Column(
+      children: [
+        Expanded(
+          child: Material(
+            color: Colors.black,
             child: Consumer<GameStore>(
               builder: (context, store, child) {
                 final lines = store.lines;
@@ -30,7 +36,10 @@ class _HomePageState extends State<HomePage> with GameStoreMixin {
                     return RichText(
                       text: TextSpan(
                         children: [
-                          TextSpan(text: lines[index], style: textStyle),
+                          TextSpan(
+                            text: ColorUtils.stripColor(lines[index]),
+                            style: consoleStyle,
+                          ),
                         ],
                       ),
                     );
@@ -40,19 +49,25 @@ class _HomePageState extends State<HomePage> with GameStoreMixin {
               },
             ),
           ),
-          TextField(
-            controller: _input,
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: TextField(
+            focusNode: store.inputFocus,
+            controller: store.input,
             onSubmitted: (text) {
               store.submitInput(text);
             },
-            style: textStyle,
+            onTap: store.selectInput,
+            style: consoleStyle.copyWith(color: Colors.black),
             decoration: InputDecoration(
               hintText: 'Enter command',
-              hintStyle: textStyle.copyWith(color: Colors.grey),
+              border: const OutlineInputBorder(),
+              hintStyle: inputStyle,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
