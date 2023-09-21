@@ -33,44 +33,30 @@ class _HomePageState extends State<HomePage> with GameStoreMixin {
                 final lines = store.lines;
                 return SingleChildScrollView(
                   controller: store.scrollController,
-                  child: SelectableText.rich(
-                    TextSpan(
-                      children: [
-                        for (final line in lines) ...[
-                          for (final segment in ColorUtils.split(line))
-                            TextSpan(
-                              text: segment.text,
-                              style: consoleStyle.copyWith(color: Color(segment.themedFgColor)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SelectableText.rich(
+                      TextSpan(
+                        children: [
+                          for (final line in lines) ...[
+                            for (final segment in ColorUtils.split(line))
+                              TextSpan(
+                                text: segment.text,
+                                style: consoleStyle.copyWith(color: Color(segment.themedFgColor)),
+                              ),
+                            const TextSpan(
+                              text: newline,
+                              style: consoleStyle,
                             ),
-                          const TextSpan(
-                            text: newline,
-                            style: consoleStyle,
-                          ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                   ),
                 );
               },
             ),
           ),
-          // return ListView.builder(
-          //   controller: store.scrollController,
-          //   shrinkWrap: true,
-          //   itemBuilder: (context, index) {
-          //     return SelectableText.rich(
-          //       TextSpan(
-          //         children: [
-          //           TextSpan(
-          //             text: ColorUtils.stripColor(lines[index]),
-          //             style: consoleStyle,
-          //           ),
-          //         ],
-          //       ),
-          //     );
-          //   },
-          //   itemCount: lines.length,
-          // );
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),

@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:mudblock/core/consts.dart';
 
-import 'color_parser.dart';
+import 'parser/parser.dart';
 
 class ColorUtils {
   static stripColor(String text) {
@@ -32,11 +32,24 @@ class ColorUtils {
 
     try {
       final result = <ColoredText>[];
-      final tokenizer = Tokenizer(StringReader(line));
-      var lexer = Lexer(tokenizer);
-      final tokens = lexer.lex();
-      for (var i = 0; i < tokens.length; i++) {
-        final token = tokens[i];
+      // final tokenizer = Tokenizer(StringReader(line));
+      // var lexer = Lexer(tokenizer);
+      // final tokens = lexer.lex();
+      // for (var i = 0; i < tokens.length; i++) {
+      // final token = tokens[i];
+      // result.add(
+      // ColoredText(
+      // text: token.text,
+      // fgColor: token.fgColor,
+      // bgColor: token.bgColor,
+      // raw: token.text,
+      // ),
+      // );
+      // }
+
+      final tokens = ColorParser(line).parse();
+
+      for (final token in tokens) {
         result.add(
           ColoredText(
             text: token.text,
@@ -50,9 +63,9 @@ class ColorUtils {
       debugPrint('line:  $line');
       debugPrint('split: $result');
       return result;
-    } catch (e) {
+    } catch (e, stack) {
       debugPrint('error at line: $line');
-      debugPrint('split error: $e');
+      debugPrint('split error: $e $stack');
       return [
         ColoredText(
           text: line,
