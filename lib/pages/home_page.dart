@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mudblock/core/color_utils.dart';
 import 'package:provider/provider.dart';
 
+import '../core/consts.dart';
 import '../core/store.dart';
 
 class HomePage extends StatefulWidget {
@@ -22,6 +23,7 @@ class _HomePageState extends State<HomePage> with GameStoreMixin {
     final inputStyle = consoleStyle.copyWith(color: Colors.grey);
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
           child: Material(
@@ -29,22 +31,28 @@ class _HomePageState extends State<HomePage> with GameStoreMixin {
             child: Consumer<GameStore>(
               builder: (context, store, child) {
                 final lines = store.lines;
-                return ListView.builder(
+                return SingleChildScrollView(
                   controller: store.scrollController,
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) {
-                    return RichText(
-                      text: TextSpan(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SelectableText.rich(
+                      TextSpan(
                         children: [
-                          TextSpan(
-                            text: ColorUtils.stripColor(lines[index]),
-                            style: consoleStyle,
-                          ),
+                          for (final line in lines) ...[
+                            for (final segment in ColorUtils.split(line))
+                              TextSpan(
+                                text: segment.text,
+                                style: consoleStyle.copyWith(color: Color(segment.themedFgColor)),
+                              ),
+                            const TextSpan(
+                              text: newline,
+                              style: consoleStyle,
+                            ),
+                          ],
                         ],
                       ),
-                    );
-                  },
-                  itemCount: lines.length,
+                    ),
+                  ),
                 );
               },
             ),

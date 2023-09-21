@@ -55,6 +55,7 @@ class GameStore extends ChangeNotifier {
   }
 
   void onLine(String line) {
+    debugPrint('onLine:   $line');
     addLine(line);
   }
 
