@@ -50,56 +50,98 @@ class ColorUtils {
       final tokens = ColorParser(line).parse();
 
       for (final token in tokens) {
-        result.add(
-          ColoredText(
-            text: token.text,
-            fgColor: token.fgColor,
-            bgColor: token.bgColor,
-            raw: token.text,
-          ),
-        );
+        result.add(ColoredText.fromToken(token));
       }
 
-      debugPrint('line:  $line');
-      debugPrint('split: $result');
       return result;
     } catch (e, stack) {
-      debugPrint('error at line: $line');
-      debugPrint('split error: $e $stack');
+      debugPrint('Error at line: $line');
+      debugPrint('Split error: $e $stack');
       return [
-        ColoredText(
-          text: line,
-          fgColor: 0,
-          bgColor: 0,
-          raw: line,
-        )
+        ColoredText.defaultColor(line),
       ];
     }
   }
 }
 
-class ColoredText {
-  final String text;
-  final int fgColor;
-  final int bgColor;
-  final String raw;
-
+class ColoredText extends ColorToken {
   ColoredText({
-    required this.text,
-    required this.fgColor,
-    required this.bgColor,
-    required this.raw,
+    required super.text,
+    required super.fgColor,
+    required super.bgColor,
+    super.bold = false,
+    super.italic = false,
+    super.underline = false,
+    super.xterm256 = false,
   });
 
-  int get themedFgColor => fgColor == 0 ? _colorMap[15]! : (_colorMap[fgColor] ?? _colorMap[15]!);
-  int get themedBgColor => _colorMap[bgColor] ?? _colorMap[0]!;
+  factory ColoredText.empty() => ColoredText(text: '', fgColor: 0, bgColor: 0);
+  factory ColoredText.defaultColor(String text) => ColoredText(text: text, fgColor: 0, bgColor: 0);
+  factory ColoredText.fromToken(ColorToken token) => ColoredText(
+        text: token.text,
+        fgColor: token.fgColor,
+        bgColor: token.bgColor,
+        bold: token.bold,
+        italic: token.italic,
+        underline: token.underline,
+        xterm256: token.xterm256,
+      );
 
-  @override
-  String toString() => 'ColoredText($text, $fgColor, $bgColor, $raw)';
+  int get themedFgColor {
+    if (xterm256) {
+      debugPrint("themedFgColor: $xterm256, fgColor: $fgColor");
+    }
+    return xterm256 ? (xtermColorMap[fgColor] ?? xtermColorMap[15]!) : (ansiFgColorMap[fgColor] ?? ansiFgColorMap[97]!);
+  }
+
+  int get themedBgColor => ansiBgColorMap[bgColor] ?? ansiBgColorMap[40]!;
 }
 
+/// map of ansi colors to flutter color ints
+const ansiFgColorMap = {
+  30: 0xFF000000,
+  31: 0xFF800000,
+  32: 0xFF008000,
+  33: 0xFF808000,
+  34: 0xFF000080,
+  35: 0xFF800080,
+  36: 0xFF008080,
+  37: 0xFFC0C0C0,
+  90: 0xFF808080,
+  91: 0xFFFF0000,
+  92: 0xFF00FF00,
+  93: 0xFFFFFF00,
+  94: 0xFF0000FF,
+  95: 0xFFFF00FF,
+  96: 0xFF00FFFF,
+  97: 0xFFFFFFFF,
+};
+
+const ansiBgColorMap = {
+  40: 0xFF000000,
+  41: 0xFF800000,
+  42: 0xFF008000,
+  43: 0xFF808000,
+  44: 0xFF000080,
+  45: 0xFF800080,
+  46: 0xFF008080,
+  47: 0xFFC0C0C0,
+  100: 0xFF808080,
+  101: 0xFFFF0000,
+  102: 0xFF00FF00,
+  103: 0xFFFFFF00,
+  104: 0xFF0000FF,
+  105: 0xFFFF00FF,
+  106: 0xFF00FFFF,
+  107: 0xFFFFFFFF,
+};
+
+const bold = 1;
+const italic = 3;
+const underline = 4;
+
 /// map of xterm 256 colors to flutter color ints
-const _colorMap = {
+const xtermColorMap = {
   0: 0xFF000000,
   1: 0xFF800000,
   2: 0xFF008000,

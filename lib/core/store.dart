@@ -4,7 +4,6 @@ import 'package:ctelnet/ctelnet.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
-import 'color_utils.dart';
 import 'consts.dart';
 
 const maxLines = 2000;
@@ -19,10 +18,10 @@ class GameStore extends ChangeNotifier {
   GameStore init() {
     addLine('Connecting...');
     _client = CTelnetClient(
-      // host: 'aardmud.org',
-      // port: 23,
-      host: 'smud.ourmmo.com',
-      port: 3000,
+      host: 'aardmud.org',
+      port: 23,
+      // host: 'smud.ourmmo.com',
+      // port: 3000,
       onConnect: _onConnect,
       onDisconnect: onDisconnect,
       onData: onData,
@@ -42,8 +41,6 @@ class GameStore extends ChangeNotifier {
   }
 
   void onData(Message data) {
-    debugPrint('onData:   $data');
-    debugPrint('stripped: ${ColorUtils.stripColor(data.toString())}');
     // final pattern = RegExp("$newline|$ansiEscapePattern");
     // ignore: unnecessary_string_interpolations
     final pattern = RegExp("($cr$lf)|($lf$cr)|$cr|$lf");
@@ -57,7 +54,6 @@ class GameStore extends ChangeNotifier {
   }
 
   void onLine(String line) {
-    debugPrint('onLine:   $line');
     addLine(line);
   }
 
@@ -72,7 +68,6 @@ class GameStore extends ChangeNotifier {
   void echo(String line) => addLine(line);
 
   void send(String line) {
-    debugPrint('send: $line');
     _client.send(line + newline);
   }
 

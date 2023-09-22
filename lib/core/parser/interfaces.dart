@@ -63,6 +63,7 @@ abstract class IReader<T> {
   int get length;
   int get index;
   bool get isDone;
+  void setPosition(int originalIndex);
 }
 
 abstract class ITokenizer {

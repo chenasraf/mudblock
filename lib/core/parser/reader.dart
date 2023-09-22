@@ -29,5 +29,10 @@ class StringReader implements IReader<String> {
     }
     return input[index++];
   }
+
+  @override
+  void setPosition(int position) {
+    index = position;
+  }
 }
 

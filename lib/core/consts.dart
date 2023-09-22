@@ -5,3 +5,7 @@ const lf = '\n';
 // final esc = String.fromCharCodes([0xff]);
 const esc = '\x1B';
 const colorPatternRaw = r'\[\d*m';
+
+const boldByte = 1;
+const italicByte = 3;
+const underlineByte = 4;

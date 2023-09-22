@@ -8,16 +8,36 @@ class ColorToken {
   String text;
   int fgColor;
   int bgColor;
+  bool bold;
+  bool italic;
+  bool underline;
+  bool xterm256;
 
-  ColorToken(this.text, this.fgColor, this.bgColor);
+  ColorToken({
+    required this.text,
+    required this.fgColor,
+    required this.bgColor,
+    this.bold = false,
+    this.italic = false,
+    this.underline = false,
+    this.xterm256 = false,
+  });
 
-  factory ColorToken.empty() => ColorToken('', 0, 0);
+  factory ColorToken.empty() => ColorToken(text: '', fgColor: 0, bgColor: 0);
+  factory ColorToken.defaultColor(String text) => ColorToken(text: text, fgColor: 0, bgColor: 0);
 
   bool get isEmpty => text.isEmpty;
   bool get isNotEmpty => !isEmpty;
 
   @override
-  String toString() => 'ColorToken("$text", $fgColor:$bgColor)';
+  String toString() {
+    final b = bold ? 'b' : '';
+    final i = italic ? 'i' : '';
+    final u = underline ? 'u' : '';
+    final x = xterm256 ? 'x' : '';
+    final flags = '$b$i$u$x';
+    return 'ColoredText("$text", $fgColor:$bgColor, $flags)';
+  }
 
   @override
   int get hashCode => text.hashCode ^ fgColor.hashCode ^ bgColor.hashCode;
@@ -45,6 +65,9 @@ class ColorParser implements IReader {
     while (!reader.isDone) {
       final token = reader.read();
       var cur = getToken(token);
+      if (cur.xterm256) {
+        debugPrint('xterm256: $cur');
+      }
       lexed.add(cur);
     }
     return lexed;
@@ -66,14 +89,34 @@ class ColorParser implements IReader {
             final color = consumeUntil('m');
             reader.read();
             final colors = color.split(';');
-            debugPrint('colors: $colors');
             if (colors.length == 1) {
-              token.fgColor = int.tryParse(colors[0]) ?? 0;
+              final code = int.tryParse(colors[0]) ?? 0;
+              if (code == consts.boldByte) {
+                token.bold = true;
+              } else if (code == consts.italicByte) {
+                token.italic = true;
+              } else if (code == consts.underlineByte) {
+                token.underline = true;
+              } else {
+                token.fgColor = int.tryParse(colors[0]) ?? 0;
+              }
             } else if (colors.length == 2) {
-              // token.bgColor = int.tryParse(colors[0]) ?? 1;
+              token.bgColor = int.tryParse(colors[0]) ?? 1;
               token.fgColor = int.tryParse(colors[1]) ?? 0;
+            } else if (colors.length == 3) {
+              if (colors[0] == '38' && colors[1] == '5') {
+                token.xterm256 = true;
+                token.fgColor = int.tryParse(colors[2]) ?? 0;
+                debugPrint('xterm colors: $colors, fgColor: ${token.fgColor}, text: ${peekUntil(consts.esc)}');
+              } else {
+                token.bgColor = int.tryParse(colors[0]) ?? 1;
+                token.fgColor = int.tryParse(colors[1]) ?? 0;
+              }
             }
             token.text = consumeUntil(consts.esc);
+            if (token.xterm256) {
+              debugPrint("Returning xterm256 token: $token");
+            }
             return token;
           }
           if (next == null) {
@@ -108,6 +151,28 @@ class ColorParser implements IReader {
     return result;
   }
 
+  String peekUntil(String char) {
+    String? next = reader.peek();
+    if (next == null) {
+      return '';
+    }
+    var result = '';
+    var originalIndex = reader.index;
+    while (!reader.isDone) {
+      if (next == char) {
+        break;
+      }
+      next = reader.peek();
+      if (next == null) {
+        break;
+      }
+      result += reader.read();
+      next = reader.peek();
+    }
+    reader.setPosition(originalIndex);
+    return result;
+  }
+
   @override
   int index = 0;
 
@@ -122,5 +187,8 @@ class ColorParser implements IReader {
 
   @override
   int get length => _tokens.length;
+
+  @override
+  setPosition(int position) => index = position;
 }
 
