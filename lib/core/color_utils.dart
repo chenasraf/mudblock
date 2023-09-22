@@ -91,8 +91,8 @@ class ColoredText {
     required this.raw,
   });
 
-  int get themedFgColor => _colorMap[fgColor] ?? fgColor;
-  int get themedBgColor => _colorMap[bgColor] ?? bgColor;
+  int get themedFgColor => fgColor == 0 ? _colorMap[15]! : (_colorMap[fgColor] ?? _colorMap[15]!);
+  int get themedBgColor => _colorMap[bgColor] ?? _colorMap[0]!;
 
   @override
   String toString() => 'ColoredText($text, $fgColor, $bgColor, $raw)';
@@ -100,8 +100,7 @@ class ColoredText {
 
 /// map of xterm 256 colors to flutter color ints
 const _colorMap = {
-  // 0: 0xFF000000,
-  0: 0xFFFFFFFF,
+  0: 0xFF000000,
   1: 0xFF800000,
   2: 0xFF008000,
   3: 0xFF808000,

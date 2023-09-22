@@ -19,6 +19,8 @@ class GameStore extends ChangeNotifier {
   GameStore init() {
     addLine('Connecting...');
     _client = CTelnetClient(
+      // host: 'aardmud.org',
+      // port: 23,
       host: 'smud.ourmmo.com',
       port: 3000,
       onConnect: _onConnect,
@@ -39,19 +41,19 @@ class GameStore extends ChangeNotifier {
     addLine('Disconnected');
   }
 
-  void onData(String data) {
+  void onData(Message data) {
     debugPrint('onData:   $data');
-    debugPrint('stripped: ${ColorUtils.stripColor(data)}');
+    debugPrint('stripped: ${ColorUtils.stripColor(data.toString())}');
     // final pattern = RegExp("$newline|$ansiEscapePattern");
     // ignore: unnecessary_string_interpolations
-    final pattern = RegExp("$newline");
-    for (final line in data.split(pattern)) {
+    final pattern = RegExp("($cr$lf)|($lf$cr)|$cr|$lf");
+    for (final line in data.text.split(pattern)) {
       onLine(line);
     }
   }
 
   void onError(Object error) {
-    onData('Error: $error');
+    onError('Error: $error');
   }
 
   void onLine(String line) {
@@ -66,6 +68,8 @@ class GameStore extends ChangeNotifier {
     notifyListeners();
     scrollToEnd();
   }
+
+  void echo(String line) => addLine(line);
 
   void send(String line) {
     debugPrint('send: $line');

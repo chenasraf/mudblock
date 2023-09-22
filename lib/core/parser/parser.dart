@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import 'interfaces.dart';
 import 'reader.dart';
 import '../consts.dart' as consts;
@@ -64,11 +66,12 @@ class ColorParser implements IReader {
             final color = consumeUntil('m');
             reader.read();
             final colors = color.split(';');
-            if (colors.isNotEmpty) {
+            debugPrint('colors: $colors');
+            if (colors.length == 1) {
               token.fgColor = int.tryParse(colors[0]) ?? 0;
-            }
-            if (colors.length == 2) {
-              token.bgColor = int.tryParse(colors[1]) ?? 0;
+            } else if (colors.length == 2) {
+              // token.bgColor = int.tryParse(colors[0]) ?? 1;
+              token.fgColor = int.tryParse(colors[1]) ?? 0;
             }
             token.text = consumeUntil(consts.esc);
             return token;
