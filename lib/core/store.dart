@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:io';
 
 import 'package:ctelnet/ctelnet.dart';
 import 'package:flutter/widgets.dart';
@@ -14,6 +15,8 @@ class GameStore extends ChangeNotifier {
   late final ScrollController scrollController;
   final TextEditingController input = TextEditingController();
   final FocusNode inputFocus = FocusNode();
+  bool awaitingCompression = false;
+  bool isCompressed = false;
 
   GameStore init() {
     addLine('Connecting...');
@@ -34,6 +37,14 @@ class GameStore extends ChangeNotifier {
 
   void _onConnect() {
     addLine('Connected');
+    // TODO this should wait for the IAC DO MCCP response from server before attempting request
+    // requestMCCP();
+  }
+
+  void requestMCCP() {
+    debugPrint('requestMCCP');
+    sendBytes([Symbols.iac, Symbols.doo, 86]);
+    awaitingCompression = true;
   }
 
   void onDisconnect() {
@@ -41,10 +52,31 @@ class GameStore extends ChangeNotifier {
   }
 
   void onData(Message data) {
-    // final pattern = RegExp("$newline|$ansiEscapePattern");
-    // ignore: unnecessary_string_interpolations
+    debugPrint('text: ${data.text}');
+    debugPrint('subnegotiations: ${data.data.subnegotiations}');
+
+    if (isCompressed) {
+      data = Message(ZLibDecoder().convert(data.bytes));
+    }
+
+    if (awaitingCompression) {
+      var subs = data.data.subnegotiations.indexWhere((element) => element.length == 2 && element[0] == Symbols.sb);
+      if (subs != -1) {
+        awaitingCompression = false;
+        isCompressed = true;
+        addLine('Compression enabled');
+      }
+    } else {
+      var subs = data.data.subnegotiations
+          .indexWhere((element) => element.length == 2 && element[0] == Symbols.will && element[1] == 86);
+      if (subs != -1) {
+        requestMCCP();
+        addLine('Compression requested');
+      }
+    }
+
     final pattern = RegExp("($cr$lf)|($lf$cr)|$cr|$lf");
-    for (final line in data.text.split(pattern)) {
+    for (final line in data.text.trimRight().split(pattern)) {
       onLine(line);
     }
   }
@@ -67,8 +99,20 @@ class GameStore extends ChangeNotifier {
 
   void echo(String line) => addLine(line);
 
+  void sendBytes(List<int> bytes) {
+    // var output = isCompressed ? ZLibEncoder().convert([Symbols.iac, Symbols.sb] + bytes) : bytes;
+    var output = bytes;
+    _client.sendBytes(output);
+  }
+
   void send(String line) {
-    _client.send(line + newline);
+    if (isCompressed) {
+      debugPrint('sending bytes${isCompressed ? ' (compressed)' : ''}: $line');
+      sendBytes(line.codeUnits + newline.codeUnits);
+    } else {
+      debugPrint('sending string: $line');
+      _client.send(line + newline);
+    }
   }
 
   void submitInput(String text) {
@@ -79,7 +123,7 @@ class GameStore extends ChangeNotifier {
   }
 
   void scrollToEnd() {
-    Future.delayed(const Duration(milliseconds: 10), () {
+    Future.delayed(const Duration(milliseconds: 50), () {
       scrollController.animateTo(
         scrollController.position.maxScrollExtent,
         duration: const Duration(milliseconds: 50),

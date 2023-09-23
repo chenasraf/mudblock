@@ -88,9 +88,6 @@ class ColoredText extends ColorToken {
       );
 
   int get themedFgColor {
-    if (xterm256) {
-      debugPrint("themedFgColor: $xterm256, fgColor: $fgColor");
-    }
     return xterm256 ? (xtermColorMap[fgColor] ?? xtermColorMap[15]!) : (ansiFgColorMap[fgColor] ?? ansiFgColorMap[97]!);
   }
 

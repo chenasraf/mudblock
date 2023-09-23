@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 import 'interfaces.dart';
 import 'reader.dart';
 import '../consts.dart' as consts;
@@ -65,9 +63,6 @@ class ColorParser implements IReader {
     while (!reader.isDone) {
       final token = reader.read();
       var cur = getToken(token);
-      if (cur.xterm256) {
-        debugPrint('xterm256: $cur');
-      }
       lexed.add(cur);
     }
     return lexed;
@@ -107,16 +102,12 @@ class ColorParser implements IReader {
               if (colors[0] == '38' && colors[1] == '5') {
                 token.xterm256 = true;
                 token.fgColor = int.tryParse(colors[2]) ?? 0;
-                debugPrint('xterm colors: $colors, fgColor: ${token.fgColor}, text: ${peekUntil(consts.esc)}');
               } else {
                 token.bgColor = int.tryParse(colors[0]) ?? 1;
                 token.fgColor = int.tryParse(colors[1]) ?? 0;
               }
             }
             token.text = consumeUntil(consts.esc);
-            if (token.xterm256) {
-              debugPrint("Returning xterm256 token: $token");
-            }
             return token;
           }
           if (next == null) {
@@ -151,27 +142,27 @@ class ColorParser implements IReader {
     return result;
   }
 
-  String peekUntil(String char) {
-    String? next = reader.peek();
-    if (next == null) {
-      return '';
-    }
-    var result = '';
-    var originalIndex = reader.index;
-    while (!reader.isDone) {
-      if (next == char) {
-        break;
-      }
-      next = reader.peek();
-      if (next == null) {
-        break;
-      }
-      result += reader.read();
-      next = reader.peek();
-    }
-    reader.setPosition(originalIndex);
-    return result;
-  }
+  // String peekUntil(String char) {
+  //   String? next = reader.peek();
+  //   if (next == null) {
+  //     return '';
+  //   }
+  //   var result = '';
+  //   var originalIndex = reader.index;
+  //   while (!reader.isDone) {
+  //     if (next == char) {
+  //       break;
+  //     }
+  //     next = reader.peek();
+  //     if (next == null) {
+  //       break;
+  //     }
+  //     result += reader.read();
+  //     next = reader.peek();
+  //   }
+  //   reader.setPosition(originalIndex);
+  //   return result;
+  // }
 
   @override
   int index = 0;

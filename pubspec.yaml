@@ -48,6 +48,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^2.0.0
+  btool: ^0.1.2
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -88,3 +89,26 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+fonts:
+  - family: Menlo
+    fonts:
+      - asset: assets/fonts/Menlo.ttc
+
+script_runner:
+  scripts:
+    - build:apk: flutter build apk
+    - name: get-version
+      cmd: dart run btool get packageVersion
+      suppress_header_output: true
+    - name: get-name
+      cmd: dart run btool get packageName
+      suppress_header_output: true
+    - push: 'version=$(get-version); echo "Pushing mudblock-$version.apk"; adb push build/app/outputs/flutter-apk/app-release.apk /sdcard/Download/mudblock-${version}.apk'
+    - install: adb install build/app/outputs/flutter-apk/app-release.apk
+    - to-device: build:apk && push && install
+    - auto-fix: dart fix --apply
+    - format: flutter format -l 100 --fix lib/ test/
+    - gen:page: npx simple-scaffold@latest -t templates/page -o lib/modules -s true
+    - gen:model: npx simple-scaffold@latest -t templates/model -o lib/models -s false
+    - gen:widget: npx simple-scaffold@latest -t templates/widget -o lib/widgets -s false
+    - gen:icons: flutter pub run icons_launcher:create

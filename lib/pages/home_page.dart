@@ -17,8 +17,9 @@ class _HomePageState extends State<HomePage> with GameStoreMixin {
   Widget build(BuildContext context) {
     const consoleStyle = TextStyle(
       color: Colors.white,
-      fontFamily: 'Courier New',
+      fontFamily: 'Menlo',
       fontSize: 16,
+      fontWeight: FontWeight.w500,
     );
     final inputStyle = consoleStyle.copyWith(color: Colors.grey);
 
@@ -45,7 +46,7 @@ class _HomePageState extends State<HomePage> with GameStoreMixin {
                                 style: consoleStyle.copyWith(
                                   color: Color(segment.themedFgColor),
                                   backgroundColor: Color(segment.themedBgColor),
-                                  fontWeight: segment.bold ? FontWeight.bold : null,
+                                  fontWeight: segment.bold ? FontWeight.w800 : null,
                                   fontStyle: segment.italic ? FontStyle.italic : null,
                                   decoration: segment.underline ? TextDecoration.underline : null,
                                 ),
