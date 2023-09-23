@@ -1,6 +1,9 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:mudblock/core/color_utils.dart';
 import 'package:provider/provider.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../core/consts.dart';
 import '../core/store.dart';
@@ -12,7 +15,19 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with GameStoreMixin {
+class _HomePageState extends State<HomePage> with GameStoreMixin, WindowListener {
+  @override
+  void initState() {
+    super.initState();
+    windowManager.addListener(this);
+  }
+
+  @override
+  void dispose() {
+    windowManager.removeListener(this);
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     const consoleStyle = TextStyle(
@@ -20,6 +35,7 @@ class _HomePageState extends State<HomePage> with GameStoreMixin {
       fontFamily: 'Menlo',
       fontSize: 16,
       fontWeight: FontWeight.w500,
+      height: 1,
     );
     final inputStyle = consoleStyle.copyWith(color: Colors.grey);
 
@@ -32,31 +48,43 @@ class _HomePageState extends State<HomePage> with GameStoreMixin {
             child: Consumer<GameStore>(
               builder: (context, store, child) {
                 final lines = store.lines;
-                return SingleChildScrollView(
-                  controller: store.scrollController,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: SelectableText.rich(
-                      TextSpan(
-                        children: [
-                          for (final line in lines) ...[
-                            for (final segment in ColorUtils.split(line))
-                              TextSpan(
-                                text: segment.text,
-                                style: consoleStyle.copyWith(
-                                  color: Color(segment.themedFgColor),
-                                  backgroundColor: Color(segment.themedBgColor),
-                                  fontWeight: segment.bold ? FontWeight.w800 : null,
-                                  fontStyle: segment.italic ? FontStyle.italic : null,
-                                  decoration: segment.underline ? TextDecoration.underline : null,
+                return Theme(
+                  data: Theme.of(context).copyWith(
+                    textSelectionTheme: TextSelectionThemeData(
+                      cursorColor: Colors.white,
+                      selectionColor: Colors.white.withOpacity(0.3),
+                      selectionHandleColor: Colors.white,
+                    ),
+                  ),
+                  child: SingleChildScrollView(
+                    controller: store.scrollController,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: SelectableText.rich(
+                        TextSpan(
+                          children: [
+                            for (final line in lines) ...[
+                              for (final segment in ColorUtils.split(line))
+                                TextSpan(
+                                  text: segment.text,
+                                  style: consoleStyle.copyWith(
+                                    color: Color(segment.themedFgColor),
+                                    backgroundColor: Color(segment.themedBgColor),
+                                    fontWeight: segment.bold ? FontWeight.w800 : null,
+                                    fontStyle: segment.italic ? FontStyle.italic : null,
+                                    decoration: segment.underline ? TextDecoration.underline : null,
+                                  ),
                                 ),
+                              TextSpan(
+                                text: newline,
+                                style: consoleStyle.copyWith(fontSize: 1),
                               ),
-                            const TextSpan(
-                              text: newline,
-                              style: consoleStyle,
-                            ),
+                            ],
                           ],
-                        ],
+                        ),
+                        enableInteractiveSelection: true,
+                        selectionWidthStyle: BoxWidthStyle.tight,
+                        selectionHeightStyle: BoxHeightStyle.max,
                       ),
                     ),
                   ),
@@ -68,6 +96,7 @@ class _HomePageState extends State<HomePage> with GameStoreMixin {
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: TextField(
+            autofocus: true,
             focusNode: store.inputFocus,
             controller: store.input,
             onSubmitted: (text) {
@@ -84,6 +113,12 @@ class _HomePageState extends State<HomePage> with GameStoreMixin {
         ),
       ],
     );
+  }
+
+  @override
+  void onWindowFocus() {
+    debugPrint("Window focused");
+    store.selectInput();
   }
 }
 

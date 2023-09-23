@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:math';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:ctelnet/ctelnet.dart';
 import 'package:flutter/widgets.dart';
@@ -10,21 +12,22 @@ import 'consts.dart';
 const maxLines = 2000;
 
 class GameStore extends ChangeNotifier {
+  bool mccpEnabled = false;
   final List<String> _lines = [];
   late final CTelnetClient _client;
   late final ScrollController scrollController;
   final TextEditingController input = TextEditingController();
   final FocusNode inputFocus = FocusNode();
-  bool awaitingCompression = false;
   bool isCompressed = false;
+  final ZLibDecoder decoder = ZLibDecoder();
 
   GameStore init() {
     addLine('Connecting...');
     _client = CTelnetClient(
-      host: 'aardmud.org',
-      port: 23,
-      // host: 'smud.ourmmo.com',
-      // port: 3000,
+      // host: 'aardmud.org',
+      // port: 23,
+      host: 'smud.ourmmo.com',
+      port: 3000,
       onConnect: _onConnect,
       onDisconnect: onDisconnect,
       onData: onData,
@@ -37,14 +40,11 @@ class GameStore extends ChangeNotifier {
 
   void _onConnect() {
     addLine('Connected');
-    // TODO this should wait for the IAC DO MCCP response from server before attempting request
-    // requestMCCP();
   }
 
   void requestMCCP() {
     debugPrint('requestMCCP');
     sendBytes([Symbols.iac, Symbols.doo, 86]);
-    awaitingCompression = true;
   }
 
   void onDisconnect() {
@@ -52,32 +52,63 @@ class GameStore extends ChangeNotifier {
   }
 
   void onData(Message data) {
-    debugPrint('text: ${data.text}');
-    debugPrint('subnegotiations: ${data.data.subnegotiations}');
+    try {
+      debugPrint('text: ${data.text}');
+      debugPrint('subnegotiations: ${data.data.subnegotiations}');
 
-    if (isCompressed) {
-      data = Message(ZLibDecoder().convert(data.bytes));
+      if (mccpEnabled && isCompressed) {
+        data = decompressData(data);
+      }
+      if (mccpEnabled) {
+        handleMCCPHandshake(data);
+      }
+
+      final pattern = RegExp("($cr$lf)|($lf$cr)|$cr|$lf");
+      for (final line in data.text.trimRight().split(pattern)) {
+        onLine(line);
+      }
+    } catch (e, stack) {
+      debugPrint('error: $e$newline$stack');
+      addLine(data.text);
+      addLine('Error: $e');
     }
+  }
 
-    if (awaitingCompression) {
-      var subs = data.data.subnegotiations.indexWhere((element) => element.length == 2 && element[0] == Symbols.sb);
-      if (subs != -1) {
-        awaitingCompression = false;
+  final Converter<List<int>, List<int>> _decoder = ZLibDecoder();
+
+  Message decompressData(Message data) {
+    var bytes = data.data.bytes;
+    // bytes = utf8.decode(bytes).codeUnits;
+    bytes = bytes;
+    bytes = base64.decode(bytes.toString());
+    // String.from
+    debugPrint('attempting to decompress');
+    debugPrint('data: $bytes');
+    debugPrint('string: ${String.fromCharCodes(bytes)}');
+    return Message(_decoder.convert(bytes));
+  }
+
+  void handleMCCPHandshake(Message data) {
+    if (isCompressed) {
+      var seMccpIdx =
+          data.data.subnegotiations.indexWhere((element) => element.length == 2 && element[0] == Symbols.se);
+      if (seMccpIdx != -1) {
+        addLine('Compression disabled');
+        isCompressed = false;
+      }
+    } else {
+      var sbMccpIdx = data.data.subnegotiations
+          .indexWhere((element) => element.length == 2 && element[0] == Symbols.sb && element[1] == 86);
+      if (sbMccpIdx != -1) {
         isCompressed = true;
         addLine('Compression enabled');
       }
-    } else {
-      var subs = data.data.subnegotiations
+      var willMccpIdx = data.data.subnegotiations
           .indexWhere((element) => element.length == 2 && element[0] == Symbols.will && element[1] == 86);
-      if (subs != -1) {
+      if (willMccpIdx != -1) {
         requestMCCP();
         addLine('Compression requested');
       }
-    }
-
-    final pattern = RegExp("($cr$lf)|($lf$cr)|$cr|$lf");
-    for (final line in data.text.trimRight().split(pattern)) {
-      onLine(line);
     }
   }
 
@@ -100,7 +131,6 @@ class GameStore extends ChangeNotifier {
   void echo(String line) => addLine(line);
 
   void sendBytes(List<int> bytes) {
-    // var output = isCompressed ? ZLibEncoder().convert([Symbols.iac, Symbols.sb] + bytes) : bytes;
     var output = bytes;
     _client.sendBytes(output);
   }
@@ -137,6 +167,7 @@ class GameStore extends ChangeNotifier {
       baseOffset: 0,
       extentOffset: input.text.length,
     );
+    inputFocus.previousFocus();
     inputFocus.requestFocus();
   }
 }
