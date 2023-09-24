@@ -141,6 +141,7 @@ class GameStore extends ChangeNotifier {
 
   void requestMCCP() {
     debugPrint('requestMCCP');
+    _client.doo(86);
     sendBytes([Symbols.iac, Symbols.doo, 86]);
   }
 
@@ -151,7 +152,7 @@ class GameStore extends ChangeNotifier {
   void onData(Message data) {
     try {
       debugPrint('text: ${data.text}');
-      debugPrint('subnegotiations: ${data.data.subnegotiations}');
+      debugPrint('commands: ${data.commands}');
 
       if (mccpEnabled && isCompressed) {
         data = decompressData(data);
@@ -174,7 +175,7 @@ class GameStore extends ChangeNotifier {
   final Converter<List<int>, List<int>> _decoder = ZLibDecoder();
 
   Message decompressData(Message data) {
-    var bytes = data.data.bytes;
+    var bytes = data.bytes;
     // bytes = utf8.decode(bytes).codeUnits;
     bytes = bytes;
     bytes = base64.decode(bytes.toString());
@@ -187,22 +188,16 @@ class GameStore extends ChangeNotifier {
 
   void handleMCCPHandshake(Message data) {
     if (isCompressed) {
-      var seMccpIdx =
-          data.data.subnegotiations.indexWhere((element) => element.length == 2 && element[0] == Symbols.se);
-      if (seMccpIdx != -1) {
+      if (data.se()) {
         addLine('Compression disabled');
         isCompressed = false;
       }
     } else {
-      var sbMccpIdx = data.data.subnegotiations
-          .indexWhere((element) => element.length == 2 && element[0] == Symbols.sb && element[1] == 86);
-      if (sbMccpIdx != -1) {
+      if (data.sb(86)) {
         isCompressed = true;
         addLine('Compression enabled');
       }
-      var willMccpIdx = data.data.subnegotiations
-          .indexWhere((element) => element.length == 2 && element[0] == Symbols.will && element[1] == 86);
-      if (willMccpIdx != -1) {
+      if (data.will(86)) {
         requestMCCP();
         addLine('Compression requested');
       }
