@@ -96,17 +96,13 @@ class GameStore extends ChangeNotifier {
   bool processTriggers(BuildContext context, String line) {
     bool showLine = true;
     final str = ColorUtils.stripColor(line);
-    debugPrint('Processing triggers for: $str');
     for (final trigger in triggers) {
       if (!trigger.enabled) {
         continue;
       }
-      debugPrint('trigger: ${trigger.pattern}');
       if (trigger.matches(str)) {
-        debugPrint('trigger matches: ${trigger.pattern}');
         trigger.invokeEffect(context, str);
         if (trigger.isRemovedFromBuffer) {
-          debugPrint('line is removed from buffer');
           showLine = false;
         }
       }
@@ -118,20 +114,15 @@ class GameStore extends ChangeNotifier {
   bool processAliases(BuildContext context, String line) {
     bool sendLine = true;
     final str = line;
-    debugPrint('Processing aliases for: $str');
     for (final alias in aliases) {
       if (!alias.enabled) {
         continue;
       }
-      debugPrint('alias: ${alias.pattern}');
       if (alias.matches(str)) {
-        debugPrint('alias matches: ${alias.pattern}');
         alias.invokeEffect(context, str);
-        debugPrint('line is removed from buffer');
         sendLine = false;
       }
     }
-    debugPrint('');
     return sendLine;
   }
 
@@ -151,9 +142,6 @@ class GameStore extends ChangeNotifier {
 
   void onData(Message data) {
     try {
-      debugPrint('text: ${data.text}');
-      debugPrint('commands: ${data.commands}');
-
       if (mccpEnabled && isCompressed) {
         data = decompressData(data);
       }
