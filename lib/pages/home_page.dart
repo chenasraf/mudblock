@@ -118,7 +118,10 @@ class HomePageState extends State<HomePage> with GameStoreMixin, WindowListener 
               ),
               IconButton(
                 icon: const Icon(Icons.bug_report),
-                onPressed: store.loadTriggers,
+                onPressed: () {
+                  store.loadTriggers();
+                  store.loadAliases();
+                },
               ),
             ],
           ),

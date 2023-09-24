@@ -25,6 +25,8 @@ class GameStore extends ChangeNotifier {
   bool isCompressed = false;
   final ZLibDecoder decoder = ZLibDecoder();
   final List<Trigger> triggers = [];
+  final List<Trigger> aliases = [];
+  HomePageState get home => homeKey.currentState as HomePageState;
 
   MUDProfile? _currentProfile;
   MUDProfile get currentProfile => _currentProfile!;
@@ -50,6 +52,7 @@ class GameStore extends ChangeNotifier {
     );
     scrollController = ScrollController();
     loadTriggers();
+    loadAliases();
     _client.connect();
     return this;
   }
@@ -75,6 +78,21 @@ class GameStore extends ChangeNotifier {
     debugPrint('triggers: ${triggers.length}');
   }
 
+  void loadAliases() {
+    aliases.clear();
+    aliases.addAll(
+      [
+        Trigger(
+          id: 'hello',
+          pattern: r'^hello|^hi',
+          action: const MUDAction('Hello, world!', sendTo: MUDActionTarget.world),
+          isRegex: true,
+        ),
+      ],
+    );
+    debugPrint('aliases: ${aliases.length}');
+  }
+
   bool processTriggers(BuildContext context, String line) {
     bool showLine = true;
     final str = ColorUtils.stripColor(line);
@@ -97,6 +115,26 @@ class GameStore extends ChangeNotifier {
     return showLine;
   }
 
+  bool processAliases(BuildContext context, String line) {
+    bool sendLine = true;
+    final str = line;
+    debugPrint('Processing aliases for: $str');
+    for (final alias in aliases) {
+      if (!alias.enabled) {
+        continue;
+      }
+      debugPrint('alias: ${alias.pattern}');
+      if (alias.matches(str)) {
+        debugPrint('alias matches: ${alias.pattern}');
+        alias.invokeEffect(context, str);
+        debugPrint('line is removed from buffer');
+        sendLine = false;
+      }
+    }
+    debugPrint('');
+    return sendLine;
+  }
+
   void _onConnect() {
     addLine('Connected');
   }
@@ -112,7 +150,6 @@ class GameStore extends ChangeNotifier {
 
   void onData(Message data) {
     try {
-      final home = homeKey.currentState as HomePageState;
       debugPrint('text: ${data.text}');
       debugPrint('subnegotiations: ${data.data.subnegotiations}');
 
@@ -198,19 +235,31 @@ class GameStore extends ChangeNotifier {
     _client.sendBytes(output);
   }
 
+  void sendString(String line) {
+    _client.send(line + newline);
+  }
+
   void send(String line) {
     if (isCompressed) {
       debugPrint('sending bytes${isCompressed ? ' (compressed)' : ''}: $line');
       sendBytes(line.codeUnits + newline.codeUnits);
     } else {
       debugPrint('sending string: $line');
-      _client.send(line + newline);
+      sendString(line);
+    }
+  }
+
+  void execute(String line) {
+    debugPrint('processing aliases for: $line');
+    var sendLine = processAliases(home.context, line);
+    if (sendLine) {
+      sendString(line);
     }
   }
 
   void submitInput(String text) {
     addLine(text);
-    send(text);
+    execute(text);
     scrollToEnd();
     selectInput();
   }
