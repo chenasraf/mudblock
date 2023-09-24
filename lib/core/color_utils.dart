@@ -1,52 +1,15 @@
 import 'package:flutter/foundation.dart';
-import 'package:mudblock/core/consts.dart';
 
 import 'parser/parser.dart';
 
 class ColorUtils {
   static stripColor(String text) {
-    return text
-            // esc
-            // .replaceAll(esc, '')
-            // .replaceAll(r'^[', '')
-            // color
-            .replaceAll(RegExp(esc + colorPatternRaw), '')
-
-        // color
-        // .replaceAll(RegExp(r'\[\d+m'), '')
-        // esc
-        // .replaceAll(String.fromCharCode(0xff), '');
-
-        //
-        ;
+    return split(text).map((e) => e.text).join();
   }
 
   static Iterable<ColoredText> split(String line) {
-    // return line.split(RegExp(esc + colorPatternRaw)).map(
-    //       (raw) => ColoredText(
-    //         text: stripColor(raw),
-    //         color: 0,
-    //         raw: raw,
-    //       ),
-    //     );
-
     try {
       final result = <ColoredText>[];
-      // final tokenizer = Tokenizer(StringReader(line));
-      // var lexer = Lexer(tokenizer);
-      // final tokens = lexer.lex();
-      // for (var i = 0; i < tokens.length; i++) {
-      // final token = tokens[i];
-      // result.add(
-      // ColoredText(
-      // text: token.text,
-      // fgColor: token.fgColor,
-      // bgColor: token.bgColor,
-      // raw: token.text,
-      // ),
-      // );
-      // }
-
       final tokens = ColorParser(line).parse();
 
       for (final token in tokens) {
@@ -91,7 +54,7 @@ class ColoredText extends ColorToken {
     return xterm256 ? (xtermColorMap[fgColor] ?? xtermColorMap[15]!) : (ansiFgColorMap[fgColor] ?? ansiFgColorMap[97]!);
   }
 
-  int get themedBgColor => ansiBgColorMap[bgColor] ?? ansiBgColorMap[40]!;
+  int get themedBgColor => ansiBgColorMap[bgColor] ?? 0x00000000;
 }
 
 /// map of ansi colors to flutter color ints

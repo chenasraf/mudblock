@@ -1,7 +1,9 @@
 import 'dart:ui';
 
+import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
 import 'package:mudblock/core/color_utils.dart';
+import 'package:mudblock/core/storage/shared_prefs.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -12,10 +14,10 @@ class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<HomePage> createState() => HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with GameStoreMixin, WindowListener {
+class HomePageState extends State<HomePage> with GameStoreMixin, WindowListener {
   @override
   void initState() {
     super.initState();
@@ -34,7 +36,6 @@ class _HomePageState extends State<HomePage> with GameStoreMixin, WindowListener
       color: Colors.white,
       fontFamily: 'Menlo',
       fontSize: 16,
-      fontWeight: FontWeight.w500,
       height: 1,
     );
     final inputStyle = consoleStyle.copyWith(color: Colors.grey);
@@ -56,35 +57,38 @@ class _HomePageState extends State<HomePage> with GameStoreMixin, WindowListener
                       selectionHandleColor: Colors.white,
                     ),
                   ),
-                  child: SingleChildScrollView(
-                    controller: store.scrollController,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: SelectableText.rich(
-                        TextSpan(
-                          children: [
-                            for (final line in lines) ...[
-                              for (final segment in ColorUtils.split(line))
-                                TextSpan(
-                                  text: segment.text,
-                                  style: consoleStyle.copyWith(
-                                    color: Color(segment.themedFgColor),
-                                    backgroundColor: Color(segment.themedBgColor),
-                                    fontWeight: segment.bold ? FontWeight.w800 : null,
-                                    fontStyle: segment.italic ? FontStyle.italic : null,
-                                    decoration: segment.underline ? TextDecoration.underline : null,
+                  child: GestureDetector(
+                    onTap: store.selectInput,
+                    child: SingleChildScrollView(
+                      controller: store.scrollController,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SelectableText.rich(
+                          TextSpan(
+                            children: [
+                              for (final line in lines) ...[
+                                for (final segment in ColorUtils.split(line))
+                                  TextSpan(
+                                    text: segment.text,
+                                    style: consoleStyle.copyWith(
+                                      color: Color(segment.themedFgColor),
+                                      backgroundColor: Color(segment.themedBgColor),
+                                      fontWeight: segment.bold ? FontWeight.w800 : null,
+                                      fontStyle: segment.italic ? FontStyle.italic : null,
+                                      decoration: segment.underline ? TextDecoration.underline : null,
+                                    ),
                                   ),
+                                const TextSpan(
+                                  text: newline,
+                                  style: consoleStyle, // .copyWith(fontSize: 1),
                                 ),
-                              TextSpan(
-                                text: newline,
-                                style: consoleStyle.copyWith(fontSize: 1),
-                              ),
+                              ],
                             ],
-                          ],
+                          ),
+                          enableInteractiveSelection: true,
+                          selectionWidthStyle: BoxWidthStyle.tight,
+                          selectionHeightStyle: BoxHeightStyle.max,
                         ),
-                        enableInteractiveSelection: true,
-                        selectionWidthStyle: BoxWidthStyle.tight,
-                        selectionHeightStyle: BoxHeightStyle.max,
                       ),
                     ),
                   ),
@@ -95,20 +99,28 @@ class _HomePageState extends State<HomePage> with GameStoreMixin, WindowListener
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            autofocus: true,
-            focusNode: store.inputFocus,
-            controller: store.input,
-            onSubmitted: (text) {
-              store.submitInput(text);
-            },
-            onTap: store.selectInput,
-            style: consoleStyle.copyWith(color: Colors.black),
-            decoration: InputDecoration(
-              hintText: 'Enter command',
-              border: const OutlineInputBorder(),
-              hintStyle: inputStyle,
-            ),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  autofocus: true,
+                  focusNode: store.inputFocus,
+                  controller: store.input,
+                  onSubmitted: store.submitInput,
+                  onTap: store.selectInput,
+                  style: consoleStyle.copyWith(color: Colors.black),
+                  decoration: InputDecoration(
+                    hintText: 'Enter command',
+                    border: const OutlineInputBorder(),
+                    hintStyle: inputStyle,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.bug_report),
+                onPressed: store.loadTriggers,
+              ),
+            ],
           ),
         ),
       ],
@@ -116,9 +128,25 @@ class _HomePageState extends State<HomePage> with GameStoreMixin, WindowListener
   }
 
   @override
+  onWindowBlur() {
+    debugPrint("Window blurred");
+    store.unselectInput();
+  }
+
+  @override
   void onWindowFocus() {
     debugPrint("Window focused");
     store.selectInput();
+  }
+
+  @override
+  void onWindowResize() async {
+    EasyDebounce.debounce('windowResize', const Duration(milliseconds: 500), () async {
+      final size = await windowManager.getSize();
+      debugPrint("Window resized to $size");
+      prefs.setInt('windowWidth', size.width.toInt());
+      prefs.setInt('windowHeight', size.height.toInt());
+    });
   }
 }
 

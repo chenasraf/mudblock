@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:mudblock/core/consts.dart';
 import 'package:mudblock/core/store.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
+import 'core/storage/shared_prefs.dart';
 import 'pages/home_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await getPrefs();
   await windowManager.ensureInitialized();
 
-  WindowOptions windowOptions = const WindowOptions(
-    size: Size(1000, 900),
-    center: true,
+  final w = prefs.getInt('windowWidth') ?? 1000;
+  final h = prefs.getInt('windowHeight') ?? 900;
+  final size = Size(w.toDouble(), h.toDouble());
+
+  WindowOptions windowOptions = WindowOptions(
+    size: size,
     backgroundColor: Colors.transparent,
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.hidden,
@@ -42,7 +48,7 @@ class MyApp extends StatelessWidget {
         body: ChangeNotifierProvider(
           create: (_) => GameStore().init(),
           builder: (context, snapshot) {
-            return const HomePage();
+            return HomePage(key: homeKey);
           },
         ),
       ),

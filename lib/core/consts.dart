@@ -1,3 +1,5 @@
+import 'package:flutter/widgets.dart';
+
 const newline = '\n';
 const cr = '\r';
 const lf = '\n';
@@ -9,3 +11,4 @@ const colorPatternRaw = r'\[\d*m';
 const boldByte = 1;
 const italicByte = 3;
 const underlineByte = 4;
+final homeKey = GlobalKey(debugLabel: 'Home');
