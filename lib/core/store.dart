@@ -56,13 +56,21 @@ class GameStore extends ChangeNotifier {
 
   void loadTriggers() {
     triggers.clear();
-    triggers.add(
-      Trigger(
-        id: 'test',
-        pattern: r'^You are in the ([^.]+)\. This is the ([^.]+)\.',
-        action: const MUDAction('Hello, %1, the %2!', sendTo: MUDActionTarget.world),
-        isRegex: true,
-      ),
+    triggers.addAll(
+      [
+        Trigger(
+          id: 'test',
+          pattern: r'^You are in the ([^.]+)\. This is the ([^.]+)\.',
+          action: const MUDAction('Hello, %1, the %2!', sendTo: MUDActionTarget.world),
+          isRegex: true,
+        ),
+        Trigger(
+          id: 'test2',
+          pattern: r'^exits: ([\w\s]+)',
+          action: const MUDAction('I see exits: %1', sendTo: MUDActionTarget.world),
+          isRegex: true,
+        ),
+      ],
     );
     debugPrint('triggers: ${triggers.length}');
   }
@@ -72,7 +80,10 @@ class GameStore extends ChangeNotifier {
     final str = ColorUtils.stripColor(line);
     debugPrint('Processing triggers for: $str');
     for (final trigger in triggers) {
-    debugPrint('trigger: ${trigger.pattern}');
+      if (!trigger.enabled) {
+        continue;
+      }
+      debugPrint('trigger: ${trigger.pattern}');
       if (trigger.matches(str)) {
         debugPrint('trigger matches: ${trigger.pattern}');
         trigger.invokeEffect(context, str);
@@ -101,8 +112,8 @@ class GameStore extends ChangeNotifier {
 
   void onData(Message data) {
     try {
-    final home = homeKey.currentState as HomePageState;
-    debugPrint('text: ${data.text}');
+      final home = homeKey.currentState as HomePageState;
+      debugPrint('text: ${data.text}');
       debugPrint('subnegotiations: ${data.data.subnegotiations}');
 
       if (mccpEnabled && isCompressed) {

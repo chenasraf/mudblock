@@ -5,6 +5,7 @@ import 'action.dart';
 class Trigger {
   String id;
   String pattern;
+  bool enabled;
   bool isRegex;
   bool isCaseSensitive;
   // bool isMultiLine;
@@ -14,6 +15,7 @@ class Trigger {
   MUDAction action;
 
   Trigger({
+    this.enabled = true,
     required this.id,
     required this.pattern,
     required this.action,
@@ -41,14 +43,24 @@ class Trigger {
     action.invoke(context, allMatches(line));
   }
 
-  List<String> allMatches(str) {
+  List<String> allMatches(String str) {
     if (!matches(str)) {
       return [];
     }
     if (isRegex) {
-      final regex = RegExp(pattern, caseSensitive: isCaseSensitive);
-      debugPrint('allMatches: ${regex.allMatches(str).map((m) => m.group(1)!).toList()}');
-      return regex.allMatches(str).map((m) => m.group(0)!).toList();
+      final regex = RegExp(pattern, caseSensitive: isCaseSensitive, unicode: true);
+      final rMatches = regex.allMatches(str);
+      final matches = <String>[];
+      for (var i = 0; i < rMatches.length; i++) {
+        debugPrint('${rMatches.elementAt(i).groupCount} matches in ${rMatches.elementAt(i).group(0)}');
+        for (var j = 0; j < rMatches.elementAt(i).groupCount + 1; j++) {
+          if (rMatches.elementAt(i).group(j) != null) {
+            debugPrint('Trigger.allMatches $i,$j: ${rMatches.elementAt(i).group(j)}');
+            matches.add(rMatches.elementAt(i).group(j)!);
+          }
+        }
+      }
+      return matches;
     } else {
       final input = isCaseSensitive ? str.toLowerCase() : str;
       final compare = isCaseSensitive ? pattern.toLowerCase() : pattern;
