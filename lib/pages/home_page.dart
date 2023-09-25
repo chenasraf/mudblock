@@ -17,11 +17,13 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => HomePageState();
 }
 
-class HomePageState extends State<HomePage> with GameStoreMixin, WindowListener {
+class HomePageState extends State<HomePage>
+    with GameStoreMixin, WindowListener {
   @override
   void initState() {
     super.initState();
     windowManager.addListener(this);
+    Future.delayed(Duration.zero, store.connect);
   }
 
   @override
@@ -72,15 +74,22 @@ class HomePageState extends State<HomePage> with GameStoreMixin, WindowListener 
                                     text: segment.text,
                                     style: consoleStyle.copyWith(
                                       color: Color(segment.themedFgColor),
-                                      backgroundColor: Color(segment.themedBgColor),
-                                      fontWeight: segment.bold ? FontWeight.w800 : null,
-                                      fontStyle: segment.italic ? FontStyle.italic : null,
-                                      decoration: segment.underline ? TextDecoration.underline : null,
+                                      backgroundColor:
+                                          Color(segment.themedBgColor),
+                                      fontWeight:
+                                          segment.bold ? FontWeight.w800 : null,
+                                      fontStyle: segment.italic
+                                          ? FontStyle.italic
+                                          : null,
+                                      decoration: segment.underline
+                                          ? TextDecoration.underline
+                                          : null,
                                     ),
                                   ),
                                 const TextSpan(
                                   text: newline,
-                                  style: consoleStyle, // .copyWith(fontSize: 1),
+                                  style:
+                                      consoleStyle, // .copyWith(fontSize: 1),
                                 ),
                               ],
                             ],
@@ -144,7 +153,8 @@ class HomePageState extends State<HomePage> with GameStoreMixin, WindowListener 
 
   @override
   void onWindowResize() async {
-    EasyDebounce.debounce('windowResize', const Duration(milliseconds: 500), () async {
+    EasyDebounce.debounce('windowResize', const Duration(milliseconds: 500),
+        () async {
       final size = await windowManager.getSize();
       debugPrint("Window resized to $size");
       prefs.setInt('windowWidth', size.width.toInt());

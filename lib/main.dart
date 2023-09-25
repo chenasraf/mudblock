@@ -6,6 +6,8 @@ import 'package:window_manager/window_manager.dart';
 
 import 'core/storage/shared_prefs.dart';
 import 'pages/home_page.dart';
+import 'pages/main_scaffold.dart';
+import 'pages/profile_select_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,17 +43,15 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Mudblock'),
-        ),
-        body: ChangeNotifierProvider(
-          create: (_) => GameStore().init(),
-          builder: (context, snapshot) {
+      initialRoute: '/home',
+      routes: {
+        '/select-profile': (context) => const ProfileSelectPage(),
+        '/home': (context) => MainScaffold(
+          builder: (context, _) {
             return HomePage(key: homeKey);
-          },
+          }
         ),
-      ),
+      },
     );
   }
 }

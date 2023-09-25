@@ -11,6 +11,7 @@ import '../pages/home_page.dart';
 import 'color_utils.dart';
 import 'consts.dart';
 import 'features/action.dart';
+import 'features/alias.dart';
 import 'features/profile.dart';
 import 'features/trigger.dart';
 
@@ -26,7 +27,7 @@ class GameStore extends ChangeNotifier {
   bool isCompressed = false;
   final ZLibDecoder decoder = ZLibDecoder();
   final List<Trigger> triggers = [];
-  final List<Trigger> aliases = [];
+  final List<Alias> aliases = [];
   HomePageState get home => homeKey.currentState as HomePageState;
   final msgSplitPattern = RegExp("($cr$lf)|($lf$cr)|$cr|$lf");
   final ZLibCodec _decoder = ZLibCodec();
@@ -38,19 +39,20 @@ class GameStore extends ChangeNotifier {
 
   GameStore init() {
     debugPrint('GameStore.init');
+    scrollController = ScrollController();
+    loadTriggers();
+    loadAliases();
+    return this;
+  }
+
+  void connect() async {
+    final profile =
+        await Navigator.pushNamed(homeKey.currentContext!, '/select-profile');
+    if (profile == null) {
+      return;
+    }
+    _currentProfile = profile as MUDProfile;
     echo('Connecting...');
-    final profiles = [
-      MUDProfile(id: 'local', name: 'Local', host: 'localhost', port: 4000),
-      MUDProfile(
-          id: 'smud', name: 'SimpleMUD', host: 'smud.ourmmo.com', port: 3000),
-      MUDProfile(
-          id: 'aardwolf', name: 'Aardwolf', host: 'aardmud.org', port: 23),
-      MUDProfile(
-          id: 'batmud', name: 'BatMUD', host: 'batmud.bat.org', port: 23),
-      MUDProfile(
-          id: 'dune', name: 'Dune', host: 'dune.servint.com', port: 6789),
-    ];
-    _currentProfile = profiles[2];
     _client = CTelnetClient(
       host: currentProfile.host,
       port: currentProfile.port,
@@ -59,11 +61,7 @@ class GameStore extends ChangeNotifier {
       onData: onData,
       onError: onError,
     );
-    scrollController = ScrollController();
-    loadTriggers();
-    loadAliases();
     _client.connect();
-    return this;
   }
 
   void loadTriggers() {
@@ -73,15 +71,19 @@ class GameStore extends ChangeNotifier {
         Trigger(
           id: 'test',
           pattern: r'^You are in the ([^.]+)\. This is the ([^.]+)\.',
-          action: const MUDAction('Hello, %1, the %2!',
-              sendTo: MUDActionTarget.world),
+          action: const MUDAction(
+            'Hello, %1, the %2!',
+            sendTo: MUDActionTarget.world,
+          ),
           isRegex: true,
         ),
         Trigger(
           id: 'test2',
           pattern: r'^exits: ([\w\s]+)',
-          action:
-              const MUDAction('I see exits: %1', sendTo: MUDActionTarget.world),
+          action: const MUDAction(
+            'I see exits: %1',
+            sendTo: MUDActionTarget.world,
+          ),
           isRegex: true,
         ),
       ],
@@ -93,11 +95,13 @@ class GameStore extends ChangeNotifier {
     aliases.clear();
     aliases.addAll(
       [
-        Trigger(
+        Alias(
           id: 'hello',
           pattern: r'^hello|^hi',
-          action:
-              const MUDAction('Hello, world!', sendTo: MUDActionTarget.world),
+          action: const MUDAction(
+            'Hello, world!',
+            sendTo: MUDActionTarget.world,
+          ),
           isRegex: true,
         ),
       ],
@@ -155,8 +159,6 @@ class GameStore extends ChangeNotifier {
   void onRawData(List<int> bytes) {
     try {
       final data = Message(bytes);
-      debugPrint('onRawData: ${bytes.length}');
-      debugPrint('onRawData: $data');
       handleMCCPHandshake(data);
       for (final line in data.text.trimRight().split(msgSplitPattern)) {
         onLine(home.context, line);
@@ -191,16 +193,11 @@ class GameStore extends ChangeNotifier {
   void handleMCCPHandshake(Message data) {
     if (isCompressed) {
       if (data.se()) {
-        echo('Compression disabled');
-        isCompressed = false;
-        _decodedSub.cancel();
+        disableMCCP();
       }
     } else {
       if (data.sb(86)) {
-        isCompressed = true;
-        _decodedStream = _decoder.decoder.bind(_rawStreamController.stream);
-        _decodedSub = _decodedStream.listen((data) => onRawData(data));
-        echo('Compression enabled');
+        enableMCCP();
       }
       if (data.will(86)) {
         requestMCCP();
@@ -209,8 +206,21 @@ class GameStore extends ChangeNotifier {
     }
   }
 
+  void disableMCCP() {
+    echo('Compression disabled');
+    isCompressed = false;
+    _decodedSub.cancel();
+  }
+
+  void enableMCCP() {
+    isCompressed = true;
+    _decodedStream = _decoder.decoder.bind(_rawStreamController.stream);
+    _decodedSub = _decodedStream.listen((data) => onRawData(data));
+    echo('Compression enabled');
+  }
+
   void onError(Object error) {
-    onError('Error: $error');
+    echo('Error: $error');
   }
 
   void onLine(BuildContext context, String line) {
@@ -295,4 +305,6 @@ class GameStore extends ChangeNotifier {
 mixin GameStoreMixin<T extends StatefulWidget> on State<T> {
   GameStore get store => Provider.of<GameStore>(context, listen: false);
 }
+
+final gameStore = GameStore().init();
 
