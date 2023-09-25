@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../string_utils.dart';
 import 'action.dart';
 
 class Alias {
@@ -10,7 +11,7 @@ class Alias {
   bool isCaseSensitive;
   bool isRemovedFromBuffer;
   bool isTemporary;
-  int invokeCount = 0;
+  int invokeCount;
   MUDAction action;
 
   Alias({
@@ -22,7 +23,44 @@ class Alias {
     this.isCaseSensitive = false,
     this.isRemovedFromBuffer = false,
     this.isTemporary = false,
+    this.invokeCount = 0,
   });
+
+  factory Alias.empty() => Alias(
+        id: uuid(),
+        pattern: '',
+        enabled: true,
+        isRegex: false,
+        isCaseSensitive: false,
+        isRemovedFromBuffer: false,
+        isTemporary: false,
+        invokeCount: 0,
+        action: MUDAction.empty(),
+      );
+
+  factory Alias.fromJson(Map<String, dynamic> json) => Alias(
+        id: json['id'],
+        pattern: json['pattern'],
+        enabled: json['enabled'],
+        isRegex: json['isRegex'],
+        isCaseSensitive: json['isCaseSensitive'],
+        isRemovedFromBuffer: json['isRemovedFromBuffer'],
+        isTemporary: json['isTemporary'],
+        invokeCount: json['invokeCount'],
+        action: MUDAction.fromJson(json['action']),
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'pattern': pattern,
+        'enabled': enabled,
+        'isRegex': isRegex,
+        'isCaseSensitive': isCaseSensitive,
+        'isRemovedFromBuffer': isRemovedFromBuffer,
+        'isTemporary': isTemporary,
+        'invokeCount': invokeCount,
+        'action': action.toJson(),
+      };
 
   bool matches(String line) {
     if (isRegex) {
@@ -46,7 +84,8 @@ class Alias {
       return [];
     }
     if (isRegex) {
-      final regex = RegExp(pattern, caseSensitive: isCaseSensitive, unicode: true);
+      final regex =
+          RegExp(pattern, caseSensitive: isCaseSensitive, unicode: true);
       final rMatches = regex.allMatches(str);
       final matches = <String>[];
       for (var i = 0; i < rMatches.length; i++) {
@@ -72,5 +111,28 @@ class Alias {
       return matches;
     }
   }
+
+  Alias copyWith({
+    String? id,
+    String? pattern,
+    bool? enabled,
+    bool? isRegex,
+    bool? isCaseSensitive,
+    bool? isRemovedFromBuffer,
+    bool? isTemporary,
+    int? invokeCount = 0,
+    MUDAction? action,
+  }) =>
+      Alias(
+        id: id ?? this.id,
+        pattern: pattern ?? this.pattern,
+        enabled: enabled ?? this.enabled,
+        isRegex: isRegex ?? this.isRegex,
+        isCaseSensitive: isCaseSensitive ?? this.isCaseSensitive,
+        isRemovedFromBuffer: isRemovedFromBuffer ?? this.isRemovedFromBuffer,
+        isTemporary: isTemporary ?? this.isTemporary,
+        invokeCount: invokeCount ?? this.invokeCount,
+        action: action ?? this.action,
+      );
 }
 

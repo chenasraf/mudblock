@@ -18,7 +18,7 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage>
-    with GameStoreMixin, WindowListener {
+    with GameStoreStateMixin, WindowListener {
   @override
   void initState() {
     super.initState();
@@ -128,8 +128,8 @@ class HomePageState extends State<HomePage>
               IconButton(
                 icon: const Icon(Icons.bug_report),
                 onPressed: () {
-                  store.loadTriggers();
                   store.loadAliases();
+                  Navigator.pushNamed(context, '/aliases');
                 },
               ),
             ],

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -40,8 +39,6 @@ class GameStore extends ChangeNotifier {
   GameStore init() {
     debugPrint('GameStore.init');
     scrollController = ScrollController();
-    loadTriggers();
-    loadAliases();
     return this;
   }
 
@@ -61,51 +58,25 @@ class GameStore extends ChangeNotifier {
       onData: onData,
       onError: onError,
     );
+    await Future.wait([
+      loadTriggers(),
+      loadAliases(),
+    ]);
     _client.connect();
   }
 
-  void loadTriggers() {
+  Future<void> loadTriggers() async {
+    debugPrint('loadTriggers');
+    final list = await currentProfile.loadTriggers();
     triggers.clear();
-    triggers.addAll(
-      [
-        Trigger(
-          id: 'test',
-          pattern: r'^You are in the ([^.]+)\. This is the ([^.]+)\.',
-          action: const MUDAction(
-            'Hello, %1, the %2!',
-            sendTo: MUDActionTarget.world,
-          ),
-          isRegex: true,
-        ),
-        Trigger(
-          id: 'test2',
-          pattern: r'^exits: ([\w\s]+)',
-          action: const MUDAction(
-            'I see exits: %1',
-            sendTo: MUDActionTarget.world,
-          ),
-          isRegex: true,
-        ),
-      ],
-    );
+    triggers.addAll(list);
     debugPrint('triggers: ${triggers.length}');
   }
 
-  void loadAliases() {
+  Future<void> loadAliases() async {
+    final list = await currentProfile.loadAliases();
     aliases.clear();
-    aliases.addAll(
-      [
-        Alias(
-          id: 'hello',
-          pattern: r'^hello|^hi',
-          action: const MUDAction(
-            'Hello, world!',
-            sendTo: MUDActionTarget.world,
-          ),
-          isRegex: true,
-        ),
-      ],
-    );
+    aliases.addAll(list);
     debugPrint('aliases: ${aliases.length}');
   }
 
@@ -300,9 +271,30 @@ class GameStore extends ChangeNotifier {
     input.text = content;
     selectInput();
   }
+
+  static consumer(
+    Widget Function(BuildContext context, GameStore value, Widget? child) builder,
+  ) {
+    return Consumer<GameStore>(
+      builder: builder,
+    );
+  }
+
+  static provider({
+    required Widget child,
+  }) {
+    return ChangeNotifierProvider<GameStore>.value(
+      value: gameStore,
+      child: child,
+    );
+  }
 }
 
-mixin GameStoreMixin<T extends StatefulWidget> on State<T> {
+mixin GameStoreMixin {
+  GameStore storeOf(BuildContext context) => Provider.of<GameStore>(context, listen: false);
+}
+
+mixin GameStoreStateMixin<T extends StatefulWidget> on State<T> {
   GameStore get store => Provider.of<GameStore>(context, listen: false);
 }
 

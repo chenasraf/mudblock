@@ -11,9 +11,9 @@ enum MUDActionTarget {
 }
 
 class MUDAction {
-  final String content;
-  final MUDActionTarget sendTo;
-  const MUDAction(this.content, {this.sendTo = MUDActionTarget.world});
+  String content;
+  MUDActionTarget sendTo;
+  MUDAction(this.content, {this.sendTo = MUDActionTarget.world});
 
   void invoke(BuildContext context, List<String> matches) {
     final store = Provider.of<GameStore>(context, listen: false);
@@ -41,5 +41,17 @@ class MUDAction {
         break;
     }
   }
+
+  factory MUDAction.empty() => MUDAction('');
+
+  factory MUDAction.fromJson(Map<String, dynamic> json) => MUDAction(
+        json['content'],
+        sendTo: MUDActionTarget.values[json['sendTo']],
+      );
+
+  Map<String, dynamic> toJson() => {
+        'content': content,
+        'sendTo': sendTo.index,
+      };
 }
 

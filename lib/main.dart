@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:mudblock/core/consts.dart';
-import 'package:mudblock/core/store.dart';
-import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
+import 'core/features/alias.dart';
 import 'core/storage/shared_prefs.dart';
+import 'core/store.dart';
+import 'pages/alias_page.dart';
+import 'pages/alias_list_page.dart';
 import 'pages/home_page.dart';
 import 'pages/main_scaffold.dart';
 import 'pages/profile_select_page.dart';
@@ -43,14 +45,26 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
+      builder: (context, child) {
+        return GameStore.provider(child: child!);
+      },
       initialRoute: '/home',
       routes: {
         '/select-profile': (context) => const ProfileSelectPage(),
+        '/aliases': (context) => GameStore.consumer(
+              (context, store, child) {
+                return const AliasListPage();
+              },
+            ),
+        '/alias': (context) {
+          final alias = ModalRoute.of(context)!.settings.arguments as Alias?;
+          return AliasPage(alias: alias);
+        },
         '/home': (context) => MainScaffold(
-          builder: (context, _) {
-            return HomePage(key: homeKey);
-          }
-        ),
+              builder: (context, _) {
+                return HomePage(key: homeKey);
+              },
+            ),
       },
     );
   }
