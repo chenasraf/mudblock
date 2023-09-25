@@ -12,3 +12,4 @@ const boldByte = 1;
 const italicByte = 3;
 const underlineByte = 4;
 final homeKey = GlobalKey(debugLabel: 'Home');
+

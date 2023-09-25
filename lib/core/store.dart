@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -16,7 +17,7 @@ import 'features/trigger.dart';
 const maxLines = 2000;
 
 class GameStore extends ChangeNotifier {
-  bool mccpEnabled = false;
+  bool mccpEnabled = true;
   final List<String> _lines = [];
   late final CTelnetClient _client;
   late final ScrollController scrollController;
@@ -27,21 +28,29 @@ class GameStore extends ChangeNotifier {
   final List<Trigger> triggers = [];
   final List<Trigger> aliases = [];
   HomePageState get home => homeKey.currentState as HomePageState;
-
+  final msgSplitPattern = RegExp("($cr$lf)|($lf$cr)|$cr|$lf");
+  final ZLibCodec _decoder = ZLibCodec();
+  final StreamController<List<int>> _rawStreamController = StreamController();
+  late Stream<List<int>> _decodedStream;
+  late StreamSubscription<List<int>> _decodedSub;
   MUDProfile? _currentProfile;
   MUDProfile get currentProfile => _currentProfile!;
 
   GameStore init() {
     debugPrint('GameStore.init');
-    addLine('Connecting...');
+    echo('Connecting...');
     final profiles = [
       MUDProfile(id: 'local', name: 'Local', host: 'localhost', port: 4000),
-      MUDProfile(id: 'smud', name: 'SimpleMUD', host: 'smud.ourmmo.com', port: 3000),
-      MUDProfile(id: 'aardwolf', name: 'Aardwolf', host: 'aardmud.org', port: 23),
-      MUDProfile(id: 'batmud', name: 'BatMUD', host: 'batmud.bat.org', port: 23),
-      MUDProfile(id: 'dune', name: 'Dune', host: 'dune.servint.com', port: 6789),
+      MUDProfile(
+          id: 'smud', name: 'SimpleMUD', host: 'smud.ourmmo.com', port: 3000),
+      MUDProfile(
+          id: 'aardwolf', name: 'Aardwolf', host: 'aardmud.org', port: 23),
+      MUDProfile(
+          id: 'batmud', name: 'BatMUD', host: 'batmud.bat.org', port: 23),
+      MUDProfile(
+          id: 'dune', name: 'Dune', host: 'dune.servint.com', port: 6789),
     ];
-    _currentProfile = profiles[1];
+    _currentProfile = profiles[2];
     _client = CTelnetClient(
       host: currentProfile.host,
       port: currentProfile.port,
@@ -64,13 +73,15 @@ class GameStore extends ChangeNotifier {
         Trigger(
           id: 'test',
           pattern: r'^You are in the ([^.]+)\. This is the ([^.]+)\.',
-          action: const MUDAction('Hello, %1, the %2!', sendTo: MUDActionTarget.world),
+          action: const MUDAction('Hello, %1, the %2!',
+              sendTo: MUDActionTarget.world),
           isRegex: true,
         ),
         Trigger(
           id: 'test2',
           pattern: r'^exits: ([\w\s]+)',
-          action: const MUDAction('I see exits: %1', sendTo: MUDActionTarget.world),
+          action:
+              const MUDAction('I see exits: %1', sendTo: MUDActionTarget.world),
           isRegex: true,
         ),
       ],
@@ -85,7 +96,8 @@ class GameStore extends ChangeNotifier {
         Trigger(
           id: 'hello',
           pattern: r'^hello|^hi',
-          action: const MUDAction('Hello, world!', sendTo: MUDActionTarget.world),
+          action:
+              const MUDAction('Hello, world!', sendTo: MUDActionTarget.world),
           isRegex: true,
         ),
       ],
@@ -127,7 +139,7 @@ class GameStore extends ChangeNotifier {
   }
 
   void _onConnect() {
-    addLine('Connected');
+    echo('Connected');
   }
 
   void requestMCCP() {
@@ -137,57 +149,62 @@ class GameStore extends ChangeNotifier {
   }
 
   void onDisconnect() {
-    addLine('Disconnected');
+    echo('Disconnected');
+  }
+
+  void onRawData(List<int> bytes) {
+    try {
+      final data = Message(bytes);
+      debugPrint('onRawData: ${bytes.length}');
+      debugPrint('onRawData: $data');
+      handleMCCPHandshake(data);
+      for (final line in data.text.trimRight().split(msgSplitPattern)) {
+        onLine(home.context, line);
+      }
+    } catch (e, stack) {
+      debugPrint('error: $e$newline$stack');
+      echo(String.fromCharCodes(bytes));
+      echo('Error: $e');
+    }
   }
 
   void onData(Message data) {
     try {
       if (mccpEnabled && isCompressed) {
-        data = decompressData(data);
+        _rawStreamController.add(data.bytes);
+        return;
       }
       if (mccpEnabled) {
         handleMCCPHandshake(data);
       }
 
-      final pattern = RegExp("($cr$lf)|($lf$cr)|$cr|$lf");
-      for (final line in data.text.trimRight().split(pattern)) {
+      for (final line in data.text.trimRight().split(msgSplitPattern)) {
         onLine(home.context, line);
       }
     } catch (e, stack) {
       debugPrint('error: $e$newline$stack');
-      addLine(data.text);
-      addLine('Error: $e');
+      echo(data.text);
+      echo('Error: $e');
     }
-  }
-
-  final Converter<List<int>, List<int>> _decoder = ZLibDecoder();
-
-  Message decompressData(Message data) {
-    var bytes = data.bytes;
-    // bytes = utf8.decode(bytes).codeUnits;
-    bytes = bytes;
-    bytes = base64.decode(bytes.toString());
-    // String.from
-    debugPrint('attempting to decompress');
-    debugPrint('data: $bytes');
-    debugPrint('string: ${String.fromCharCodes(bytes)}');
-    return Message(_decoder.convert(bytes));
   }
 
   void handleMCCPHandshake(Message data) {
     if (isCompressed) {
       if (data.se()) {
-        addLine('Compression disabled');
+        echo('Compression disabled');
         isCompressed = false;
+        _decodedSub.cancel();
       }
     } else {
       if (data.sb(86)) {
         isCompressed = true;
-        addLine('Compression enabled');
+        _decodedStream = _decoder.decoder.bind(_rawStreamController.stream);
+        _decodedSub = _decodedStream.listen((data) => onRawData(data));
+        echo('Compression enabled');
       }
       if (data.will(86)) {
         requestMCCP();
-        addLine('Compression requested');
+        echo('Compression requested');
       }
     }
   }
@@ -199,19 +216,18 @@ class GameStore extends ChangeNotifier {
   void onLine(BuildContext context, String line) {
     var showLine = processTriggers(context, line);
     if (showLine) {
-      addLine(line);
+      echo(line);
     }
   }
 
-  List<String> get lines => _lines.sublist(max(0, _lines.length - maxLines), _lines.length);
+  List<String> get lines =>
+      _lines.sublist(max(0, _lines.length - maxLines), _lines.length);
 
-  void addLine(String line) {
+  void echo(String line) {
     _lines.add(line);
     notifyListeners();
     scrollToEnd();
   }
-
-  void echo(String line) => addLine(line);
 
   void sendBytes(List<int> bytes) {
     var output = bytes;
@@ -241,7 +257,7 @@ class GameStore extends ChangeNotifier {
   }
 
   void submitInput(String text) {
-    addLine(text);
+    echo(text);
     execute(text);
     scrollToEnd();
     selectInput();
