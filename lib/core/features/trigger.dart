@@ -1,7 +1,8 @@
+import '../string_utils.dart';
 import 'action.dart';
-import 'alias.dart';
+import 'automation.dart';
 
-class Trigger extends Alias {
+class Trigger extends Automation {
   Trigger({
     super.enabled = true,
     required super.id,
@@ -13,6 +14,18 @@ class Trigger extends Alias {
     super.isTemporary = false,
     super.invokeCount = 0,
   });
+
+  factory Trigger.empty() => Trigger(
+        id: uuid(),
+        pattern: '',
+        enabled: true,
+        isRegex: false,
+        isCaseSensitive: false,
+        isRemovedFromBuffer: false,
+        isTemporary: false,
+        invokeCount: 0,
+        action: MUDAction.empty(),
+      );
 
   factory Trigger.fromJson(Map<String, dynamic> json) => Trigger(
         id: json['id'],

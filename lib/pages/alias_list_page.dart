@@ -9,35 +9,45 @@ class AliasListPage extends StatelessWidget with GameStoreMixin {
 
   @override
   Widget build(BuildContext context) {
-    var store = storeOf(context);
+    var _store = storeOf(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Aliases'),
       ),
-      body: Consumer<GameStore>(
+      body: GameStore.consumer(
         builder: (context, store, child) {
+          debugPrint('Alias list rebuild');
           final aliases = store.aliases;
           return ListView.builder(
             itemCount: aliases.length,
             itemBuilder: (context, item) => ListTile(
+              key: Key(aliases[item].id),
               title: Text(aliases[item].pattern),
               subtitle: Text(aliases[item].action.content),
-              onTap: () {
-                Navigator.pushNamed(context, '/alias',
-                    arguments: aliases[item]);
+              onTap: () async {
+                final alias = await Navigator.pushNamed(
+                  context,
+                  '/alias',
+                  arguments: aliases[item],
+                );
+                if (alias != null) {
+                  await store.currentProfile.saveAlias(alias as Alias);
+                  await store.loadAliases();
+                }
               },
             ),
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.add),
         onPressed: () async {
           final alias = await Navigator.pushNamed(context, '/alias');
           if (alias != null) {
-            store.currentProfile.saveAlias(alias as Alias);
+            await _store.currentProfile.saveAlias(alias as Alias);
+            await _store.loadAliases();
           }
         },
-        child: const Icon(Icons.add),
       ),
     );
   }

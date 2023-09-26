@@ -9,12 +9,14 @@ class MUDProfile {
   String name;
   String host;
   int port;
+  bool mccpEnabled;
 
   MUDProfile({
     required this.id,
     required this.name,
     required this.host,
     required this.port,
+    this.mccpEnabled = true,
   });
 
   Future<List<Trigger>> loadTriggers() async {
@@ -22,6 +24,10 @@ class MUDProfile {
     final triggers = await ProfileStorage.listProfileFiles(id, 'triggers');
     return triggers.values.map((e) => Trigger.fromJson(e)).toList();
   }
+
+  // Stream<List<Alias>> listenAliases({
+  //   void Function(List<Alias>) onData,
+  //   }) =>
 
   Future<List<Alias>> loadAliases() async {
     debugPrint('MUDProfile.loadAliases: $id');

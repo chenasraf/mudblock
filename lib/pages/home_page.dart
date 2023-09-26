@@ -108,31 +108,18 @@ class HomePageState extends State<HomePage>
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  autofocus: true,
-                  focusNode: store.inputFocus,
-                  controller: store.input,
-                  onSubmitted: store.submitInput,
-                  onTap: store.selectInput,
-                  style: consoleStyle.copyWith(color: Colors.black),
-                  decoration: InputDecoration(
-                    hintText: 'Enter command',
-                    border: const OutlineInputBorder(),
-                    hintStyle: inputStyle,
-                  ),
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.bug_report),
-                onPressed: () {
-                  store.loadAliases();
-                  Navigator.pushNamed(context, '/aliases');
-                },
-              ),
-            ],
+          child: TextField(
+            autofocus: true,
+            focusNode: store.inputFocus,
+            controller: store.input,
+            onSubmitted: store.submitInput,
+            onTap: store.selectInput,
+            style: consoleStyle.copyWith(color: Colors.black),
+            decoration: InputDecoration(
+              hintText: 'Enter command',
+              border: const OutlineInputBorder(),
+              hintStyle: inputStyle,
+            ),
           ),
         ),
       ],
@@ -153,13 +140,16 @@ class HomePageState extends State<HomePage>
 
   @override
   void onWindowResize() async {
-    EasyDebounce.debounce('windowResize', const Duration(milliseconds: 500),
-        () async {
-      final size = await windowManager.getSize();
-      debugPrint("Window resized to $size");
-      prefs.setInt('windowWidth', size.width.toInt());
-      prefs.setInt('windowHeight', size.height.toInt());
-    });
+    EasyDebounce.debounce(
+      'windowResize',
+      const Duration(milliseconds: 500),
+      () async {
+        final size = await windowManager.getSize();
+        debugPrint("Window resized to $size");
+        prefs.setInt('windowWidth', size.width.toInt());
+        prefs.setInt('windowHeight', size.height.toInt());
+      },
+    );
   }
 }
 

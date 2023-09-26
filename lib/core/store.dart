@@ -9,7 +9,6 @@ import 'package:provider/provider.dart';
 import '../pages/home_page.dart';
 import 'color_utils.dart';
 import 'consts.dart';
-import 'features/action.dart';
 import 'features/alias.dart';
 import 'features/profile.dart';
 import 'features/trigger.dart';
@@ -17,10 +16,9 @@ import 'features/trigger.dart';
 const maxLines = 2000;
 
 class GameStore extends ChangeNotifier {
-  bool mccpEnabled = true;
   final List<String> _lines = [];
-  late final CTelnetClient _client;
-  late final ScrollController scrollController;
+  late CTelnetClient _client;
+  final ScrollController scrollController = ScrollController();
   final TextEditingController input = TextEditingController();
   final FocusNode inputFocus = FocusNode();
   bool isCompressed = false;
@@ -38,7 +36,6 @@ class GameStore extends ChangeNotifier {
 
   GameStore init() {
     debugPrint('GameStore.init');
-    scrollController = ScrollController();
     return this;
   }
 
@@ -70,6 +67,7 @@ class GameStore extends ChangeNotifier {
     final list = await currentProfile.loadTriggers();
     triggers.clear();
     triggers.addAll(list);
+    notifyListeners();
     debugPrint('triggers: ${triggers.length}');
   }
 
@@ -77,6 +75,7 @@ class GameStore extends ChangeNotifier {
     final list = await currentProfile.loadAliases();
     aliases.clear();
     aliases.addAll(list);
+    notifyListeners();
     debugPrint('aliases: ${aliases.length}');
   }
 
@@ -123,6 +122,10 @@ class GameStore extends ChangeNotifier {
     sendBytes([Symbols.iac, Symbols.doo, 86]);
   }
 
+  Future<void> disconnect() {
+    return _client.disconnect();
+  }
+
   void onDisconnect() {
     echo('Disconnected');
   }
@@ -143,11 +146,11 @@ class GameStore extends ChangeNotifier {
 
   void onData(Message data) {
     try {
-      if (mccpEnabled && isCompressed) {
+      if (currentProfile.mccpEnabled && isCompressed) {
         _rawStreamController.add(data.bytes);
         return;
       }
-      if (mccpEnabled) {
+      if (currentProfile.mccpEnabled) {
         handleMCCPHandshake(data);
       }
 
@@ -186,7 +189,7 @@ class GameStore extends ChangeNotifier {
   void enableMCCP() {
     isCompressed = true;
     _decodedStream = _decoder.decoder.bind(_rawStreamController.stream);
-    _decodedSub = _decodedStream.listen((data) => onRawData(data));
+    _decodedSub = _decodedStream.listen(onRawData);
     echo('Compression enabled');
   }
 
@@ -195,7 +198,7 @@ class GameStore extends ChangeNotifier {
   }
 
   void onLine(BuildContext context, String line) {
-    var showLine = processTriggers(context, line);
+    final showLine = processTriggers(context, line);
     if (showLine) {
       echo(line);
     }
@@ -259,6 +262,9 @@ class GameStore extends ChangeNotifier {
   }
 
   void selectInput() {
+    // if (inputFocus.hasFocus || inputFocus.hasPrimaryFocus) {
+    //   return;
+    // }
     input.selection = TextSelection(
       baseOffset: 0,
       extentOffset: input.text.length,
@@ -272,26 +278,33 @@ class GameStore extends ChangeNotifier {
     selectInput();
   }
 
-  static consumer(
-    Widget Function(BuildContext context, GameStore value, Widget? child) builder,
-  ) {
+  static consumer({
+    Widget? child,
+    required Widget Function(
+            BuildContext context, GameStore value, Widget? child)
+        builder,
+  }) {
     return Consumer<GameStore>(
       builder: builder,
+      child: child,
     );
   }
 
   static provider({
-    required Widget child,
+    Widget? child,
+    Widget Function(BuildContext context, Widget? child)? builder,
   }) {
     return ChangeNotifierProvider<GameStore>.value(
       value: gameStore,
+      builder: builder,
       child: child,
     );
   }
 }
 
 mixin GameStoreMixin {
-  GameStore storeOf(BuildContext context) => Provider.of<GameStore>(context, listen: false);
+  GameStore storeOf(BuildContext context) =>
+      Provider.of<GameStore>(context, listen: false);
 }
 
 mixin GameStoreStateMixin<T extends StatefulWidget> on State<T> {

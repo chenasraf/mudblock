@@ -18,6 +18,36 @@ class MainScaffold extends StatelessWidget {
         value: gameStore,
         builder: builder,
       ),
+      endDrawer: Drawer(
+        child: ListView(
+          children: [
+            ListTile(
+              title: const Text('Aliases'),
+              onTap: () {
+                Navigator.pushNamed(context, '/aliases');
+              },
+            ),
+            ListTile(
+              title: const Text('Triggers'),
+              onTap: () {
+                Navigator.pushNamed(context, '/triggers');
+              },
+            ),
+            ListTile(
+              title: const Text('Disconnect'),
+              onTap: () {
+                gameStore.connect();
+              },
+            ),
+            ListTile(
+              title: const Text('Settings'),
+              onTap: () {
+                Navigator.pushNamed(context, '/settings');
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

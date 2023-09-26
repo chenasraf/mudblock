@@ -31,12 +31,15 @@ class MUDAction {
         break;
       case MUDActionTarget.execute:
         debugPrint('ActionSendTo.execute: $content');
+        store.execute(content);
         break;
       case MUDActionTarget.script:
         debugPrint('ActionSendTo.script: $content');
+        // TODO lua support
         break;
       case MUDActionTarget.input:
         debugPrint('ActionSendTo.input: $content');
+        store.input.text = content;
         store.setInput(content);
         break;
     }

@@ -95,10 +95,10 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
-fonts:
-  - family: Menlo
-    fonts:
-      - asset: assets/fonts/Menlo.ttc
+  fonts:
+    - family: Menlo
+      fonts:
+        - asset: assets/fonts/Menlo.ttc
 
 script_runner:
   scripts:
