@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
 
 import '../core/features/action.dart';
-import '../core/features/alias.dart';
+import '../core/features/trigger.dart';
 import '../core/platform_utils.dart';
 
-class AliasPage extends StatefulWidget {
-  const AliasPage({super.key, required this.alias});
+class TriggerPage extends StatefulWidget {
+  const TriggerPage({super.key, required this.trigger});
 
-  final Alias? alias;
+  final Trigger? trigger;
 
   @override
-  State<AliasPage> createState() => _AliasPageState();
+  State<TriggerPage> createState() => _TriggerPageState();
 }
 
-class _AliasPageState extends State<AliasPage> {
-  late final Alias alias;
+class _TriggerPageState extends State<TriggerPage> {
+  late final Trigger trigger;
 
   @override
   void initState() {
-    alias = widget.alias?.copyWith() ?? Alias.empty();
+    trigger = widget.trigger?.copyWith() ?? Trigger.empty();
     super.initState();
   }
 
@@ -26,7 +26,7 @@ class _AliasPageState extends State<AliasPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Alias'),
+        title: const Text('Trigger'),
       ),
       body: Align(
         alignment: Alignment.topCenter,
@@ -38,13 +38,13 @@ class _AliasPageState extends State<AliasPage> {
               child: Builder(
                 builder: (context) {
                   final patternTextField = TextField(
-                    controller: TextEditingController(text: alias.pattern),
+                    controller: TextEditingController(text: trigger.pattern),
                     decoration: const InputDecoration(
                       labelText: 'Pattern',
                       helperText: 'The pattern to match your input against',
                     ),
                     onChanged: (value) {
-                      alias.pattern = value;
+                      trigger.pattern = value;
                     },
                   );
                   final regexCheckbox = CheckboxListTile(
@@ -52,11 +52,11 @@ class _AliasPageState extends State<AliasPage> {
                     // subtitle: const Text(
                     //   'Whether the pattern is a regular expression',
                     // ),
-                    value: alias.isRegex,
+                    value: trigger.isRegex,
                     controlAffinity: ListTileControlAffinity.leading,
                     onChanged: (value) {
                       setState(() {
-                        alias.isRegex = value ?? false;
+                        trigger.isRegex = value ?? false;
                       });
                     },
                   );
@@ -81,14 +81,14 @@ class _AliasPageState extends State<AliasPage> {
                       ],
                       TextField(
                         controller:
-                            TextEditingController(text: alias.action.content),
+                            TextEditingController(text: trigger.action.content),
                         minLines: PlatformUtils.isDesktop ? 20 : 5,
                         maxLines: PlatformUtils.isDesktop ? 50 : 20,
                         decoration: const InputDecoration(
                           labelText: 'Action',
                         ),
                         onChanged: (value) {
-                          alias.action.content = value;
+                          trigger.action.content = value;
                         },
                       ),
                       Padding(
@@ -99,10 +99,10 @@ class _AliasPageState extends State<AliasPage> {
                         ),
                       ),
                       DropdownMenu(
-                        initialSelection: alias.action.sendTo,
+                        initialSelection: trigger.action.sendTo,
                         onSelected: (value) {
                           if (value is MUDActionTarget) {
-                            alias.action.sendTo = value;
+                            trigger.action.sendTo = value;
                           }
                         },
                         dropdownMenuEntries: const [
@@ -129,37 +129,37 @@ class _AliasPageState extends State<AliasPage> {
                         subtitle: const Text(
                           'If checked, the pattern will only match if the case matches.',
                         ),
-                        value: alias.isCaseSensitive,
+                        value: trigger.isCaseSensitive,
                         controlAffinity: ListTileControlAffinity.leading,
                         onChanged: (value) {
                           setState(() {
-                            alias.isCaseSensitive = value ?? false;
+                            trigger.isCaseSensitive = value ?? false;
                           });
                         },
                       ),
                       CheckboxListTile(
                         title: const Text('Remove From Buffer'),
                         subtitle: const Text(
-                          'If checked, your input line will be removed from the buffer when it is matched.',
+                          'If checked, the output line will be removed from the buffer when it is matched.',
                         ),
-                        value: alias.isRemovedFromBuffer,
+                        value: trigger.isRemovedFromBuffer,
                         controlAffinity: ListTileControlAffinity.leading,
                         onChanged: (value) {
                           setState(() {
-                            alias.isRemovedFromBuffer = value ?? false;
+                            trigger.isRemovedFromBuffer = value ?? false;
                           });
                         },
                       ),
                       CheckboxListTile(
                         title: const Text('Temporary'),
                         subtitle: const Text(
-                          'If checked, the alias will be disabled after it is matched once.',
+                          'If checked, the trigger will be disabled after it is matched once.',
                         ),
-                        value: alias.isTemporary,
+                        value: trigger.isTemporary,
                         controlAffinity: ListTileControlAffinity.leading,
                         onChanged: (value) {
                           setState(() {
-                            alias.isTemporary = value ?? false;
+                            trigger.isTemporary = value ?? false;
                           });
                         },
                       ),
@@ -173,7 +173,7 @@ class _AliasPageState extends State<AliasPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.pop(context, alias);
+          Navigator.pop(context, trigger);
         },
         child: const Icon(Icons.save),
       ),

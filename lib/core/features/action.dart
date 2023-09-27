@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
-import 'package:provider/provider.dart';
+import 'package:mudblock/core/features/lua.dart';
 
+import '../consts.dart';
 import '../store.dart';
 
 enum MUDActionTarget {
@@ -15,13 +16,13 @@ class MUDAction {
   MUDActionTarget sendTo;
   MUDAction(this.content, {this.sendTo = MUDActionTarget.world});
 
-  void invoke(BuildContext context, List<String> matches) {
-    final store = Provider.of<GameStore>(context, listen: false);
+  void invoke(GameStore store, List<String> matches) {
     debugPrint('MUDAction.invoke: ${this.content}, $matches');
     var content = this.content;
     for (var i = 0; i < matches.length; i++) {
       content = content.replaceAll('%$i', matches[i]);
     }
+    content = _doSpecialReplacements(store, content);
     debugPrint('MUDAction.invoking: $content');
 
     switch (sendTo) {
@@ -34,8 +35,15 @@ class MUDAction {
         store.execute(content);
         break;
       case MUDActionTarget.script:
-        debugPrint('ActionSendTo.script: $content');
-        // TODO lua support
+        try {
+          debugPrint('ActionSendTo.script: $content');
+          final lua = LuaInterpreter(store);
+          lua.loadString(content);
+          lua.execute();
+        } catch (e, stack) {
+          debugPrint("Error interpreting lua:$e$lf$stack");
+          store.onError(e);
+        }
         break;
       case MUDActionTarget.input:
         debugPrint('ActionSendTo.input: $content');
@@ -56,5 +64,13 @@ class MUDAction {
         'content': content,
         'sendTo': sendTo.index,
       };
+
+  String _doSpecialReplacements(GameStore store, String content) {
+    return content
+            .replaceAll('%PASSWORD', store.currentProfile.password)
+            .replaceAll('%USERNAME', store.currentProfile.username)
+        //
+        ;
+  }
 }
 

@@ -3,10 +3,10 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:ctelnet/ctelnet.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
+import 'package:mudblock/pages/profile_select_page.dart';
 import 'package:provider/provider.dart';
 
-import '../pages/home_page.dart';
 import 'color_utils.dart';
 import 'consts.dart';
 import 'features/alias.dart';
@@ -25,7 +25,6 @@ class GameStore extends ChangeNotifier {
   final ZLibDecoder decoder = ZLibDecoder();
   final List<Trigger> triggers = [];
   final List<Alias> aliases = [];
-  HomePageState get home => homeKey.currentState as HomePageState;
   final msgSplitPattern = RegExp("($cr$lf)|($lf$cr)|$cr|$lf");
   final ZLibCodec _decoder = ZLibCodec();
   final StreamController<List<int>> _rawStreamController = StreamController();
@@ -39,13 +38,19 @@ class GameStore extends ChangeNotifier {
     return this;
   }
 
-  void connect() async {
-    final profile =
-        await Navigator.pushNamed(homeKey.currentContext!, '/select-profile');
+  void connect(BuildContext context) async {
+    // final profile =
+    //     await Navigator.pushNamed(context, '/select-profile');
+    final profile = await showDialog<MUDProfile?>(
+          context: context,
+          builder: (context) {
+            return const ProfileSelectPage();
+          }
+        );
     if (profile == null) {
       return;
     }
-    _currentProfile = profile as MUDProfile;
+    _currentProfile = profile;
     echo('Connecting...');
     _client = CTelnetClient(
       host: currentProfile.host,
@@ -68,7 +73,7 @@ class GameStore extends ChangeNotifier {
     triggers.clear();
     triggers.addAll(list);
     notifyListeners();
-    debugPrint('triggers: ${triggers.length}');
+    debugPrint('Triggers: ${triggers.length}');
   }
 
   Future<void> loadAliases() async {
@@ -76,10 +81,10 @@ class GameStore extends ChangeNotifier {
     aliases.clear();
     aliases.addAll(list);
     notifyListeners();
-    debugPrint('aliases: ${aliases.length}');
+    debugPrint('Aliases: ${aliases.length}');
   }
 
-  bool processTriggers(BuildContext context, String line) {
+  bool processTriggers(String line) {
     bool showLine = true;
     final str = ColorUtils.stripColor(line);
     for (final trigger in triggers) {
@@ -87,17 +92,16 @@ class GameStore extends ChangeNotifier {
         continue;
       }
       if (trigger.matches(str)) {
-        trigger.invokeEffect(context, str);
+        trigger.invokeEffect(this, str);
         if (trigger.isRemovedFromBuffer) {
           showLine = false;
         }
       }
     }
-    debugPrint('');
     return showLine;
   }
 
-  bool processAliases(BuildContext context, String line) {
+  bool processAliases(String line) {
     bool sendLine = true;
     final str = line;
     for (final alias in aliases) {
@@ -105,7 +109,7 @@ class GameStore extends ChangeNotifier {
         continue;
       }
       if (alias.matches(str)) {
-        alias.invokeEffect(context, str);
+        alias.invokeEffect(this, str);
         sendLine = false;
       }
     }
@@ -135,7 +139,7 @@ class GameStore extends ChangeNotifier {
       final data = Message(bytes);
       handleMCCPHandshake(data);
       for (final line in data.text.trimRight().split(msgSplitPattern)) {
-        onLine(home.context, line);
+        onLine(line);
       }
     } catch (e, stack) {
       debugPrint('error: $e$newline$stack');
@@ -155,7 +159,7 @@ class GameStore extends ChangeNotifier {
       }
 
       for (final line in data.text.trimRight().split(msgSplitPattern)) {
-        onLine(home.context, line);
+        onLine(line);
       }
     } catch (e, stack) {
       debugPrint('error: $e$newline$stack');
@@ -197,8 +201,8 @@ class GameStore extends ChangeNotifier {
     echo('Error: $error');
   }
 
-  void onLine(BuildContext context, String line) {
-    final showLine = processTriggers(context, line);
+  void onLine(String line) {
+    final showLine = processTriggers(line);
     if (showLine) {
       echo(line);
     }
@@ -234,7 +238,7 @@ class GameStore extends ChangeNotifier {
 
   void execute(String line) {
     debugPrint('processing aliases for: $line');
-    var sendLine = processAliases(home.context, line);
+    var sendLine = processAliases(line);
     if (sendLine) {
       sendString(line);
     }

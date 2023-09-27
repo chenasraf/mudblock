@@ -10,6 +10,8 @@ class MUDProfile {
   String host;
   int port;
   bool mccpEnabled;
+  String username;
+  String password;
 
   MUDProfile({
     required this.id,
@@ -17,6 +19,8 @@ class MUDProfile {
     required this.host,
     required this.port,
     this.mccpEnabled = true,
+    this.username = '',
+    this.password = '',
   });
 
   Future<List<Trigger>> loadTriggers() async {
@@ -24,10 +28,6 @@ class MUDProfile {
     final triggers = await ProfileStorage.listProfileFiles(id, 'triggers');
     return triggers.values.map((e) => Trigger.fromJson(e)).toList();
   }
-
-  // Stream<List<Alias>> listenAliases({
-  //   void Function(List<Alias>) onData,
-  //   }) =>
 
   Future<List<Alias>> loadAliases() async {
     debugPrint('MUDProfile.loadAliases: $id');

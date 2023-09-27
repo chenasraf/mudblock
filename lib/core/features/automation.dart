@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
 
+import '../store.dart';
 import '../string_utils.dart';
 import 'action.dart';
 
@@ -74,9 +76,9 @@ class Automation {
     }
   }
 
-  void invokeEffect(BuildContext context, String line) {
+  void invokeEffect(GameStore store, String line) {
     invokeCount++;
-    action.invoke(context, allMatches(line));
+    action.invoke(store, allMatches(line));
   }
 
   List<String> allMatches(String str) {
@@ -112,6 +114,7 @@ class Automation {
     }
   }
 
+  @mustBeOverridden
   Automation copyWith({
     String? id,
     String? pattern,

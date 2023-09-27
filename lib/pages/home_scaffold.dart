@@ -3,10 +3,10 @@ import 'package:provider/provider.dart';
 
 import '../core/store.dart';
 
-class MainScaffold extends StatelessWidget {
+class HomeScaffold extends StatelessWidget {
   final Widget Function(BuildContext, Widget?) builder;
 
-  const MainScaffold({super.key, required this.builder});
+  const HomeScaffold({super.key, required this.builder});
 
   @override
   Widget build(BuildContext context) {
@@ -23,27 +23,19 @@ class MainScaffold extends StatelessWidget {
           children: [
             ListTile(
               title: const Text('Aliases'),
-              onTap: () {
-                Navigator.pushNamed(context, '/aliases');
-              },
+              onTap: () => Navigator.pushNamed(context, '/aliases'),
             ),
             ListTile(
               title: const Text('Triggers'),
-              onTap: () {
-                Navigator.pushNamed(context, '/triggers');
-              },
-            ),
-            ListTile(
-              title: const Text('Disconnect'),
-              onTap: () {
-                gameStore.connect();
-              },
+              onTap: () => Navigator.pushNamed(context, '/triggers'),
             ),
             ListTile(
               title: const Text('Settings'),
-              onTap: () {
-                Navigator.pushNamed(context, '/settings');
-              },
+              onTap: () => Navigator.pushNamed(context, '/settings'),
+            ),
+            ListTile(
+              title: const Text('Disconnect'),
+              onTap: () => gameStore.connect(context),
             ),
           ],
         ),
