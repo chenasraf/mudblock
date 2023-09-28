@@ -4,7 +4,9 @@ import 'dart:math';
 
 import 'package:ctelnet/ctelnet.dart';
 import 'package:flutter/material.dart';
-import 'package:mudblock/pages/profile_select_page.dart';
+import 'package:mudblock/core/profile_presets.dart';
+import 'package:mudblock/core/storage.dart';
+import 'package:mudblock/pages/select_profile_page.dart';
 import 'package:provider/provider.dart';
 
 import 'color_utils.dart';
@@ -30,23 +32,22 @@ class GameStore extends ChangeNotifier {
   final StreamController<List<int>> _rawStreamController = StreamController();
   late Stream<List<int>> _decodedStream;
   late StreamSubscription<List<int>> _decodedSub;
+  late final List<MUDProfile> profiles = [];
   MUDProfile? _currentProfile;
   MUDProfile get currentProfile => _currentProfile!;
 
   GameStore init() {
     debugPrint('GameStore.init');
+    fillStockProfiles();
     return this;
   }
 
   void connect(BuildContext context) async {
-    // final profile =
-    //     await Navigator.pushNamed(context, '/select-profile');
     final profile = await showDialog<MUDProfile?>(
-          context: context,
-          builder: (context) {
-            return const ProfileSelectPage();
-          }
-        );
+        context: context,
+        builder: (context) {
+          return const SelectProfilePage();
+        });
     if (profile == null) {
       return;
     }
@@ -303,6 +304,27 @@ class GameStore extends ChangeNotifier {
       builder: builder,
       child: child,
     );
+  }
+
+  void loadProfiles() async {
+    final list = await ProfileStorage.listAllProfiles();
+    profiles.clear();
+    profiles.addAll(list.map((e) => MUDProfile.fromJson(e)));
+    _currentProfile = profiles.firstWhere((e) => e.id == currentProfile.id);
+    notifyListeners();
+  }
+
+  void fillStockProfiles() async {
+    final list = await ProfileStorage.listAllProfiles();
+    if (list.isEmpty) {
+      for (final profile in profilePresets) {
+        await MUDProfile.save(profile);
+        profiles.add(profile);
+      }
+    } else {
+      profiles.addAll(list.map((e) => MUDProfile.fromJson(e)));
+    }
+    notifyListeners();
   }
 }
 

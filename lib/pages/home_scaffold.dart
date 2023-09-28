@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../core/routes.dart';
 import '../core/store.dart';
 
 class HomeScaffold extends StatelessWidget {
@@ -23,15 +24,15 @@ class HomeScaffold extends StatelessWidget {
           children: [
             ListTile(
               title: const Text('Aliases'),
-              onTap: () => Navigator.pushNamed(context, '/aliases'),
+              onTap: () => Navigator.pushNamed(context, Paths.aliases),
             ),
             ListTile(
               title: const Text('Triggers'),
-              onTap: () => Navigator.pushNamed(context, '/triggers'),
+              onTap: () => Navigator.pushNamed(context, Paths.triggers),
             ),
             ListTile(
               title: const Text('Settings'),
-              onTap: () => Navigator.pushNamed(context, '/settings'),
+              onTap: () => Navigator.pushNamed(context, Paths.settings),
             ),
             ListTile(
               title: const Text('Disconnect'),

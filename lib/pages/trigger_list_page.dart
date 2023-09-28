@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:mudblock/core/store.dart';
 
 import '../core/features/trigger.dart';
+import '../core/routes.dart';
 
 class TriggerListPage extends StatelessWidget with GameStoreMixin {
   const TriggerListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    var staticStore = storeOf(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Triggeres'),
@@ -26,7 +26,7 @@ class TriggerListPage extends StatelessWidget with GameStoreMixin {
               onTap: () async {
                 final trigger = await Navigator.pushNamed(
                   context,
-                  '/trigger',
+                  Paths.trigger,
                   arguments: triggers[item],
                 );
                 if (trigger != null) {
@@ -41,10 +41,11 @@ class TriggerListPage extends StatelessWidget with GameStoreMixin {
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
         onPressed: () async {
-          final trigger = await Navigator.pushNamed(context, '/trigger');
+          final store = storeOf(context);
+          final trigger = await Navigator.pushNamed(context, Paths.trigger);
           if (trigger != null) {
-            await staticStore.currentProfile.saveTrigger(trigger as Trigger);
-            await staticStore.loadTriggers();
+            await store.currentProfile.saveTrigger(trigger as Trigger);
+            await store.loadTriggers();
           }
         },
       ),

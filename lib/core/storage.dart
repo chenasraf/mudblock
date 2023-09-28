@@ -61,8 +61,9 @@ class ProfileStorage {
     await FileStorage.deleteFile('profiles/$profile/$filename');
   }
 
-  static Future<Map<String, Map<String, dynamic>>> listAllProfiles() async {
-    return FileStorage.readDirectory('profiles');
+  static Future<List<Map<String, dynamic>>> listAllProfiles() async {
+    final list = await FileStorage.readDirectory('profiles');
+    return list.values.toList();
   }
 
   static Future<Map<String, Map<String, dynamic>>> listProfileFiles(

@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:mudblock/core/store.dart';
 
 import '../core/features/alias.dart';
+import '../core/routes.dart';
 
 class AliasListPage extends StatelessWidget with GameStoreMixin {
   const AliasListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    var staticStore = storeOf(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Aliases'),
@@ -26,7 +26,7 @@ class AliasListPage extends StatelessWidget with GameStoreMixin {
               onTap: () async {
                 final alias = await Navigator.pushNamed(
                   context,
-                  '/alias',
+                  Paths.alias,
                   arguments: aliases[item],
                 );
                 if (alias != null) {
@@ -41,10 +41,11 @@ class AliasListPage extends StatelessWidget with GameStoreMixin {
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
         onPressed: () async {
-          final alias = await Navigator.pushNamed(context, '/alias');
+                final store = storeOf(context);
+          final alias = await Navigator.pushNamed(context, Paths.alias);
           if (alias != null) {
-            await staticStore.currentProfile.saveAlias(alias as Alias);
-            await staticStore.loadAliases();
+            await store.currentProfile.saveAlias(alias as Alias);
+            await store.loadAliases();
           }
         },
       ),
