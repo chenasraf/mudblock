@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:encrypt/encrypt.dart' as enc;
 import 'package:flutter/foundation.dart';
 
+import '../consts.dart';
 import '../secrets.dart';
 import '../storage.dart';
 import '../string_utils.dart';
@@ -52,15 +55,17 @@ class MUDProfile {
         password: password ?? this.password,
       );
 
-  factory MUDProfile.fromJson(Map<String, dynamic> json) => MUDProfile(
-        id: json['id'],
-        name: json['name'],
-        host: json['host'],
-        port: json['port'],
-        mccpEnabled: json['mccpEnabled'],
-        username: json['username'],
-        password: decrypt(json['password']),
-      );
+  factory MUDProfile.fromJson(Map<String, dynamic> json) {
+    return MUDProfile(
+      id: json['id'],
+      name: json['name'],
+      host: json['host'],
+      port: json['port'],
+      mccpEnabled: json['mccpEnabled'],
+      username: json['username'],
+      password: decrypt(json['password']),
+    );
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -74,48 +79,68 @@ class MUDProfile {
 
   static Future<void> save(MUDProfile profile) async {
     debugPrint('MUDProfile.save: ${profile.id}');
-    return ProfileStorage.writeProfileFile(profile.id, profile.id, profile.toJson());
+    return ProfileStorage.writeProfileFile(
+        profile.id, profile.id, jsonEncode(profile.toJson()));
   }
 
   Future<List<Trigger>> loadTriggers() async {
     debugPrint('MUDProfile.loadTriggers: $id');
     final triggers = await ProfileStorage.listProfileFiles(id, 'triggers');
-    return triggers.values.map((e) => Trigger.fromJson(e)).toList();
+    final triggerFiles = <String>[];
+    for (final trigger in triggers) {
+      debugPrint('MUDProfile.loadTriggers: $id/triggers/$trigger');
+      final triggerFile =
+          await ProfileStorage.readProfileFile(id, 'triggers/$trigger');
+      if (triggerFile != null) {
+        triggerFiles.add(triggerFile);
+      }
+    }
+    return triggerFiles.map((e) => Trigger.fromJson(jsonDecode(e))).toList();
   }
 
   Future<List<Alias>> loadAliases() async {
     debugPrint('MUDProfile.loadAliases: $id');
     final aliases = await ProfileStorage.listProfileFiles(id, 'aliases');
-    return aliases.values.map((e) => Alias.fromJson(e)).toList();
+    return aliases.map((e) => Alias.fromJson(jsonDecode(e))).toList();
   }
 
   Future<void> saveAlias(Alias alias) async {
     debugPrint('MUDProfile.saveAlias: $id/aliases/${alias.id}');
     return ProfileStorage.writeProfileFile(
-        id, 'aliases/${alias.id}', alias.toJson());
+        id, 'aliases/${alias.id}', jsonEncode(alias.toJson()));
   }
 
   Future<void> saveTrigger(Trigger trigger) async {
     debugPrint('MUDProfile.saveTrigger: $id/triggers/${trigger.id}');
     return ProfileStorage.writeProfileFile(
-        id, 'triggers/${trigger.id}', trigger.toJson());
+        id, 'triggers/${trigger.id}', jsonEncode(trigger.toJson()));
   }
+
+  static final encKey = enc.Key.fromUtf8(pwdKey);
+  static final encrypter = enc.Encrypter(enc.AES(encKey, padding: null));
+  static final iv = enc.IV.fromLength(16);
 
   static String encrypt(String password) {
     if (password.isEmpty) {
       return '';
     }
-    final key = enc.Key.fromUtf8(pwdKey);
-    final encrypter = enc.Encrypter(enc.AES(key));
-    final encrypted = encrypter.encrypt(password, iv: enc.IV.fromLength(16));
+    final encrypted = encrypter.encrypt(password, iv: iv);
+    // debugPrint('MUDProfile.encrypt: $password -> ${encrypted.base64}');
     return encrypted.base64;
   }
 
-  static String decrypt(String json) {
-    final key = enc.Key.fromUtf8(pwdKey);
-    final encrypter = enc.Encrypter(enc.AES(key));
-    final encrypted = enc.Encrypted.fromBase64(json);
-    return encrypter.decrypt(encrypted, iv: enc.IV.fromLength(16));
+  static String decrypt(String password) {
+    if (password.isEmpty) {
+      return '';
+    }
+    try {
+      // debugPrint('MUDProfile.decrypt: $password');
+      final encrypted = enc.Encrypted.fromBase64(password);
+      return encrypter.decrypt(encrypted, iv: iv);
+    } catch (e, stack) {
+      debugPrint('MUDProfile.decrypt: $e$lf$stack');
+      return password;
+    }
   }
 }
 

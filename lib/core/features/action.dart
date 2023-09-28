@@ -66,6 +66,8 @@ class MUDAction {
       };
 
   String _doSpecialReplacements(GameStore store, String content) {
+    debugPrint('MUDAction._doSpecialReplacements: $content');
+    debugPrint("password: ${store.currentProfile.password}");
     return content
             .replaceAll('%PASSWORD', store.currentProfile.password)
             .replaceAll('%USERNAME', store.currentProfile.username)

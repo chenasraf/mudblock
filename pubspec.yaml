@@ -45,6 +45,8 @@ dependencies:
   uuid: ^3.0.7
   meta: ^1.9.1
   lua_dardo: ^0.0.5
+  path_provider: ^2.1.1
+  permission_handler: ^11.0.0
 
 dev_dependencies:
   flutter_test:

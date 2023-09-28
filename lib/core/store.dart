@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -36,7 +37,7 @@ class GameStore extends ChangeNotifier {
   MUDProfile? _currentProfile;
   MUDProfile get currentProfile => _currentProfile!;
 
-  GameStore init() {
+  Future<GameStore> init() async {
     debugPrint('GameStore.init');
     fillStockProfiles();
     return this;
@@ -97,6 +98,9 @@ class GameStore extends ChangeNotifier {
         if (trigger.isRemovedFromBuffer) {
           showLine = false;
         }
+        if (trigger.isTemporary) {
+          trigger.enabled = false;
+        }
       }
     }
     return showLine;
@@ -112,6 +116,9 @@ class GameStore extends ChangeNotifier {
       if (alias.matches(str)) {
         alias.invokeEffect(this, str);
         sendLine = false;
+      }
+      if (alias.isTemporary) {
+        alias.enabled = false;
       }
     }
     return sendLine;
@@ -309,21 +316,32 @@ class GameStore extends ChangeNotifier {
   void loadProfiles() async {
     final list = await ProfileStorage.listAllProfiles();
     profiles.clear();
-    profiles.addAll(list.map((e) => MUDProfile.fromJson(e)));
-    _currentProfile = profiles.firstWhere((e) => e.id == currentProfile.id);
+    debugPrint('loading profiles: $list');
+    for (final name in list) {
+      final profile = await ProfileStorage.readProfileFile(name, name);
+      profiles.add(MUDProfile.fromJson(jsonDecode(profile!)));
+    }
+    if (_currentProfile != null) {
+      _currentProfile = profiles.firstWhere((e) => e.id == currentProfile.id);
+    }
     notifyListeners();
   }
 
   void fillStockProfiles() async {
     final list = await ProfileStorage.listAllProfiles();
+    debugPrint('existing profiles: $list');
     if (list.isEmpty) {
       for (final profile in profilePresets) {
         await MUDProfile.save(profile);
         profiles.add(profile);
       }
     } else {
-      profiles.addAll(list.map((e) => MUDProfile.fromJson(e)));
+      for (final name in list) {
+        final profile = await ProfileStorage.readProfileFile(name, name);
+        profiles.add(MUDProfile.fromJson(jsonDecode(profile!)));
+      }
     }
+    debugPrint('profiles: ${profiles.map((e) => [e.name, e.password])}');
     notifyListeners();
   }
 }
@@ -337,5 +355,5 @@ mixin GameStoreStateMixin<T extends StatefulWidget> on State<T> {
   GameStore get store => Provider.of<GameStore>(context, listen: false);
 }
 
-final gameStore = GameStore().init();
+final gameStore = GameStore();
 
