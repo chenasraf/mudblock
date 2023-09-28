@@ -11,7 +11,7 @@ class TriggerListPage extends StatelessWidget with GameStoreMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Triggeres'),
+        title: const Text('Triggers'),
       ),
       body: GameStore.consumer(
         builder: (context, store, child) {

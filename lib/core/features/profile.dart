@@ -118,15 +118,15 @@ class MUDProfile {
 
   static final encKey = enc.Key.fromUtf8(pwdKey);
   static final encrypter = enc.Encrypter(enc.AES(encKey, padding: null));
-  static final iv = enc.IV.fromLength(16);
 
   static String encrypt(String password) {
+    final iv = enc.IV.fromLength(16);
     if (password.isEmpty) {
       return '';
     }
     final encrypted = encrypter.encrypt(password, iv: iv);
     // debugPrint('MUDProfile.encrypt: $password -> ${encrypted.base64}');
-    return encrypted.base64;
+    return '${encrypted.base64}:${iv.base64}';
   }
 
   static String decrypt(String password) {
@@ -134,9 +134,14 @@ class MUDProfile {
       return '';
     }
     try {
+      final ivStr = password.substring(password.indexOf(':') + 1);
+      final iv = enc.IV.fromBase64(ivStr);
+      password = password.substring(0, password.indexOf(':'));
       // debugPrint('MUDProfile.decrypt: $password');
       final encrypted = enc.Encrypted.fromBase64(password);
-      return encrypter.decrypt(encrypted, iv: iv);
+      final decrypted = encrypter.decrypt(encrypted, iv: iv);
+      // debugPrint('MUDProfile.decrypt: $decrypted');
+      return decrypted;
     } catch (e, stack) {
       debugPrint('MUDProfile.decrypt: $e$lf$stack');
       return password;

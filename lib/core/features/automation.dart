@@ -69,10 +69,10 @@ class Automation {
       final regex = RegExp(pattern, caseSensitive: isCaseSensitive);
       return regex.hasMatch(line);
     } else {
-      if (isCaseSensitive) {
-        return line.toLowerCase().contains(pattern.toLowerCase());
-      }
-      return line.contains(pattern);
+      final updatedPattern = pattern.replaceAll('*', '(.*?)');
+      final regex =
+          RegExp("^$updatedPattern\$", caseSensitive: isCaseSensitive);
+      return regex.hasMatch(line);
     }
   }
 

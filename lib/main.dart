@@ -11,9 +11,9 @@ import 'core/store.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await getPrefs();
-  final status = await Permission.storage.status;
+  final status = await Permission.manageExternalStorage.status;
   if (!status.isGranted) {
-    await Permission.storage.request();
+    await Permission.manageExternalStorage.request();
   }
   await FileStorage.init();
   await gameStore.init();

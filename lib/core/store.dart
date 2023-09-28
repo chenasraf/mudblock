@@ -331,13 +331,16 @@ class GameStore extends ChangeNotifier {
     final list = await ProfileStorage.listAllProfiles();
     debugPrint('existing profiles: $list');
     if (list.isEmpty) {
+      debugPrint('filling stock profiles');
       for (final profile in profilePresets) {
         await MUDProfile.save(profile);
         profiles.add(profile);
       }
     } else {
+      debugPrint('loading profiles: $list');
       for (final name in list) {
         final profile = await ProfileStorage.readProfileFile(name, name);
+        debugPrint('profile: $profile');
         profiles.add(MUDProfile.fromJson(jsonDecode(profile!)));
       }
     }
