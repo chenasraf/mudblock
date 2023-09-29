@@ -11,7 +11,7 @@ class Alias extends Automation {
     super.isRegex = false,
     super.isCaseSensitive = false,
     super.isRemovedFromBuffer = false,
-    super.isTemporary = false,
+    super.autoDisable = false,
     super.invokeCount = 0,
   });
 
@@ -22,7 +22,7 @@ class Alias extends Automation {
         isRegex: false,
         isCaseSensitive: false,
         isRemovedFromBuffer: false,
-        isTemporary: false,
+        autoDisable: false,
         invokeCount: 0,
         action: MUDAction.empty(),
       );
@@ -34,7 +34,7 @@ class Alias extends Automation {
         isRegex: json['isRegex'],
         isCaseSensitive: json['isCaseSensitive'],
         isRemovedFromBuffer: json['isRemovedFromBuffer'],
-        isTemporary: json['isTemporary'],
+        autoDisable: json['autoDisable'],
         invokeCount: json['invokeCount'],
         action: MUDAction.fromJson(json['action']),
       );
@@ -47,7 +47,7 @@ class Alias extends Automation {
     bool? isRegex,
     bool? isCaseSensitive,
     bool? isRemovedFromBuffer,
-    bool? isTemporary,
+    bool? autoDisable,
     int? invokeCount = 0,
     MUDAction? action,
   }) =>
@@ -58,7 +58,7 @@ class Alias extends Automation {
         isRegex: isRegex ?? this.isRegex,
         isCaseSensitive: isCaseSensitive ?? this.isCaseSensitive,
         isRemovedFromBuffer: isRemovedFromBuffer ?? this.isRemovedFromBuffer,
-        isTemporary: isTemporary ?? this.isTemporary,
+        autoDisable: autoDisable ?? this.autoDisable,
         invokeCount: invokeCount ?? this.invokeCount,
         action: action ?? this.action,
       );

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'core/platform_utils.dart';
@@ -11,10 +10,10 @@ import 'core/store.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await getPrefs();
-  final status = await Permission.manageExternalStorage.status;
-  if (!status.isGranted) {
-    await Permission.manageExternalStorage.request();
-  }
+  // final status = await Permission.manageExternalStorage.status;
+  // if (!status.isGranted) {
+  //   await Permission.manageExternalStorage.request();
+  // }
   await FileStorage.init();
   await gameStore.init();
   if (PlatformUtils.isDesktop) {

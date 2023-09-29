@@ -101,7 +101,16 @@ class MUDProfile {
   Future<List<Alias>> loadAliases() async {
     debugPrint('MUDProfile.loadAliases: $id');
     final aliases = await ProfileStorage.listProfileFiles(id, 'aliases');
-    return aliases.map((e) => Alias.fromJson(jsonDecode(e))).toList();
+    final aliasFiles = <String>[];
+    for (final alias in aliases) {
+      debugPrint('MUDProfile.loadAliases: $id/aliases/$alias');
+      final aliasFile =
+          await ProfileStorage.readProfileFile(id, 'aliases/$alias');
+      if (aliasFile != null) {
+        aliasFiles.add(aliasFile);
+      }
+    }
+    return aliasFiles.map((e) => Alias.fromJson(jsonDecode(e))).toList();
   }
 
   Future<void> saveAlias(Alias alias) async {

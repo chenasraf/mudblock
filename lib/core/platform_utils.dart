@@ -10,10 +10,12 @@ class PlatformUtils {
 
   static Future<String> getStorageBasePath() async {
     switch (Platform.operatingSystem) {
-      case 'macos':
       case 'linux':
         final username = Platform.environment['USER'] ?? Platform.environment['USERNAME'];
         return '/Users/$username/.config/mudblock';
+      case 'macos':
+        final dir = await getApplicationDocumentsDirectory();
+        return dir.path;
       case 'windows':
         final username = Platform.environment['USERNAME'];
         return 'C:\\Users\\$username\\AppData\\Roaming\\mudblock';

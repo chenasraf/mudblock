@@ -19,22 +19,30 @@ class TriggerListPage extends StatelessWidget with GameStoreMixin {
           final triggers = store.triggers;
           return ListView.builder(
             itemCount: triggers.length,
-            itemBuilder: (context, item) => ListTile(
-              key: Key(triggers[item].id),
-              title: Text(triggers[item].pattern),
-              subtitle: Text(triggers[item].action.content),
-              onTap: () async {
-                final trigger = await Navigator.pushNamed(
-                  context,
-                  Paths.trigger,
-                  arguments: triggers[item],
-                );
-                if (trigger != null) {
-                  await store.currentProfile.saveTrigger(trigger as Trigger);
-                  await store.loadTriggers();
-                }
-              },
-            ),
+            itemBuilder: (context, item) {
+              final trigger = triggers[item];
+              return ListTile(
+                key: Key(trigger.id),
+                title: Text(trigger.pattern),
+                subtitle: Text(trigger.action.content),
+                leading: Switch.adaptive(
+                  value: trigger.enabled,
+                  onChanged: (value) {
+                    trigger.enabled = value;
+                    save(store, trigger);                  },
+                ),
+                onTap: () async {
+                  final updated = await Navigator.pushNamed(
+                    context,
+                    Paths.trigger,
+                    arguments: trigger,
+                  );
+                  if (updated != null) {
+                    await save(store, updated as Trigger);
+                  }
+                },
+              );
+            },
           );
         },
       ),
@@ -44,12 +52,16 @@ class TriggerListPage extends StatelessWidget with GameStoreMixin {
           final store = storeOf(context);
           final trigger = await Navigator.pushNamed(context, Paths.trigger);
           if (trigger != null) {
-            await store.currentProfile.saveTrigger(trigger as Trigger);
-            await store.loadTriggers();
-          }
+            save(store, trigger as Trigger);          }
         },
       ),
     );
+  }
+
+  Future<void> save(GameStore store, Trigger updated) async {
+    await store.currentProfile.saveTrigger(updated);
+    // TODO - stop re-loading all triggers, only replace the one that changed
+    await store.loadTriggers();
   }
 }
 

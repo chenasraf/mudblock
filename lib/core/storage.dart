@@ -1,19 +1,16 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:localstore/localstore.dart';
 import 'package:path/path.dart' as path;
 
 import 'platform_utils.dart';
 
 class FileStorage {
-  @deprecated
-  static final Localstore _store = Localstore.instance;
-  static late final String _base;
+  static late final String base;
 
   static Future<void> init() async {
-    _base = await PlatformUtils.getStorageBasePath();
-    debugPrint('Storage base: $_base');
+    base = await PlatformUtils.getStorageBasePath();
+    debugPrint('Storage base: $base');
   }
 
   static Future<String?> readFile(String filename) async {
@@ -21,7 +18,7 @@ class FileStorage {
     // final collection = path.dirname(filename);
     // filename = path.basename(filename);
     // return _store.collection(collection).doc(filename).get();
-    final file = File(path.join(_base, filename));
+    final file = File(path.join(base, filename));
     var exists = await file.exists();
     if (!exists) {
       debugPrint('File does not exist: $filename');
@@ -30,14 +27,13 @@ class FileStorage {
     return file.readAsString();
   }
 
-  static Future<void> writeFile(
-      String filename, String data) async {
+  static Future<void> writeFile(String filename, String data) async {
     debugPrint(
         'Setting file: $filename, data: ${data.toString().length} bytes');
     // final collection = path.dirname(filename);
     // filename = path.basename(filename);
     // await _store.collection(collection).doc(filename).set(data);
-    final file = File(path.join(_base, filename));
+    final file = File(path.join(base, filename));
     await file.create(recursive: true);
     await file.writeAsString(data);
   }
@@ -47,7 +43,7 @@ class FileStorage {
     // final collection = path.dirname(filename);
     // filename = path.basename(filename);
     // await _store.collection(collection).doc(filename).delete();
-    final file = File(path.join(_base, filename));
+    final file = File(path.join(base, filename));
     await file.delete();
   }
 
@@ -57,7 +53,7 @@ class FileStorage {
     // final docs = await _store.collection(collection).get();
     // debugPrint('Listing collection: $collection, ${docs?.length} docs');
     // return (docs ?? {}).cast<String, String>();
-    final dir = Directory(path.join(_base, collection));
+    final dir = Directory(path.join(base, collection));
     var exists = await dir.exists();
     if (!exists) {
       debugPrint('Directory does not exist: $collection');
@@ -70,7 +66,7 @@ class FileStorage {
   static Future<void> deleteDirectory(String collection) async {
     debugPrint('Clearing collection: $collection');
     // await _store.collection(collection).delete();
-    final dir = Directory(path.join(_base, collection));
+    final dir = Directory(path.join(base, collection));
     await dir.delete(recursive: true);
   }
 }
@@ -95,7 +91,11 @@ class ProfileStorage {
   }
 
   static Future<List<String>> listAllProfiles() async {
-    return FileStorage.readDirectory('profiles');
+    final list = await FileStorage.readDirectory('profiles');
+    return list
+        .where((f) =>
+            Directory(path.join(FileStorage.base, 'profiles', f)).existsSync())
+        .toList();
   }
 
   static Future<List<String>> listProfileFiles(

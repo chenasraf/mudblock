@@ -1,4 +1,3 @@
-import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
 import '../store.dart';
@@ -12,8 +11,10 @@ class Automation {
   bool isRegex;
   bool isCaseSensitive;
   bool isRemovedFromBuffer;
-  bool isTemporary;
+  bool autoDisable;
   int invokeCount;
+  /// This is used to temporarily disable an automation after using it once when it has autoDisable set to true.
+  bool tempDisabled = false;
   MUDAction action;
 
   Automation({
@@ -24,9 +25,11 @@ class Automation {
     this.isRegex = false,
     this.isCaseSensitive = false,
     this.isRemovedFromBuffer = false,
-    this.isTemporary = false,
+    this.autoDisable = false,
     this.invokeCount = 0,
   });
+
+  bool get isAvailable => enabled && !tempDisabled;
 
   factory Automation.empty() => Automation(
         id: uuid(),
@@ -35,7 +38,7 @@ class Automation {
         isRegex: false,
         isCaseSensitive: false,
         isRemovedFromBuffer: false,
-        isTemporary: false,
+        autoDisable: false,
         invokeCount: 0,
         action: MUDAction.empty(),
       );
@@ -47,7 +50,7 @@ class Automation {
         isRegex: json['isRegex'],
         isCaseSensitive: json['isCaseSensitive'],
         isRemovedFromBuffer: json['isRemovedFromBuffer'],
-        isTemporary: json['isTemporary'],
+        autoDisable: json['autoDisable'],
         invokeCount: json['invokeCount'],
         action: MUDAction.fromJson(json['action']),
       );
@@ -59,7 +62,7 @@ class Automation {
         'isRegex': isRegex,
         'isCaseSensitive': isCaseSensitive,
         'isRemovedFromBuffer': isRemovedFromBuffer,
-        'isTemporary': isTemporary,
+        'autoDisable': autoDisable,
         'invokeCount': invokeCount,
         'action': action.toJson(),
       };
@@ -122,7 +125,7 @@ class Automation {
     bool? isRegex,
     bool? isCaseSensitive,
     bool? isRemovedFromBuffer,
-    bool? isTemporary,
+    bool? autoDisable,
     int? invokeCount = 0,
     MUDAction? action,
   }) =>
@@ -133,7 +136,7 @@ class Automation {
         isRegex: isRegex ?? this.isRegex,
         isCaseSensitive: isCaseSensitive ?? this.isCaseSensitive,
         isRemovedFromBuffer: isRemovedFromBuffer ?? this.isRemovedFromBuffer,
-        isTemporary: isTemporary ?? this.isTemporary,
+        autoDisable: autoDisable ?? this.autoDisable,
         invokeCount: invokeCount ?? this.invokeCount,
         action: action ?? this.action,
       );

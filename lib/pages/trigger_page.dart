@@ -27,6 +27,14 @@ class _TriggerPageState extends State<TriggerPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Trigger'),
+        actions: [
+          Switch.adaptive(
+            value: trigger.enabled,
+            onChanged: (value) {
+              trigger.enabled = value;
+            },
+          )
+        ],
       ),
       body: Align(
         alignment: Alignment.topCenter,
@@ -138,7 +146,7 @@ class _TriggerPageState extends State<TriggerPage> {
                         },
                       ),
                       CheckboxListTile(
-                        title: const Text('Remove From Buffer'),
+                        title: const Text('Remove From Output'),
                         subtitle: const Text(
                           'If checked, the output line will be removed from the buffer when it is matched.',
                         ),
@@ -151,15 +159,15 @@ class _TriggerPageState extends State<TriggerPage> {
                         },
                       ),
                       CheckboxListTile(
-                        title: const Text('Temporary'),
+                        title: const Text('Auto Disable'),
                         subtitle: const Text(
                           'If checked, the trigger will be disabled after it is matched once.',
                         ),
-                        value: trigger.isTemporary,
+                        value: trigger.autoDisable,
                         controlAffinity: ListTileControlAffinity.leading,
                         onChanged: (value) {
                           setState(() {
-                            trigger.isTemporary = value ?? false;
+                            trigger.autoDisable = value ?? false;
                           });
                         },
                       ),

@@ -35,6 +35,8 @@ class GameStore extends ChangeNotifier {
   late StreamSubscription<List<int>> _decodedSub;
   late final List<MUDProfile> profiles = [];
   MUDProfile? _currentProfile;
+  bool _clientReady = false;
+
   MUDProfile get currentProfile => _currentProfile!;
 
   Future<GameStore> init() async {
@@ -90,7 +92,7 @@ class GameStore extends ChangeNotifier {
     bool showLine = true;
     final str = ColorUtils.stripColor(line);
     for (final trigger in triggers) {
-      if (!trigger.enabled) {
+      if (!trigger.isAvailable) {
         continue;
       }
       if (trigger.matches(str)) {
@@ -98,8 +100,8 @@ class GameStore extends ChangeNotifier {
         if (trigger.isRemovedFromBuffer) {
           showLine = false;
         }
-        if (trigger.isTemporary) {
-          trigger.enabled = false;
+        if (trigger.autoDisable) {
+          trigger.tempDisabled = true;
         }
       }
     }
@@ -110,21 +112,22 @@ class GameStore extends ChangeNotifier {
     bool sendLine = true;
     final str = line;
     for (final alias in aliases) {
-      if (!alias.enabled) {
+      if (!alias.isAvailable) {
         continue;
       }
       if (alias.matches(str)) {
         alias.invokeEffect(this, str);
         sendLine = false;
       }
-      if (alias.isTemporary) {
-        alias.enabled = false;
+      if (alias.autoDisable) {
+        alias.tempDisabled = true;
       }
     }
     return sendLine;
   }
 
   void _onConnect() {
+    _clientReady = true;
     echo('Connected');
   }
 
@@ -231,6 +234,7 @@ class GameStore extends ChangeNotifier {
   }
 
   void sendString(String line) {
+    debugPrint('sending string: $line');
     _client.send(line + newline);
   }
 
@@ -253,6 +257,9 @@ class GameStore extends ChangeNotifier {
   }
 
   void submitInput(String text) {
+    if (!_clientReady || !_client.connected) {
+      return;
+    }
     echo(text);
     execute(text);
     scrollToEnd();

@@ -27,6 +27,14 @@ class _AliasPageState extends State<AliasPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Alias'),
+        actions: [
+          Switch.adaptive(
+            value: alias.enabled,
+            onChanged: (value) async {
+              alias.enabled = value;
+            },
+          )
+        ],
       ),
       body: Align(
         alignment: Alignment.topCenter,
@@ -138,7 +146,7 @@ class _AliasPageState extends State<AliasPage> {
                         },
                       ),
                       CheckboxListTile(
-                        title: const Text('Remove From Buffer'),
+                        title: const Text('Remove From Output'),
                         subtitle: const Text(
                           'If checked, your input line will be removed from the buffer when it is matched.',
                         ),
@@ -151,15 +159,15 @@ class _AliasPageState extends State<AliasPage> {
                         },
                       ),
                       CheckboxListTile(
-                        title: const Text('Temporary'),
+                        title: const Text('Auto Disable'),
                         subtitle: const Text(
                           'If checked, the alias will be disabled after it is matched once.',
                         ),
-                        value: alias.isTemporary,
+                        value: alias.autoDisable,
                         controlAffinity: ListTileControlAffinity.leading,
                         onChanged: (value) {
                           setState(() {
-                            alias.isTemporary = value ?? false;
+                            alias.autoDisable = value ?? false;
                           });
                         },
                       ),
