@@ -13,6 +13,7 @@ class Automation {
   bool isRemovedFromBuffer;
   bool autoDisable;
   int invokeCount;
+
   /// This is used to temporarily disable an automation after using it once when it has autoDisable set to true.
   bool tempDisabled = false;
   MUDAction action;
@@ -68,15 +69,26 @@ class Automation {
       };
 
   bool matches(String line) {
+    late RegExp regex;
     if (isRegex) {
-      final regex = RegExp(pattern, caseSensitive: isCaseSensitive);
-      return regex.hasMatch(line);
+      regex = RegExp(pattern, caseSensitive: isCaseSensitive);
     } else {
-      final updatedPattern = pattern.replaceAll('*', '(.*?)');
-      final regex =
-          RegExp("^$updatedPattern\$", caseSensitive: isCaseSensitive);
-      return regex.hasMatch(line);
+      regex = _strToRegExp(pattern);
     }
+    return regex.hasMatch(line);
+  }
+
+  RegExp _strToRegExp(String pattern) {
+    final updatedPattern = pattern
+        .replaceAll('*', '(.*?)')
+        .replaceAll(r'\', r'\')
+        .replaceAll(r'(', r'\(')
+        .replaceAll(r')', r'\)')
+        .replaceAll(r'[', r'\[')
+        .replaceAll(r']', r'\]')
+        .replaceAll(r'/', r'\/');
+    final regex = RegExp("^$updatedPattern\$", caseSensitive: isCaseSensitive);
+    return regex;
   }
 
   void invokeEffect(GameStore store, String line) {
@@ -88,33 +100,21 @@ class Automation {
     if (!matches(str)) {
       return [];
     }
-    if (isRegex) {
-      final regex =
-          RegExp(pattern, caseSensitive: isCaseSensitive, unicode: true);
-      final rMatches = regex.allMatches(str);
-      final matches = <String>[];
-      for (var i = 0; i < rMatches.length; i++) {
-        for (var j = 0; j < rMatches.elementAt(i).groupCount + 1; j++) {
-          if (rMatches.elementAt(i).group(j) != null) {
-            matches.add(rMatches.elementAt(i).group(j)!);
-          }
-        }
-      }
-      return matches;
-    } else {
-      final input = isCaseSensitive ? str.toLowerCase() : str;
-      final compare = isCaseSensitive ? pattern.toLowerCase() : pattern;
-      final matches = <String>[str];
-      for (var i = 0; i < input.length; i++) {
-        final index = input.indexOf(compare, i);
-        if (index == -1) {
-          break;
-        }
-        matches.add(str.substring(index, index + compare.length));
-        i = index + compare.length;
-      }
-      return matches;
+    if (!isRegex) {
+      pattern = _strToRegExp(pattern).pattern;
     }
+    final regex =
+        RegExp(pattern, caseSensitive: isCaseSensitive, unicode: true);
+    final foundMatches = regex.allMatches(str);
+    final results = <String>[];
+    for (var i = 0; i < foundMatches.length; i++) {
+      for (var j = 0; j < foundMatches.elementAt(i).groupCount + 1; j++) {
+        if (foundMatches.elementAt(i).group(j) != null) {
+          results.add(foundMatches.elementAt(i).group(j)!);
+        }
+      }
+    }
+    return results;
   }
 
   @mustBeOverridden
@@ -141,4 +141,3 @@ class Automation {
         action: action ?? this.action,
       );
 }
-

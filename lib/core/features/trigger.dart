@@ -63,4 +63,3 @@ class Trigger extends Automation {
         action: action ?? this.action,
       );
 }
-

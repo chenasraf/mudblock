@@ -57,7 +57,7 @@ class MUDAction {
 
   factory MUDAction.fromJson(Map<String, dynamic> json) => MUDAction(
         json['content'],
-      // TODO generalize getting enum from string
+        // TODO generalize getting enum from string
         target: MUDActionTarget.values.firstWhere(
           (e) => e.name == json['target'],
           orElse: () => MUDActionTarget.world,
@@ -76,10 +76,9 @@ class MUDAction {
             .replaceAll('%USERNAME', store.currentProfile.username)
         //
         ;
-    for (final vari in store.variables) {
+    for (final vari in store.variables.values) {
       content = content.replaceAll('%${vari.name}', vari.value);
     }
     return content;
   }
 }
-

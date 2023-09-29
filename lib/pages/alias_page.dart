@@ -188,4 +188,3 @@ class _AliasPageState extends State<AliasPage> {
     );
   }
 }
-

@@ -29,7 +29,8 @@ class TriggerListPage extends StatelessWidget with GameStoreMixin {
                   value: trigger.enabled,
                   onChanged: (value) {
                     trigger.enabled = value;
-                    save(store, trigger);                  },
+                    save(store, trigger);
+                  },
                 ),
                 onTap: () async {
                   final updated = await Navigator.pushNamed(
@@ -52,7 +53,8 @@ class TriggerListPage extends StatelessWidget with GameStoreMixin {
           final store = storeOf(context);
           final trigger = await Navigator.pushNamed(context, Paths.trigger);
           if (trigger != null) {
-            save(store, trigger as Trigger);          }
+            save(store, trigger as Trigger);
+          }
         },
       ),
     );
@@ -64,4 +66,3 @@ class TriggerListPage extends StatelessWidget with GameStoreMixin {
     await store.loadTriggers();
   }
 }
-

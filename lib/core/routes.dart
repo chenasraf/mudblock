@@ -74,4 +74,3 @@ final routes = <String, Widget Function(BuildContext)>{
         },
       ),
 };
-

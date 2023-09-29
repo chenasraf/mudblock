@@ -11,7 +11,8 @@ class PlatformUtils {
   static Future<String> getStorageBasePath() async {
     switch (Platform.operatingSystem) {
       case 'linux':
-        final username = Platform.environment['USER'] ?? Platform.environment['USERNAME'];
+        final username =
+            Platform.environment['USER'] ?? Platform.environment['USERNAME'];
         return '/Users/$username/.config/mudblock';
       case 'macos':
         final dir = await getApplicationDocumentsDirectory();
@@ -26,11 +27,10 @@ class PlatformUtils {
         }
         return path.join(base.path, 'mudblock');
       case 'ios':
-      final base = await getApplicationDocumentsDirectory();
+        final base = await getApplicationDocumentsDirectory();
         return path.join(base.path, 'mudblock');
       default:
         throw UnsupportedError('Unsupported platform');
     }
   }
 }
-

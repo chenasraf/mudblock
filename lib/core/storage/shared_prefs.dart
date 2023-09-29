@@ -4,4 +4,3 @@ late final SharedPreferences prefs;
 Future<SharedPreferences> getPrefs() async {
   return prefs = await SharedPreferences.getInstance();
 }
-

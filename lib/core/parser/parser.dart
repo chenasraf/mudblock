@@ -22,7 +22,8 @@ class ColorToken {
   });
 
   factory ColorToken.empty() => ColorToken(text: '', fgColor: 0, bgColor: 0);
-  factory ColorToken.defaultColor(String text) => ColorToken(text: text, fgColor: 0, bgColor: 0);
+  factory ColorToken.defaultColor(String text) =>
+      ColorToken(text: text, fgColor: 0, bgColor: 0);
 
   bool get isEmpty => text.isEmpty;
   bool get isNotEmpty => !isEmpty;
@@ -182,4 +183,3 @@ class ColorParser implements IReader {
   @override
   setPosition(int position) => index = position;
 }
-

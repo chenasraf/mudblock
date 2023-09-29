@@ -39,7 +39,7 @@ class GameStore extends ChangeNotifier {
   // features
   final List<Trigger> triggers = [];
   final List<Alias> aliases = [];
-  final List<Variable> variables = [];
+  final Map<String, Variable> variables = {};
 
   MUDProfile get currentProfile => _currentProfile!;
 
@@ -96,7 +96,7 @@ class GameStore extends ChangeNotifier {
   Future<void> loadVariables() async {
     final list = await currentProfile.loadVariables();
     variables.clear();
-    variables.addAll(list);
+    variables.addAll(Map.fromEntries(list.map((e) => MapEntry(e.name, e))));
     notifyListeners();
     debugPrint('Variables: ${variables.length}');
   }
@@ -142,14 +142,16 @@ class GameStore extends ChangeNotifier {
   Future<void> _onConnect() async {
     _clientReady = true;
     echo('Connected');
-    if (currentProfile.authMethod != AuthMethod.none && currentProfile.username.isNotEmpty && currentProfile.password.isNotEmpty) {
-      // _client.doo(90);
-      // sendBytes([Symbols.iac, Symbols.doo, 90]);
+    if (currentProfile.authMethod != AuthMethod.none &&
+        currentProfile.username.isNotEmpty &&
+        currentProfile.password.isNotEmpty) {
       debugPrint('Sending username and password');
-      await Future.delayed(const Duration(milliseconds: 100));
-      send(currentProfile.username);
-      await Future.delayed(const Duration(milliseconds: 100));
-      send(currentProfile.password);
+      if (currentProfile.authMethod == AuthMethod.diku) {
+        await Future.delayed(const Duration(milliseconds: 100));
+        send(currentProfile.username);
+        await Future.delayed(const Duration(milliseconds: 100));
+        send(currentProfile.password);
+      }
     }
   }
 
@@ -388,4 +390,3 @@ mixin GameStoreStateMixin<T extends StatefulWidget> on State<T> {
 }
 
 final gameStore = GameStore();
-

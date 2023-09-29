@@ -39,7 +39,8 @@ class ColoredText extends ColorToken {
   });
 
   factory ColoredText.empty() => ColoredText(text: '', fgColor: 0, bgColor: 0);
-  factory ColoredText.defaultColor(String text) => ColoredText(text: text, fgColor: 0, bgColor: 0);
+  factory ColoredText.defaultColor(String text) =>
+      ColoredText(text: text, fgColor: 0, bgColor: 0);
   factory ColoredText.fromToken(ColorToken token) => ColoredText(
         text: token.text,
         fgColor: token.fgColor,
@@ -51,7 +52,9 @@ class ColoredText extends ColorToken {
       );
 
   int get themedFgColor {
-    return xterm256 ? (xtermColorMap[fgColor] ?? xtermColorMap[15]!) : (ansiFgColorMap[fgColor] ?? ansiFgColorMap[97]!);
+    return xterm256
+        ? (xtermColorMap[fgColor] ?? xtermColorMap[15]!)
+        : (ansiFgColorMap[fgColor] ?? ansiFgColorMap[97]!);
   }
 
   int get themedBgColor => ansiBgColorMap[bgColor] ?? 0x00000000;

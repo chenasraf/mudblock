@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../core/features/profile.dart';
 import '../core/platform_utils.dart';
 import '../core/routes.dart';
 import '../core/store.dart';
 
-class HomeScaffold extends StatelessWidget {
+class HomeScaffold extends StatelessWidget with GameStoreMixin {
   final Widget Function(BuildContext, Widget?) builder;
 
   const HomeScaffold({super.key, required this.builder});
@@ -40,6 +41,21 @@ class HomeScaffold extends StatelessWidget {
                 onTap: () => Navigator.pushNamed(context, Paths.variables),
               ),
               ListTile(
+                title: const Text('Profile'),
+                onTap: () async {
+                  final store = storeOf(context);
+                  final updated = await Navigator.pushNamed(
+                    context,
+                    Paths.profile,
+                    arguments: store.currentProfile,
+                  );
+                  if (updated != null) {
+                    await MUDProfile.save(updated as MUDProfile);
+                    store.loadProfiles();
+                  }
+                },
+              ),
+              ListTile(
                 title: const Text('Settings'),
                 onTap: () => Navigator.pushNamed(context, Paths.settings),
               ),
@@ -59,4 +75,3 @@ class HomeScaffold extends StatelessWidget {
     );
   }
 }
-

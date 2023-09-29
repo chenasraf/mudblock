@@ -13,6 +13,7 @@ final profilePresets = [
     host: 'smud.ourmmo.com',
     port: 3000,
     authMethod: AuthMethod.diku,
+    mccpEnabled: false,
   ),
   MUDProfile(
     id: 'aardwolf',
@@ -34,4 +35,3 @@ final profilePresets = [
     port: 6789,
   ),
 ];
-

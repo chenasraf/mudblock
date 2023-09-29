@@ -24,8 +24,8 @@ class StringReader implements IReader<String> {
 
   @override
   String? read() {
-  if (isDone) {
-    return null;
+    if (isDone) {
+      return null;
     }
     return input[index++];
   }
@@ -35,4 +35,3 @@ class StringReader implements IReader<String> {
     index = position;
   }
 }
-

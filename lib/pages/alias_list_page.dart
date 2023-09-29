@@ -29,7 +29,8 @@ class AliasListPage extends StatelessWidget with GameStoreMixin {
                   value: alias.enabled,
                   onChanged: (value) {
                     alias.enabled = value;
-                    save(store, alias);                  },
+                    save(store, alias);
+                  },
                 ),
                 onTap: () async {
                   final updated = await Navigator.pushNamed(
@@ -52,7 +53,8 @@ class AliasListPage extends StatelessWidget with GameStoreMixin {
           final store = storeOf(context);
           final alias = await Navigator.pushNamed(context, Paths.alias);
           if (alias != null) {
-            save(store, alias as Alias);          }
+            save(store, alias as Alias);
+          }
         },
       ),
     );
@@ -64,4 +66,3 @@ class AliasListPage extends StatelessWidget with GameStoreMixin {
     await store.loadAliases();
   }
 }
-

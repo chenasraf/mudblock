@@ -63,4 +63,3 @@ class Alias extends Automation {
         action: action ?? this.action,
       );
 }
-

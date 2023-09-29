@@ -36,14 +36,14 @@ class SelectProfilePage extends StatelessWidget with GameStoreMixin {
                                 icon: const Icon(Icons.edit),
                                 onPressed: () async {
                                   final store = storeOf(context);
-                                  final updated =
-                                      await Navigator.pushNamed(
+                                  final updated = await Navigator.pushNamed(
                                     context,
                                     Paths.profile,
                                     arguments: profile,
                                   );
                                   if (updated != null) {
-                                    await MUDProfile.save(updated as MUDProfile);
+                                    await MUDProfile.save(
+                                        updated as MUDProfile);
                                     store.loadProfiles();
                                   }
                                 },
@@ -66,4 +66,3 @@ class SelectProfilePage extends StatelessWidget with GameStoreMixin {
     );
   }
 }
-

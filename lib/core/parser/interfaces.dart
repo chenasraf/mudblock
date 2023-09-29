@@ -28,7 +28,10 @@ class TokenValue {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is TokenValue && runtimeType == other.runtimeType && token == other.token && raw == other.raw;
+      other is TokenValue &&
+          runtimeType == other.runtimeType &&
+          token == other.token &&
+          raw == other.raw;
 
   @override
   String toString() => token != Token.esc ? '${token.name}($raw)' : token.name;

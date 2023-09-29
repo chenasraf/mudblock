@@ -16,15 +16,15 @@ class VariableListPage extends StatelessWidget with GameStoreMixin {
       body: GameStore.consumer(
         builder: (context, store, child) {
           debugPrint('Variable list rebuild');
-          final variables = store.variables;
+          final variables = store.variables.values;
           return ListView.builder(
             itemCount: variables.length,
             itemBuilder: (context, item) {
-              final variable = variables[item];
+              final variable = variables.elementAt(item);
               return ListTile(
                 key: Key(variable.name),
                 title: Text(variable.name),
-                subtitle: Text(variable.strValue),
+                subtitle: Text(variable.value),
                 onTap: () async {
                   final updated = await Navigator.pushNamed(
                     context,
@@ -54,8 +54,8 @@ class VariableListPage extends StatelessWidget with GameStoreMixin {
   }
 
   Future<void> save(GameStore store, Variable updated) async {
-    await store.currentProfile.saveVariable(store.variables, updated);
+    await store.currentProfile
+        .saveVariable(store.variables.values.toList(), updated);
     await store.loadVariables();
   }
 }
-

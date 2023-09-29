@@ -48,29 +48,14 @@ class _VariablePageState extends State<VariablePage> {
                           variable.name = value;
                         },
                       ),
-                      DropdownMenu(
-                        initialSelection: variable.type,
-                        onSelected: (value) {
-                          variable.type = value as VariableType;
-                        },
-                        dropdownMenuEntries: VariableType.values
-                            .map(
-                              (e) => DropdownMenuEntry(
-                                value: e,
-                                label: e.name,
-                              ),
-                            )
-                            .toList(),
-                      ),
                       TextField(
-                        controller:
-                            TextEditingController(text: variable.strValue),
+                        controller: TextEditingController(text: variable.value),
                         decoration: const InputDecoration(
                           labelText: 'Value',
                           helperText: 'The value of the variable',
                         ),
                         onChanged: (value) {
-                          variable.strValue = value;
+                          variable.value = value;
                         },
                       ),
                     ],
@@ -90,4 +75,3 @@ class _VariablePageState extends State<VariablePage> {
     );
   }
 }
-

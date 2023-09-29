@@ -102,4 +102,3 @@ class ProfileStorage {
     await FileStorage.deleteDirectory('profiles');
   }
 }
-

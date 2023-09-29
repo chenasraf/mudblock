@@ -188,4 +188,3 @@ class _TriggerPageState extends State<TriggerPage> {
     );
   }
 }
-

@@ -199,4 +199,3 @@ enum AuthMethod {
   none,
   diku,
 }
-
