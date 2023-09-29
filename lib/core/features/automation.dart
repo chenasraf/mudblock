@@ -30,6 +30,7 @@ class Automation {
     this.invokeCount = 0,
   });
 
+  /// is both enabled (globally by the user) and not temporarily disabled (by the automation itself)
   bool get isAvailable => enabled && !tempDisabled;
 
   factory Automation.empty() => Automation(

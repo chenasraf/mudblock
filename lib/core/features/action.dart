@@ -72,13 +72,15 @@ class MUDAction {
   String _doSpecialReplacements(GameStore store, String content) {
     debugPrint('MUDAction._doSpecialReplacements: $content');
     content = content
-            .replaceAll('%PASSWORD', store.currentProfile.password)
-            .replaceAll('%USERNAME', store.currentProfile.username)
-        //
-        ;
+        .replaceAll('%PASSWORD', store.currentProfile.password)
+        .replaceAll('%USERNAME', store.currentProfile.username);
+
+    // variables from the store
+    // TODO allow disabling this
     for (final vari in store.variables.values) {
       content = content.replaceAll('%${vari.name}', vari.value);
     }
     return content;
   }
 }
+
