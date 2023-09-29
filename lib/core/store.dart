@@ -15,6 +15,7 @@ import 'consts.dart';
 import 'features/alias.dart';
 import 'features/profile.dart';
 import 'features/trigger.dart';
+import 'features/variable.dart';
 
 const maxLines = 2000;
 
@@ -26,8 +27,6 @@ class GameStore extends ChangeNotifier {
   final FocusNode inputFocus = FocusNode();
   bool isCompressed = false;
   final ZLibDecoder decoder = ZLibDecoder();
-  final List<Trigger> triggers = [];
-  final List<Alias> aliases = [];
   final msgSplitPattern = RegExp("($cr$lf)|($lf$cr)|$cr|$lf");
   final ZLibCodec _decoder = ZLibCodec();
   final StreamController<List<int>> _rawStreamController = StreamController();
@@ -36,6 +35,11 @@ class GameStore extends ChangeNotifier {
   late final List<MUDProfile> profiles = [];
   MUDProfile? _currentProfile;
   bool _clientReady = false;
+
+  // features
+  final List<Trigger> triggers = [];
+  final List<Alias> aliases = [];
+  final List<Variable> variables = [];
 
   MUDProfile get currentProfile => _currentProfile!;
 
@@ -67,6 +71,7 @@ class GameStore extends ChangeNotifier {
     await Future.wait([
       loadTriggers(),
       loadAliases(),
+      loadVariables(),
     ]);
     _client.connect();
   }
@@ -86,6 +91,14 @@ class GameStore extends ChangeNotifier {
     aliases.addAll(list);
     notifyListeners();
     debugPrint('Aliases: ${aliases.length}');
+  }
+
+  Future<void> loadVariables() async {
+    final list = await currentProfile.loadVariables();
+    variables.clear();
+    variables.addAll(list);
+    notifyListeners();
+    debugPrint('Variables: ${variables.length}');
   }
 
   bool processTriggers(String line) {
@@ -126,9 +139,18 @@ class GameStore extends ChangeNotifier {
     return sendLine;
   }
 
-  void _onConnect() {
+  Future<void> _onConnect() async {
     _clientReady = true;
     echo('Connected');
+    if (currentProfile.authMethod != AuthMethod.none && currentProfile.username.isNotEmpty && currentProfile.password.isNotEmpty) {
+      // _client.doo(90);
+      // sendBytes([Symbols.iac, Symbols.doo, 90]);
+      debugPrint('Sending username and password');
+      await Future.delayed(const Duration(milliseconds: 100));
+      send(currentProfile.username);
+      await Future.delayed(const Duration(milliseconds: 100));
+      send(currentProfile.password);
+    }
   }
 
   void requestMCCP() {
@@ -326,7 +348,7 @@ class GameStore extends ChangeNotifier {
     debugPrint('loading profiles: $list');
     for (final name in list) {
       final profile = await ProfileStorage.readProfileFile(name, name);
-      profiles.add(MUDProfile.fromJson(jsonDecode(profile!)));
+      profiles.add(MUDProfile.fromJson(profile!));
     }
     if (_currentProfile != null) {
       _currentProfile = profiles.firstWhere((e) => e.id == currentProfile.id);
@@ -348,7 +370,7 @@ class GameStore extends ChangeNotifier {
       for (final name in list) {
         final profile = await ProfileStorage.readProfileFile(name, name);
         debugPrint('profile: $profile');
-        profiles.add(MUDProfile.fromJson(jsonDecode(profile!)));
+        profiles.add(MUDProfile.fromJson(profile!));
       }
     }
     debugPrint('profiles: ${profiles.map((e) => [e.name, e.password])}');

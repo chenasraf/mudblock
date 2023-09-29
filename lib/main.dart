@@ -10,10 +10,6 @@ import 'core/store.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await getPrefs();
-  // final status = await Permission.manageExternalStorage.status;
-  // if (!status.isGranted) {
-  //   await Permission.manageExternalStorage.request();
-  // }
   await FileStorage.init();
   await gameStore.init();
   if (PlatformUtils.isDesktop) {
@@ -52,7 +48,7 @@ class MyApp extends StatelessWidget {
       builder: (context, child) {
         return GameStore.provider(child: child!);
       },
-      initialRoute: '/home',
+      initialRoute: Paths.home,
       routes: routes,
     );
   }

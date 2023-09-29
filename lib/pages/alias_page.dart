@@ -107,10 +107,10 @@ class _AliasPageState extends State<AliasPage> {
                         ),
                       ),
                       DropdownMenu(
-                        initialSelection: alias.action.sendTo,
+                        initialSelection: alias.action.target,
                         onSelected: (value) {
                           if (value is MUDActionTarget) {
-                            alias.action.sendTo = value;
+                            alias.action.target = value;
                           }
                         },
                         dropdownMenuEntries: const [

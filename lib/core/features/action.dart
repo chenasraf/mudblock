@@ -13,8 +13,8 @@ enum MUDActionTarget {
 
 class MUDAction {
   String content;
-  MUDActionTarget sendTo;
-  MUDAction(this.content, {this.sendTo = MUDActionTarget.world});
+  MUDActionTarget target;
+  MUDAction(this.content, {this.target = MUDActionTarget.world});
 
   void invoke(GameStore store, List<String> matches) {
     debugPrint('MUDAction.invoke: ${this.content}, $matches');
@@ -25,7 +25,7 @@ class MUDAction {
     content = _doSpecialReplacements(store, content);
     debugPrint('MUDAction.invoking: $content');
 
-    switch (sendTo) {
+    switch (target) {
       case MUDActionTarget.world:
         debugPrint('ActionSendTo.world: $content');
         store.send(content);
@@ -57,22 +57,29 @@ class MUDAction {
 
   factory MUDAction.fromJson(Map<String, dynamic> json) => MUDAction(
         json['content'],
-        sendTo: MUDActionTarget.values[json['sendTo']],
+      // TODO generalize getting enum from string
+        target: MUDActionTarget.values.firstWhere(
+          (e) => e.name == json['target'],
+          orElse: () => MUDActionTarget.world,
+        ),
       );
 
   Map<String, dynamic> toJson() => {
         'content': content,
-        'sendTo': sendTo.index,
+        'target': target.name,
       };
 
   String _doSpecialReplacements(GameStore store, String content) {
     debugPrint('MUDAction._doSpecialReplacements: $content');
-    debugPrint("password: ${store.currentProfile.password}");
-    return content
+    content = content
             .replaceAll('%PASSWORD', store.currentProfile.password)
             .replaceAll('%USERNAME', store.currentProfile.username)
         //
         ;
+    for (final vari in store.variables) {
+      content = content.replaceAll('%${vari.name}', vari.value);
+    }
+    return content;
   }
 }
 

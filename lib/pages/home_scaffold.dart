@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../core/platform_utils.dart';
 import '../core/routes.dart';
 import '../core/store.dart';
 
@@ -20,25 +21,39 @@ class HomeScaffold extends StatelessWidget {
         builder: builder,
       ),
       endDrawer: Drawer(
-        child: ListView(
-          children: [
-            ListTile(
-              title: const Text('Aliases'),
-              onTap: () => Navigator.pushNamed(context, Paths.aliases),
-            ),
-            ListTile(
-              title: const Text('Triggers'),
-              onTap: () => Navigator.pushNamed(context, Paths.triggers),
-            ),
-            ListTile(
-              title: const Text('Settings'),
-              onTap: () => Navigator.pushNamed(context, Paths.settings),
-            ),
-            ListTile(
-              title: const Text('Disconnect'),
-              onTap: () => gameStore.connect(context),
-            ),
-          ],
+        child: Padding(
+          padding: PlatformUtils.isDesktop
+              ? const EdgeInsets.only(top: 60)
+              : EdgeInsets.zero,
+          child: ListView(
+            children: [
+              ListTile(
+                title: const Text('Aliases'),
+                onTap: () => Navigator.pushNamed(context, Paths.aliases),
+              ),
+              ListTile(
+                title: const Text('Triggers'),
+                onTap: () => Navigator.pushNamed(context, Paths.triggers),
+              ),
+              ListTile(
+                title: const Text('Variables'),
+                onTap: () => Navigator.pushNamed(context, Paths.variables),
+              ),
+              ListTile(
+                title: const Text('Settings'),
+                onTap: () => Navigator.pushNamed(context, Paths.settings),
+              ),
+              ListTile(
+                title: const Text('Disconnect'),
+                onTap: () async {
+                  await gameStore.disconnect();
+                  if (context.mounted) {
+                    gameStore.connect(context);
+                  }
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

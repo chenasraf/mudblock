@@ -12,16 +12,26 @@ import '../pages/profile_page.dart';
 import '../pages/select_profile_page.dart';
 import '../pages/trigger_list_page.dart';
 import '../pages/trigger_page.dart';
+import '../pages/variable_list_page.dart';
+import '../pages/variable_page.dart';
 import 'features/profile.dart';
+import 'features/variable.dart';
 
 class Paths {
+  static const home = '/';
+
   static const profiles = '/profiles';
   static const profile = '/profile';
+
   static const aliases = '/aliases';
   static const alias = '/alias';
+
   static const triggers = '/triggers';
   static const trigger = '/trigger';
-  static const home = '/home';
+
+  static const variables = '/variables';
+  static const variable = '/variable';
+
   static const settings = '/settings';
 }
 
@@ -48,6 +58,15 @@ final routes = <String, Widget Function(BuildContext)>{
   Paths.trigger: (context) {
     final trigger = ModalRoute.of(context)!.settings.arguments as Trigger?;
     return TriggerPage(trigger: trigger);
+  },
+  Paths.variables: (context) => GameStore.consumer(
+        builder: (context, store, child) {
+          return const VariableListPage();
+        },
+      ),
+  Paths.variable: (context) {
+    final variable = ModalRoute.of(context)!.settings.arguments as Variable?;
+    return VariablePage(variable: variable);
   },
   Paths.home: (context) => HomeScaffold(
         builder: (context, _) {

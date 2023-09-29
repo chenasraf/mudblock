@@ -12,12 +12,14 @@ final profilePresets = [
     name: 'SimpleMUD',
     host: 'smud.ourmmo.com',
     port: 3000,
+    authMethod: AuthMethod.diku,
   ),
   MUDProfile(
     id: 'aardwolf',
     name: 'Aardwolf',
     host: 'aardmud.org',
     port: 23,
+    authMethod: AuthMethod.diku,
   ),
   MUDProfile(
     id: 'batmud',

@@ -107,10 +107,10 @@ class _TriggerPageState extends State<TriggerPage> {
                         ),
                       ),
                       DropdownMenu(
-                        initialSelection: trigger.action.sendTo,
+                        initialSelection: trigger.action.target,
                         onSelected: (value) {
                           if (value is MUDActionTarget) {
-                            trigger.action.sendTo = value;
+                            trigger.action.target = value;
                           }
                         },
                         dropdownMenuEntries: const [

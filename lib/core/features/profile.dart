@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:encrypt/encrypt.dart' as enc;
 import 'package:flutter/foundation.dart';
 
@@ -9,6 +7,7 @@ import '../storage.dart';
 import '../string_utils.dart';
 import 'alias.dart';
 import 'trigger.dart';
+import 'variable.dart';
 
 class MUDProfile {
   String id;
@@ -18,6 +17,7 @@ class MUDProfile {
   bool mccpEnabled;
   String username;
   String password;
+  AuthMethod authMethod;
 
   MUDProfile({
     required this.id,
@@ -27,6 +27,7 @@ class MUDProfile {
     this.mccpEnabled = true,
     this.username = '',
     this.password = '',
+    this.authMethod = AuthMethod.none,
   });
 
   factory MUDProfile.empty() => MUDProfile(
@@ -44,6 +45,7 @@ class MUDProfile {
     bool? mccpEnabled,
     String? username,
     String? password,
+    AuthMethod? authMethod,
   }) =>
       MUDProfile(
         id: id ?? this.id,
@@ -53,6 +55,7 @@ class MUDProfile {
         mccpEnabled: mccpEnabled ?? this.mccpEnabled,
         username: username ?? this.username,
         password: password ?? this.password,
+        authMethod: authMethod ?? this.authMethod,
       );
 
   factory MUDProfile.fromJson(Map<String, dynamic> json) {
@@ -64,6 +67,11 @@ class MUDProfile {
       mccpEnabled: json['mccpEnabled'],
       username: json['username'],
       password: decrypt(json['password']),
+      // TODO generalize getting enum from string
+      authMethod: AuthMethod.values.firstWhere(
+        (e) => e.name == json['authMethod'],
+        orElse: () => AuthMethod.none,
+      ),
     );
   }
 
@@ -75,18 +83,19 @@ class MUDProfile {
         'mccpEnabled': mccpEnabled,
         'username': username,
         'password': encrypt(password),
+        'authMethod': authMethod.name,
       };
 
   static Future<void> save(MUDProfile profile) async {
     debugPrint('MUDProfile.save: ${profile.id}');
     return ProfileStorage.writeProfileFile(
-        profile.id, profile.id, jsonEncode(profile.toJson()));
+        profile.id, profile.id, (profile.toJson()));
   }
 
   Future<List<Trigger>> loadTriggers() async {
     debugPrint('MUDProfile.loadTriggers: $id');
     final triggers = await ProfileStorage.listProfileFiles(id, 'triggers');
-    final triggerFiles = <String>[];
+    final triggerFiles = <Map<String, dynamic>>[];
     for (final trigger in triggers) {
       debugPrint('MUDProfile.loadTriggers: $id/triggers/$trigger');
       final triggerFile =
@@ -95,13 +104,13 @@ class MUDProfile {
         triggerFiles.add(triggerFile);
       }
     }
-    return triggerFiles.map((e) => Trigger.fromJson(jsonDecode(e))).toList();
+    return triggerFiles.map((e) => Trigger.fromJson(e)).toList();
   }
 
   Future<List<Alias>> loadAliases() async {
     debugPrint('MUDProfile.loadAliases: $id');
     final aliases = await ProfileStorage.listProfileFiles(id, 'aliases');
-    final aliasFiles = <String>[];
+    final aliasFiles = <Map<String, dynamic>>[];
     for (final alias in aliases) {
       debugPrint('MUDProfile.loadAliases: $id/aliases/$alias');
       final aliasFile =
@@ -110,19 +119,47 @@ class MUDProfile {
         aliasFiles.add(aliasFile);
       }
     }
-    return aliasFiles.map((e) => Alias.fromJson(jsonDecode(e))).toList();
+    return aliasFiles.map((e) => Alias.fromJson(e)).toList();
+  }
+
+  Future<List<Variable>> loadVariables() async {
+    debugPrint('MUDProfile.loadVariables: $id');
+    final vars = await ProfileStorage.readProfileFile(id, 'vars');
+    if (vars == null) {
+      return [];
+    }
+    return (vars['vars'] as List<dynamic>)
+        .map((e) => Variable.fromJson(e))
+        .toList();
   }
 
   Future<void> saveAlias(Alias alias) async {
     debugPrint('MUDProfile.saveAlias: $id/aliases/${alias.id}');
     return ProfileStorage.writeProfileFile(
-        id, 'aliases/${alias.id}', jsonEncode(alias.toJson()));
+        id, 'aliases/${alias.id}', alias.toJson());
   }
 
   Future<void> saveTrigger(Trigger trigger) async {
     debugPrint('MUDProfile.saveTrigger: $id/triggers/${trigger.id}');
     return ProfileStorage.writeProfileFile(
-        id, 'triggers/${trigger.id}', jsonEncode(trigger.toJson()));
+        id, 'triggers/${trigger.id}', trigger.toJson());
+  }
+
+  Future<void> saveVariable(List<Variable> current, Variable update) async {
+    debugPrint('MUDProfile.saveVariable: $id/vars');
+    final existing = current.indexWhere(
+      (v) => v.name == update.name,
+    );
+    if (existing >= 0) {
+      current[existing] = update;
+    } else {
+      current.add(update);
+    }
+    return ProfileStorage.writeProfileFile(
+      id,
+      'vars',
+      {'vars': current.map((v) => v.toJson()).toList()},
+    );
   }
 
   static final encKey = enc.Key.fromUtf8(pwdKey);
@@ -156,5 +193,10 @@ class MUDProfile {
       return password;
     }
   }
+}
+
+enum AuthMethod {
+  none,
+  diku,
 }
 
