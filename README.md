@@ -9,14 +9,14 @@ aliases, triggers and other familiar MUD client features.
 <details>
 
 <summary>Screenshots</summary>
-
-Android
+<h3>Android</h3>
 
 ![android screenshot 1](/assets/images/docs/sc001.png)
 ![android screenshot 2](/assets/images/docs/sc002.png)
 ![android screenshot 3](/assets/images/docs/sc003.png)
 
-  </details>
+</details>
+
 ## Features
 
 - Multiple profiles
