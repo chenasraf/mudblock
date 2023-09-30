@@ -1,7 +1,42 @@
-# mudblock
+# Mudblock
 
-This is an MUD ([Multi User Dungeon](https://en.wikipedia.org/wiki/Multi-user_dungeon)) client,
+This is a MUD ([Multi User Dungeon](https://en.wikipedia.org/wiki/Multi-user_dungeon)) client,
 designed to be cross platform for both mobile and desktop.
+
+Mudblock supports scripting via Lua, with portable files, which you can tie all together using
+aliases, triggers and other familiar MUD client features.
+
+![android screenshot 1](/assets/images/docs/sc001.png)
+![android screenshot 2](/assets/images/docs/sc002.png)
+![android screenshot 3](/assets/images/docs/sc003.png)
+
+## Features
+
+- Multiple profiles
+- Triggers
+- Aliases
+- Supports scripting (Lua) that aims to be compatible with MUSHclient
+- Profiles are portable & sharing content is easy
+
+### Planned features
+
+- Customizable on-screen buttons
+- Background app keepalive
+- Timers
+- MUSHclient plugin compatibility
+
+### Supported platforms
+
+Tested:
+
+- Android
+- macOS
+
+Not tested:
+
+- Windows
+- Linux
+- iOS
 
 ## Development
 
