@@ -6,10 +6,17 @@ designed to be cross platform for both mobile and desktop.
 Mudblock supports scripting via Lua, with portable files, which you can tie all together using
 aliases, triggers and other familiar MUD client features.
 
+<details>
+
+<summary>Screenshots</summary>
+
+Android
+
 ![android screenshot 1](/assets/images/docs/sc001.png)
 ![android screenshot 2](/assets/images/docs/sc002.png)
 ![android screenshot 3](/assets/images/docs/sc003.png)
 
+  </details>
 ## Features
 
 - Multiple profiles
