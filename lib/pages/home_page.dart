@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../core/consts.dart';
+import '../core/features/game_button_set.dart';
 import '../core/store.dart';
 
 class HomePage extends StatefulWidget {
@@ -59,47 +60,75 @@ class HomePageState extends State<HomePage>
                       selectionHandleColor: Colors.white,
                     ),
                   ),
-                  child: GestureDetector(
-                    onTap: store.selectInput,
-                    child: SingleChildScrollView(
-                      controller: store.scrollController,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: SelectableText.rich(
-                          TextSpan(
-                            children: [
-                              for (final line in lines) ...[
-                                for (final segment in ColorUtils.split(line))
-                                  TextSpan(
-                                    text: segment.text,
-                                    style: consoleStyle.copyWith(
-                                      color: Color(segment.themedFgColor),
-                                      backgroundColor:
-                                          Color(segment.themedBgColor),
-                                      fontWeight:
-                                          segment.bold ? FontWeight.w800 : null,
-                                      fontStyle: segment.italic
-                                          ? FontStyle.italic
-                                          : null,
-                                      decoration: segment.underline
-                                          ? TextDecoration.underline
-                                          : null,
+                  child: Stack(
+                    children: [
+                      GestureDetector(
+                        onTap: store.selectInput,
+                        child: SingleChildScrollView(
+                          controller: store.scrollController,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: SelectableText.rich(
+                              TextSpan(
+                                children: [
+                                  for (final line in lines) ...[
+                                    for (final segment
+                                        in ColorUtils.split(line))
+                                      TextSpan(
+                                        text: segment.text,
+                                        style: consoleStyle.copyWith(
+                                          color: Color(segment.themedFgColor),
+                                          backgroundColor:
+                                              Color(segment.themedBgColor),
+                                          fontWeight: segment.bold
+                                              ? FontWeight.w800
+                                              : null,
+                                          fontStyle: segment.italic
+                                              ? FontStyle.italic
+                                              : null,
+                                          decoration: segment.underline
+                                              ? TextDecoration.underline
+                                              : null,
+                                        ),
+                                      ),
+                                    const TextSpan(
+                                      text: newline,
+                                      style:
+                                          consoleStyle, // .copyWith(fontSize: 1),
                                     ),
-                                  ),
-                                const TextSpan(
-                                  text: newline,
-                                  style:
-                                      consoleStyle, // .copyWith(fontSize: 1),
-                                ),
-                              ],
-                            ],
+                                  ],
+                                ],
+                              ),
+                              enableInteractiveSelection: true,
+                              selectionWidthStyle: BoxWidthStyle.tight,
+                              selectionHeightStyle: BoxHeightStyle.max,
+                            ),
                           ),
-                          enableInteractiveSelection: true,
-                          selectionWidthStyle: BoxWidthStyle.tight,
-                          selectionHeightStyle: BoxHeightStyle.max,
                         ),
                       ),
-                    ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Align(
+                          alignment: Alignment.bottomRight,
+                          child: IconTheme(
+                            data: IconTheme.of(context).copyWith(size: 32),
+                            child: Builder(
+                              builder: (context) {
+                                final buttonSet = movementPreset;
+                                final size = buttonSet.size;
+                                return SizedBox(
+                                  width: size.width,
+                                  height: size.height,
+                                  child: GameButtonsView(
+                                    gameButtonSet: movementPreset,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      )
+                    ],
                   ),
                 );
               },
@@ -152,3 +181,4 @@ class HomePageState extends State<HomePage>
     );
   }
 }
+

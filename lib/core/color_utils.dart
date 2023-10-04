@@ -62,21 +62,37 @@ class ColoredText extends ColorToken {
 
 /// map of ansi colors to flutter color ints
 const ansiFgColorMap = {
+  // color: black
   30: 0xFF000000,
+  // color: red
   31: 0xFF800000,
+  // color: green
   32: 0xFF008000,
+  // color: yellow
   33: 0xFF808000,
+  // color: blue
   34: 0xFF000080,
+  // color: magenta
   35: 0xFF800080,
+  // color: cyan
   36: 0xFF008080,
+  // color: light gray
   37: 0xFFC0C0C0,
+  // color: bright black
   90: 0xFF808080,
+  // color: light red
   91: 0xFFFF0000,
+  // color: light green
   92: 0xFF00FF00,
+  // color: light yellow
   93: 0xFFFFFF00,
+  // color: light blue
   94: 0xFF0000FF,
+  // color: light magenta
   95: 0xFFFF00FF,
+  // color: light cyan
   96: 0xFF00FFFF,
+  // color: white
   97: 0xFFFFFFFF,
 };
 

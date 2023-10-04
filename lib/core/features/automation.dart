@@ -94,7 +94,7 @@ class Automation {
 
   void invokeEffect(GameStore store, String line) {
     invokeCount++;
-    action.invoke(store, allMatches(line));
+    action.invoke(store, this, allMatches(line));
   }
 
   List<String> allMatches(String str) {

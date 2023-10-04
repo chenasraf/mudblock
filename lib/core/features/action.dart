@@ -3,6 +3,7 @@ import 'package:mudblock/core/features/lua.dart';
 
 import '../consts.dart';
 import '../store.dart';
+import 'automation.dart';
 
 enum MUDActionTarget {
   world,
@@ -16,7 +17,7 @@ class MUDAction {
   MUDActionTarget target;
   MUDAction(this.content, {this.target = MUDActionTarget.world});
 
-  void invoke(GameStore store, List<String> matches) {
+  void invoke(GameStore store, Automation parent, List<String> matches) {
     debugPrint('MUDAction.invoke: ${this.content}, $matches');
     var content = this.content;
     for (var i = 0; i < matches.length; i++) {
@@ -29,10 +30,16 @@ class MUDAction {
       case MUDActionTarget.world:
         debugPrint('ActionSendTo.world: $content');
         store.send(content);
+        if (!parent.isRemovedFromBuffer) {
+          store.echoOwn(content);
+        }
         break;
       case MUDActionTarget.execute:
         debugPrint('ActionSendTo.execute: $content');
         store.execute(content);
+        if (!parent.isRemovedFromBuffer) {
+          store.echoOwn(content);
+        }
         break;
       case MUDActionTarget.script:
         try {

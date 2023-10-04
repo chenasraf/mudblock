@@ -252,6 +252,12 @@ class GameStore extends ChangeNotifier {
     scrollToEnd();
   }
 
+  void echoOwn(String line) {
+    _lines.add('$esc[93m$line');
+    notifyListeners();
+    scrollToEnd();
+  }
+
   void sendBytes(List<int> bytes) {
     var output = bytes;
     _client.sendBytes(output);
@@ -284,7 +290,7 @@ class GameStore extends ChangeNotifier {
     if (!_clientReady || !_client.connected) {
       return;
     }
-    echo(text);
+    echoOwn(text);
     execute(text);
     scrollToEnd();
     selectInput();

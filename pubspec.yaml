@@ -59,6 +59,8 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^2.0.0
   btool: ^0.1.2
+  script_runner:
+    path: ../script_runner
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -113,7 +115,7 @@ script_runner:
     - name: get-name
       cmd: dart run btool get packageName
       suppress_header_output: true
-    - push: 'version=$(get-version); echo "Pushing mudblock-$version.apk"; adb push build/app/outputs/flutter-apk/app-release.apk /sdcard/Download/mudblock-${version}.apk'
+    - push: 'name=$(get-name); version=$(get-version); echo "adb push build/app/outputs/flutter-apk/app-release.apk /sdcard/Download/$name-$version.apk"; adb push build/app/outputs/flutter-apk/app-release.apk "/sdcard/Download/$name-$version.apk"'
     - install: adb install build/app/outputs/flutter-apk/app-release.apk
     - to-device: build:apk && push && install
     - auto-fix: dart fix --apply
