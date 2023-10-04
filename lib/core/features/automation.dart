@@ -13,6 +13,7 @@ class Automation {
   bool isRemovedFromBuffer;
   bool autoDisable;
   int invokeCount;
+  String group;
 
   /// This is used to temporarily disable an automation after using it once when it has autoDisable set to true.
   bool tempDisabled = false;
@@ -28,6 +29,7 @@ class Automation {
     this.isRemovedFromBuffer = false,
     this.autoDisable = false,
     this.invokeCount = 0,
+    this.group = '',
   });
 
   /// is both enabled (globally by the user) and not temporarily disabled (by the automation itself)
@@ -55,6 +57,7 @@ class Automation {
         autoDisable: json['autoDisable'],
         invokeCount: json['invokeCount'],
         action: MUDAction.fromJson(json['action']),
+        group: json['group'] ?? '',
       );
 
   Map<String, dynamic> toJson() => {
@@ -67,6 +70,7 @@ class Automation {
         'autoDisable': autoDisable,
         'invokeCount': invokeCount,
         'action': action.toJson(),
+        'group': group,
       };
 
   bool matches(String line) {

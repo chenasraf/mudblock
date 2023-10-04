@@ -13,6 +13,7 @@ class Alias extends Automation {
     super.isRemovedFromBuffer = false,
     super.autoDisable = false,
     super.invokeCount = 0,
+    super.group = '',
   });
 
   factory Alias.empty() => Alias(
@@ -25,6 +26,7 @@ class Alias extends Automation {
         autoDisable: false,
         invokeCount: 0,
         action: MUDAction.empty(),
+        group: '',
       );
 
   factory Alias.fromJson(Map<String, dynamic> json) => Alias(
@@ -37,6 +39,7 @@ class Alias extends Automation {
         autoDisable: json['autoDisable'],
         invokeCount: json['invokeCount'],
         action: MUDAction.fromJson(json['action']),
+        group: json['group'] ?? '',
       );
 
   @override
@@ -50,6 +53,7 @@ class Alias extends Automation {
     bool? autoDisable,
     int? invokeCount = 0,
     MUDAction? action,
+    String? group,
   }) =>
       Alias(
         id: id ?? this.id,
@@ -61,5 +65,6 @@ class Alias extends Automation {
         autoDisable: autoDisable ?? this.autoDisable,
         invokeCount: invokeCount ?? this.invokeCount,
         action: action ?? this.action,
+        group: group ?? this.group,
       );
 }

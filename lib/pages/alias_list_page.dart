@@ -3,60 +3,47 @@ import 'package:mudblock/core/store.dart';
 
 import '../core/features/alias.dart';
 import '../core/routes.dart';
+import 'generic_list_page.dart';
 
 class AliasListPage extends StatelessWidget with GameStoreMixin {
   const AliasListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Aliases'),
-      ),
-      body: GameStore.consumer(
-        builder: (context, store, child) {
-          debugPrint('Alias list rebuild');
-          final aliases = store.aliases;
-          return ListView.builder(
-            itemCount: aliases.length,
-            itemBuilder: (context, item) {
-              final alias = aliases[item];
-              return ListTile(
-                key: Key(alias.id),
-                title: Text(alias.pattern),
-                subtitle: Text(alias.action.content),
-                leading: Switch.adaptive(
-                  value: alias.enabled,
-                  onChanged: (value) {
-                    alias.enabled = value;
-                    save(store, alias);
-                  },
-                ),
-                onTap: () async {
-                  final updated = await Navigator.pushNamed(
-                    context,
-                    Paths.alias,
-                    arguments: alias,
-                  );
-                  if (updated != null) {
-                    await save(store, updated as Alias);
-                  }
-                },
-              );
+    return GenericListPage(
+      title: const Text('Aliases'),
+      save: save,
+      items: storeOf(context).aliases,
+      detailsPath: Paths.alias,
+      displayName: (alias) => alias.pattern,
+      searchTags: (alias) => [
+        alias.action.content,
+        alias.group,
+      ],
+      itemBuilder: (context, store, alias) {
+        return ListTile(
+          key: Key(alias.id),
+          title: Text(alias.pattern),
+          subtitle: Text(alias.action.content),
+          leading: Switch.adaptive(
+            value: alias.enabled,
+            onChanged: (value) {
+              alias.enabled = value;
+              save(store, alias);
             },
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
-        onPressed: () async {
-          final store = storeOf(context);
-          final alias = await Navigator.pushNamed(context, Paths.alias);
-          if (alias != null) {
-            save(store, alias as Alias);
-          }
-        },
-      ),
+          ),
+          onTap: () async {
+            final updated = await Navigator.pushNamed(
+              context,
+              Paths.alias,
+              arguments: alias,
+            );
+            if (updated != null) {
+              await save(store, updated as Alias);
+            }
+          },
+        );
+      },
     );
   }
 
@@ -66,3 +53,4 @@ class AliasListPage extends StatelessWidget with GameStoreMixin {
     await store.loadAliases();
   }
 }
+

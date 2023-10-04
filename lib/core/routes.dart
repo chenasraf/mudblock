@@ -32,6 +32,10 @@ class Paths {
   static const variables = '/variables';
   static const variable = '/variable';
 
+  static const buttons = '/buttons';
+  static const buttonSet = '/button-set';
+  static const button = '/button';
+
   static const settings = '/settings';
 }
 

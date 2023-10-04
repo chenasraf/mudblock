@@ -179,7 +179,6 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
   }
 
   void _onPointerUp(PointerUpEvent event) {
-    debugPrint("end drag, direction: $_direction");
     _callCurrentDirection();
     setState(() {
       _direction = GameButtonDirection.none;
@@ -188,7 +187,6 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
 
   void _onPointerDown(PointerDownEvent event) {
     _dragStart = event.position;
-    debugPrint("start drag");
     setState(() {
       _direction = GameButtonDirection.none;
     });
@@ -219,7 +217,6 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
     }
 
     if (direction != _direction) {
-      debugPrint("drag direction: $direction");
       setState(() {
         _direction = direction;
       });
