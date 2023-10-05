@@ -11,6 +11,7 @@ class GenericListPage<T> extends StatefulWidget with GameStoreMixin {
     required this.displayName,
     required this.searchTags,
     required this.itemBuilder,
+    this.actions,
   });
 
   final List<T> items;
@@ -21,6 +22,7 @@ class GenericListPage<T> extends StatefulWidget with GameStoreMixin {
       itemBuilder;
   final String Function(T item) displayName;
   final List<String> Function(T item) searchTags;
+  final List<Widget>? actions;
 
   @override
   State<GenericListPage<T>> createState() => _GenericListPageState<T>();
@@ -29,6 +31,7 @@ class GenericListPage<T> extends StatefulWidget with GameStoreMixin {
 class _GenericListPageState<T> extends State<GenericListPage<T>>
     with GameStoreStateMixin {
   List<T> _filteredItems = [];
+  String _searchTerms = '';
 
   @override
   void initState() {
@@ -41,19 +44,23 @@ class _GenericListPageState<T> extends State<GenericListPage<T>>
     return Scaffold(
       appBar: AppBar(
         title: widget.title,
+        actions: widget.actions,
       ),
       body: GameStore.consumer(
         builder: (context, store, child) {
           debugPrint('Generic list rebuild');
           return Column(
             children: [
-              TextField(
-                decoration: const InputDecoration(
-                  hintText: 'Search',
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextField(
+                  decoration: const InputDecoration(
+                    hintText: 'Search',
+                  ),
+                  onChanged: (value) {
+                    _search(value);
+                  },
                 ),
-                onChanged: (value) {
-                  _search(value);
-                },
               ),
               ListView.builder(
                 itemCount: _filteredItems.length,
@@ -72,7 +79,8 @@ class _GenericListPageState<T> extends State<GenericListPage<T>>
         onPressed: () async {
           final item = await Navigator.pushNamed(context, widget.detailsPath);
           if (item != null) {
-            widget.save(store, item as T);
+            await widget.save(store, item as T);
+            _search(_searchTerms);
           }
         },
       ),
@@ -81,11 +89,12 @@ class _GenericListPageState<T> extends State<GenericListPage<T>>
 
   void _search(String value) {
     setState(() {
+      _searchTerms = value;
       _filteredItems = widget.items.where((item) {
         final tags = widget.searchTags(item);
-        final displayName = widget.displayName(item);
-        return displayName.contains(value) ||
-            tags.any((tag) => tag.contains(value));
+        final displayName = widget.displayName(item).toLowerCase();
+        return displayName.contains(value.toLowerCase()) ||
+            tags.any((tag) => tag.contains(value.toLowerCase()));
       }).toList();
     });
   }

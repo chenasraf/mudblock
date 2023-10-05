@@ -1,0 +1,78 @@
+import 'package:flutter/material.dart';
+
+import '../core/features/game_button_set.dart';
+import '../core/routes.dart';
+import '../core/store.dart';
+import 'generic_list_page.dart';
+
+class ButtonSetListPage extends StatelessWidget with GameStoreMixin {
+  const ButtonSetListPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return GenericListPage(
+      title: const Text('ButtonSets'),
+      save: save,
+      items: storeOf(context).buttonSets,
+      detailsPath: Paths.buttonSet,
+      displayName: (buttonSet) => buttonSet.name,
+      searchTags: (buttonSet) => [
+        buttonSet.group,
+      ],
+      actions: [
+        DropdownButton(
+          items: const [
+            DropdownMenuItem(
+              value: 'navigation_preset',
+              child: Text('Create Navigation set'),
+            ),
+          ],
+          onChanged: (value) {
+            switch (value) {
+              case 'navigation_preset':
+                // Navigator.pushNamed(
+                //   context,
+                //   Paths.buttonSet,
+                //   arguments: movementPreset,
+                // );
+                save(storeOf(context), movementPreset);
+                break;
+            }
+          },
+        ),
+      ],
+      itemBuilder: (context, store, buttonSet) {
+        return ListTile(
+          key: Key(buttonSet.id),
+          title: Text(buttonSet.name),
+          // TODO change/remove
+          subtitle: Text(buttonSet.name),
+          // leading: Switch.adaptive(
+          //   value: buttonSet.enabled,
+          //   onChanged: (value) {
+          //     buttonSet.enabled = value;
+          //     save(store, buttonSet);
+          //   },
+          // ),
+          onTap: () async {
+            final updated = await Navigator.pushNamed(
+              context,
+              Paths.buttonSet,
+              arguments: buttonSet,
+            );
+            if (updated != null) {
+              await save(store, updated as GameButtonSetData);
+            }
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> save(GameStore store, GameButtonSetData updated) async {
+    await store.currentProfile.saveButtonSet(updated);
+    // TODO - stop re-loading all triggers, only replace the one that changed
+    await store.loadButtonSets();
+  }
+}
+

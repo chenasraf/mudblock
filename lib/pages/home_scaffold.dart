@@ -25,9 +25,14 @@ class HomeScaffold extends StatelessWidget with GameStoreMixin {
         child: Padding(
           padding: PlatformUtils.isDesktop
               ? const EdgeInsets.only(top: 60)
+              // ? const EdgeInsets.only(top: 0)
               : EdgeInsets.zero,
           child: ListView(
             children: [
+              ListTile(
+                title: const Text('Button Sets'),
+                onTap: () => Navigator.pushNamed(context, Paths.buttons),
+              ),
               ListTile(
                 title: const Text('Aliases'),
                 onTap: () => Navigator.pushNamed(context, Paths.aliases),

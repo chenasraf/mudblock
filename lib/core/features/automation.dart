@@ -74,24 +74,21 @@ class Automation {
       };
 
   bool matches(String line) {
-    late RegExp regex;
-    if (isRegex) {
-      regex = RegExp(pattern, caseSensitive: isCaseSensitive);
-    } else {
-      regex = _strToRegExp(pattern);
-    }
-    return regex.hasMatch(line);
+    return actualRegex.hasMatch(line);
   }
+
+  String get actualPattern => isRegex ? pattern : _strToRegExp(pattern).pattern;
+  RegExp get actualRegex => isRegex ? RegExp(pattern, caseSensitive: isCaseSensitive) : _strToRegExp(pattern);
 
   RegExp _strToRegExp(String pattern) {
     final updatedPattern = pattern
-        .replaceAll('*', '(.*?)')
         .replaceAll(r'\', r'\')
         .replaceAll(r'(', r'\(')
         .replaceAll(r')', r'\)')
         .replaceAll(r'[', r'\[')
         .replaceAll(r']', r'\]')
-        .replaceAll(r'/', r'\/');
+        .replaceAll(r'/', r'\/')
+        .replaceAll('*', '(.*?)');
     final regex = RegExp("^$updatedPattern\$", caseSensitive: isCaseSensitive);
     return regex;
   }
@@ -105,11 +102,7 @@ class Automation {
     if (!matches(str)) {
       return [];
     }
-    if (!isRegex) {
-      pattern = _strToRegExp(pattern).pattern;
-    }
-    final regex =
-        RegExp(pattern, caseSensitive: isCaseSensitive, unicode: true);
+    final regex = actualRegex;
     final foundMatches = regex.allMatches(str);
     final results = <String>[];
     for (var i = 0; i < foundMatches.length; i++) {
@@ -146,3 +139,4 @@ class Automation {
         action: action ?? this.action,
       );
 }
+

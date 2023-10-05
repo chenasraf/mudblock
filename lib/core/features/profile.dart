@@ -6,6 +6,7 @@ import '../secrets.dart';
 import '../storage.dart';
 import '../string_utils.dart';
 import 'alias.dart';
+import 'game_button_set.dart';
 import 'trigger.dart';
 import 'variable.dart';
 
@@ -133,6 +134,21 @@ class MUDProfile {
         .toList();
   }
 
+  Future<List<GameButtonSetData>> loadButtonSets() async {
+    debugPrint('MUDProfile.loadButtonSets: $id');
+    final buttonSets = await ProfileStorage.listProfileFiles(id, 'button_sets');
+    final buttonSetFiles = <Map<String, dynamic>>[];
+    for (final buttonSet in buttonSets) {
+      debugPrint('MUDProfile.loadButtonSets: $id/buttonSets/$buttonSet');
+      final buttonSetFile =
+          await ProfileStorage.readProfileFile(id, 'button_sets/$buttonSet');
+      if (buttonSetFile != null) {
+        buttonSetFiles.add(buttonSetFile);
+      }
+    }
+    return buttonSetFiles.map((e) => GameButtonSetData.fromJson(e)).toList();
+  }
+
   Future<void> saveAlias(Alias alias) async {
     debugPrint('MUDProfile.saveAlias: $id/aliases/${alias.id}');
     return ProfileStorage.writeProfileFile(
@@ -143,6 +159,12 @@ class MUDProfile {
     debugPrint('MUDProfile.saveTrigger: $id/triggers/${trigger.id}');
     return ProfileStorage.writeProfileFile(
         id, 'triggers/${trigger.id}', trigger.toJson());
+  }
+
+  Future<void> saveButtonSet(GameButtonSetData buttonSet) async {
+    debugPrint('MUDProfile.saveButtonSet: $id/button_sets/${buttonSet.id}');
+    return ProfileStorage.writeProfileFile(
+        id, 'button_sets/${buttonSet.id}', buttonSet.toJson());
   }
 
   Future<void> saveVariable(List<Variable> current, Variable update) async {

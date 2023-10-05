@@ -13,6 +13,7 @@ import 'package:provider/provider.dart';
 import 'color_utils.dart';
 import 'consts.dart';
 import 'features/alias.dart';
+import 'features/game_button_set.dart';
 import 'features/profile.dart';
 import 'features/trigger.dart';
 import 'features/variable.dart';
@@ -37,9 +38,11 @@ class GameStore extends ChangeNotifier {
   bool _clientReady = false;
 
   // features
+  // TODO - move to MUDProfile and make that reactive
   final List<Trigger> triggers = [];
   final List<Alias> aliases = [];
   final Map<String, Variable> variables = {};
+  final List<GameButtonSetData> buttonSets = [];
 
   MUDProfile get currentProfile => _currentProfile!;
 
@@ -72,6 +75,7 @@ class GameStore extends ChangeNotifier {
       loadTriggers(),
       loadAliases(),
       loadVariables(),
+      loadButtonSets(),
     ]);
     _client.connect();
   }
@@ -99,6 +103,14 @@ class GameStore extends ChangeNotifier {
     variables.addAll(Map.fromEntries(list.map((e) => MapEntry(e.name, e))));
     notifyListeners();
     debugPrint('Variables: ${variables.length}');
+  }
+
+  Future<void> loadButtonSets() async {
+    final list = await currentProfile.loadButtonSets();
+    buttonSets.clear();
+    buttonSets.addAll(list);
+    notifyListeners();
+    debugPrint('ButtonSets: ${buttonSets.length}');
   }
 
   bool processTriggers(String line) {

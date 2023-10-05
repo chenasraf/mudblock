@@ -106,28 +106,11 @@ class HomePageState extends State<HomePage>
                           ),
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Align(
-                          alignment: Alignment.bottomRight,
-                          child: IconTheme(
-                            data: IconTheme.of(context).copyWith(size: 32),
-                            child: Builder(
-                              builder: (context) {
-                                final buttonSet = movementPreset;
-                                final size = buttonSet.size;
-                                return SizedBox(
-                                  width: size.width,
-                                  height: size.height,
-                                  child: GameButtonsView(
-                                    gameButtonSet: movementPreset,
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                      )
+                      for (final buttonSet in store.buttonSets)
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: GameButtonSet(buttonSet: buttonSet),
+                        )
                     ],
                   ),
                 );

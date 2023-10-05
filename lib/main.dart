@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -39,17 +41,29 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    final theme = ThemeData(
+      colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+      useMaterial3: true,
+    );
     return MaterialApp(
       title: 'Mudblock',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
+      theme: theme,
       builder: (context, child) {
-        return GameStore.provider(child: child!);
+        return GameStore.provider(
+          child: Container(
+            color: theme.colorScheme.background,
+            child: Padding(
+              padding: PlatformUtils.isDesktop
+                  ? EdgeInsets.only(top: Platform.isMacOS ? 28.0 : 32.0)
+                  : EdgeInsets.zero,
+              child: child!,
+            ),
+          ),
+        );
       },
       initialRoute: Paths.home,
       routes: routes,
     );
   }
 }
+
