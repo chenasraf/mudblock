@@ -155,16 +155,31 @@ class MUDProfile {
         id, 'aliases/${alias.id}', alias.toJson());
   }
 
+  Future<void> deleteAlias(Alias alias) async {
+    debugPrint('MUDProfile.deleteAlias: $id/aliases/${alias.id}');
+    return ProfileStorage.deleteProfileFile(id, 'aliases/${alias.id}');
+  }
+
   Future<void> saveTrigger(Trigger trigger) async {
     debugPrint('MUDProfile.saveTrigger: $id/triggers/${trigger.id}');
     return ProfileStorage.writeProfileFile(
         id, 'triggers/${trigger.id}', trigger.toJson());
   }
 
+  Future<void> deleteTrigger(Trigger trigger) async {
+    debugPrint('MUDProfile.deleteTrigger: $id/triggers/${trigger.id}');
+    return ProfileStorage.deleteProfileFile(id, 'triggers/${trigger.id}');
+  }
+
   Future<void> saveButtonSet(GameButtonSetData buttonSet) async {
     debugPrint('MUDProfile.saveButtonSet: $id/button_sets/${buttonSet.id}');
     return ProfileStorage.writeProfileFile(
         id, 'button_sets/${buttonSet.id}', buttonSet.toJson());
+  }
+
+  Future<void> deleteButtonSet(GameButtonSetData buttonSet) async {
+    debugPrint('MUDProfile.deleteButtonSet: $id/button_sets/${buttonSet.id}');
+    return ProfileStorage.deleteProfileFile(id, 'button_sets/${buttonSet.id}');
   }
 
   Future<void> saveVariable(List<Variable> current, Variable update) async {
@@ -176,6 +191,21 @@ class MUDProfile {
       current[existing] = update;
     } else {
       current.add(update);
+    }
+    return ProfileStorage.writeProfileFile(
+      id,
+      'vars',
+      {'vars': current.map((v) => v.toJson()).toList()},
+    );
+  }
+
+  Future<void> deleteVariable(List<Variable> current, Variable update) async {
+    debugPrint('MUDProfile.deleteVariable: $id/vars');
+    final existing = current.indexWhere(
+      (v) => v.name == update.name,
+    );
+    if (existing >= 0) {
+      current.removeAt(existing);
     }
     return ProfileStorage.writeProfileFile(
       id,
@@ -221,3 +251,4 @@ enum AuthMethod {
   none,
   diku,
 }
+

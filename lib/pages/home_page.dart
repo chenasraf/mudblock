@@ -109,7 +109,7 @@ class HomePageState extends State<HomePage>
                       for (final buttonSet in store.buttonSets)
                         Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: GameButtonSet(buttonSet: buttonSet),
+                          child: GameButtonSet(data: buttonSet),
                         )
                     ],
                   ),

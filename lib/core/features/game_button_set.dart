@@ -9,20 +9,20 @@ import 'game_button.dart';
 class GameButtonSet extends StatelessWidget {
   const GameButtonSet({
     super.key,
-    required this.buttonSet,
+    required this.data,
   });
 
-  final GameButtonSetData buttonSet;
+  final GameButtonSetData data;
 
   @override
   Widget build(BuildContext context) {
     return Align(
-      alignment: buttonSet.alignment,
+      alignment: data.alignment,
       child: IconTheme(
         data: IconTheme.of(context).copyWith(size: 32),
         child: Builder(
           builder: (context) {
-            final containerSize = buttonSet.size;
+            final containerSize = data.size;
             return SizedBox(
               width: containerSize.width,
               height: containerSize.height,
@@ -35,16 +35,37 @@ class GameButtonSet extends StatelessWidget {
   }
 
   Widget _buildButtonContainer(BuildContext context) {
-    final type = buttonSet.type;
-    final crossAxisCount = buttonSet.crossAxisCount;
-    final buttonWidgets = buttonSet.buttons
-        .map(
-          (button) => Padding(
-            padding: EdgeInsets.all(buttonSet.spacing / 2),
-            child: button != null ? GameButton(data: button) : Container(),
-          ),
-        )
-        .toList();
+    return buildContainer(
+      context: context,
+      type: data.type,
+      crossAxisCount: data.crossAxisCount,
+      spacing: data.spacing,
+      count: data.buttons.length,
+      size: data.size,
+      alignment: data.alignment,
+      builder: (context, index) => data.buttons[index] != null
+          ? GameButton(data: data.buttons[index]!)
+          : Container(),
+    );
+  }
+
+  static Widget buildContainer({
+    required BuildContext context,
+    required GameButtonSetType type,
+    required Widget Function(BuildContext context, int index) builder,
+    required int count,
+    required int? crossAxisCount,
+    required Alignment alignment,
+    required double spacing,
+    required Size size,
+  }) {
+    final buttonWidgets = List.generate(
+      count,
+      (index) => Padding(
+        padding: EdgeInsets.all(spacing / 2),
+        child: builder(context, index),
+      ),
+    );
     switch (type) {
       case GameButtonSetType.row:
         return Row(
@@ -67,15 +88,15 @@ class GameButtonSet extends StatelessWidget {
 
 class GameButtonSetData {
   final String id;
-  final String name;
-  final GameButtonSetType type;
-  final List<GameButtonData?> buttons;
-  final int? crossAxisCount;
-  final Alignment alignment;
-  final double spacing;
-  final String group;
+  String name;
+  GameButtonSetType type;
+  List<GameButtonData?> buttons;
+  int? crossAxisCount;
+  Alignment alignment;
+  double spacing;
+  String group;
 
-  const GameButtonSetData({
+  GameButtonSetData({
     required this.id,
     required this.type,
     required this.name,
@@ -86,9 +107,17 @@ class GameButtonSetData {
     this.group = '',
   });
 
+  factory GameButtonSetData.empty() => GameButtonSetData(
+        id: uuid(),
+        name: '',
+        type: GameButtonSetType.row,
+        buttons: [],
+      );
+
   Size get size => Size(calculateWidth(), calculateHeight());
 
-  factory GameButtonSetData.fromJson(Map<String, dynamic> json) => GameButtonSetData(
+  factory GameButtonSetData.fromJson(Map<String, dynamic> json) =>
+      GameButtonSetData(
         id: json['id'] as String,
         name: json['name'] as String,
         type: GameButtonSetType.values.firstWhere(
@@ -123,6 +152,27 @@ class GameButtonSetData {
         'spacing': spacing,
         'group': group,
       };
+
+  GameButtonSetData copyWith({
+    String? id,
+    String? name,
+    GameButtonSetType? type,
+    List<GameButtonData?>? buttons,
+    int? crossAxisCount,
+    Alignment? alignment,
+    double? spacing,
+    String? group,
+  }) =>
+      GameButtonSetData(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        type: type ?? this.type,
+        buttons: buttons ?? this.buttons,
+        crossAxisCount: crossAxisCount ?? this.crossAxisCount,
+        alignment: alignment ?? this.alignment,
+        spacing: spacing ?? this.spacing,
+        group: group ?? this.group,
+      );
 
   double calculateWidth() {
     switch (type) {

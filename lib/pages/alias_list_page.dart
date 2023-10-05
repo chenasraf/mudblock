@@ -32,6 +32,24 @@ class AliasListPage extends StatelessWidget with GameStoreMixin {
               save(store, alias);
             },
           ),
+          trailing: PopupMenuButton(
+            itemBuilder: (context) {
+              return [
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Text('Delete'),
+                ),
+              ];
+            },
+            onSelected: (value) {
+              switch (value) {
+                case 'delete':
+                  store.currentProfile.deleteAlias(alias);
+                  store.loadAliases();
+                  break;
+              }
+            },
+          ),
           onTap: () async {
             final updated = await Navigator.pushNamed(
               context,

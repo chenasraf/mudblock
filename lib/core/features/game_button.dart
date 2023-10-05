@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../platform_utils.dart';
 import '../store.dart';
 
+import '../string_utils.dart';
 import 'action.dart';
 import 'automation.dart';
 
@@ -40,6 +41,12 @@ class GameButtonData {
   final MUDAction? swipeLeftAction;
   final MUDAction? swipeRightAction;
 
+  factory GameButtonData.empty() => GameButtonData(
+        id: uuid(),
+        label: GameButtonLabelData.empty(),
+        pressAction: MUDAction.empty(),
+      );
+
   factory GameButtonData.fromJson(Map<String, dynamic> json) {
     return GameButtonData(
       id: json['id'] as String,
@@ -77,6 +84,39 @@ class GameButtonData {
     );
   }
 
+  GameButtonData copyWith({
+    String? id,
+    GameButtonLabelData? label,
+    GameButtonLabelData? labelUp,
+    GameButtonLabelData? labelDown,
+    GameButtonLabelData? labelLeft,
+    GameButtonLabelData? labelRight,
+    Color? color,
+    double? size,
+    MUDAction? pressAction,
+    MUDAction? longPressAction,
+    MUDAction? swipeUpAction,
+    MUDAction? swipeDownAction,
+    MUDAction? swipeLeftAction,
+    MUDAction? swipeRightAction,
+  }) =>
+      GameButtonData(
+        id: id ?? this.id,
+        label: label ?? this.label,
+        labelUp: labelUp ?? this.labelUp,
+        labelDown: labelDown ?? this.labelDown,
+        labelLeft: labelLeft ?? this.labelLeft,
+        labelRight: labelRight ?? this.labelRight,
+        color: color ?? this.color,
+        size: size ?? this.size,
+        pressAction: pressAction ?? this.pressAction,
+        longPressAction: longPressAction ?? this.longPressAction,
+        swipeUpAction: swipeUpAction ?? this.swipeUpAction,
+        swipeDownAction: swipeDownAction ?? this.swipeDownAction,
+        swipeLeftAction: swipeLeftAction ?? this.swipeLeftAction,
+        swipeRightAction: swipeRightAction ?? this.swipeRightAction,
+      );
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'label': label.toJson(),
@@ -93,6 +133,38 @@ class GameButtonData {
         'swipeLeftAction': swipeLeftAction?.toJson(),
         'swipeRightAction': swipeRightAction?.toJson(),
       };
+
+  MUDAction directionalAction(GameButtonDirection direction) {
+    switch (direction) {
+      case GameButtonDirection.up:
+        return swipeUpAction ?? pressAction;
+      case GameButtonDirection.down:
+        return swipeDownAction ?? pressAction;
+      case GameButtonDirection.left:
+        return swipeLeftAction ?? pressAction;
+      case GameButtonDirection.right:
+        return swipeRightAction ?? pressAction;
+      default:
+        return pressAction;
+    }
+  }
+
+  MUDAction? actionForDirection(GameButtonDirection direction) {
+    switch (direction) {
+      case GameButtonDirection.none:
+        return pressAction;
+      case GameButtonDirection.up:
+        return swipeUpAction;
+      case GameButtonDirection.down:
+        return swipeDownAction;
+      case GameButtonDirection.left:
+        return swipeLeftAction;
+      case GameButtonDirection.right:
+        return swipeRightAction;
+      default:
+        return null;
+    }
+  }
 }
 
 class GameButton extends StatefulWidget {
@@ -148,7 +220,10 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
           const IconThemeData.fallback().size!) /
       2;
 
-  Widget _listener({required BuildContext context, required Widget child}) {
+  Widget _listener({
+    required BuildContext context,
+    required Widget child,
+  }) {
     if (PlatformUtils.isDesktop) {
       return Listener(
         onPointerDown: _onPointerDown,
@@ -221,7 +296,10 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
   }
 
   void _onDragEnd(DragEndDetails details) {
-    // _dragEnd = details.;
+    _callCurrentDirection();
+    setState(() {
+      _direction = GameButtonDirection.none;
+    });
   }
 
   void _onPointerUp(PointerUpEvent event) {
@@ -277,28 +355,13 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
     return direction;
   }
 
-  MUDAction _directionalAction(GameButtonDirection direction) {
-    switch (direction) {
-      case GameButtonDirection.up:
-        return data.swipeUpAction ?? data.pressAction;
-      case GameButtonDirection.down:
-        return data.swipeDownAction ?? data.pressAction;
-      case GameButtonDirection.left:
-        return data.swipeLeftAction ?? data.pressAction;
-      case GameButtonDirection.right:
-        return data.swipeRightAction ?? data.pressAction;
-      default:
-        return data.pressAction;
-    }
-  }
-
   void _callAction(MUDAction? action) {
-    final act = action ?? _directionalAction(GameButtonDirection.none);
+    final act = action ?? data.directionalAction(GameButtonDirection.none);
     act.invoke(store, parentAutomation, []);
   }
 
   void _callCurrentDirection() {
-    _callAction(_directionalAction(_direction));
+    _callAction(data.directionalAction(_direction));
   }
 }
 
@@ -312,6 +375,8 @@ class GameButtonLabelData {
     this.icon,
     this.iconTheme,
   }) : assert(label != null || icon != null);
+
+  factory GameButtonLabelData.empty() => GameButtonLabelData(label: '?');
 
   factory GameButtonLabelData.fromJson(Map<String, dynamic> json) {
     return GameButtonLabelData(

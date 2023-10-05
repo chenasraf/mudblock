@@ -5,6 +5,7 @@ import '../core/features/trigger.dart';
 import '../core/store.dart';
 import '../pages/alias_list_page.dart';
 import '../pages/alias_page.dart';
+import '../pages/button_set_page.dart';
 import '../pages/button_sets_list_page.dart';
 import '../pages/home_page.dart';
 import '../pages/home_scaffold.dart';
@@ -15,6 +16,7 @@ import '../pages/trigger_page.dart';
 import '../pages/variable_list_page.dart';
 import '../pages/variable_page.dart';
 import 'consts.dart';
+import 'features/game_button_set.dart';
 import 'features/profile.dart';
 import 'features/variable.dart';
 
@@ -78,6 +80,11 @@ final routes = <String, Widget Function(BuildContext)>{
           return const ButtonSetListPage();
         },
       ),
+  Paths.buttonSet: (context) {
+    final buttonSet =
+        ModalRoute.of(context)!.settings.arguments as GameButtonSetData?;
+    return GameButtonSetPage(buttonSet: buttonSet);
+  },
   Paths.home: (context) => HomeScaffold(
         builder: (context, _) {
           return HomePage(key: homeKey);

@@ -20,14 +20,16 @@ class ButtonSetListPage extends StatelessWidget with GameStoreMixin {
         buttonSet.group,
       ],
       actions: [
-        DropdownButton(
-          items: const [
-            DropdownMenuItem(
-              value: 'navigation_preset',
-              child: Text('Create Navigation set'),
-            ),
-          ],
-          onChanged: (value) {
+        PopupMenuButton(
+          itemBuilder: (context) {
+            return [
+              const PopupMenuItem(
+                value: 'navigation_preset',
+                child: Text('Create: Navigation Preset'),
+              ),
+            ];
+          },
+          onSelected: (value) {
             switch (value) {
               case 'navigation_preset':
                 // Navigator.pushNamed(
@@ -45,8 +47,7 @@ class ButtonSetListPage extends StatelessWidget with GameStoreMixin {
         return ListTile(
           key: Key(buttonSet.id),
           title: Text(buttonSet.name),
-          // TODO change/remove
-          subtitle: Text(buttonSet.name),
+          // subtitle: Text(buttonSet.name),
           // leading: Switch.adaptive(
           //   value: buttonSet.enabled,
           //   onChanged: (value) {
@@ -54,6 +55,24 @@ class ButtonSetListPage extends StatelessWidget with GameStoreMixin {
           //     save(store, buttonSet);
           //   },
           // ),
+          trailing: PopupMenuButton(
+            itemBuilder: (context) {
+              return [
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Text('Delete'),
+                ),
+              ];
+            },
+            onSelected: (value) {
+              switch (value) {
+                case 'delete':
+                  store.currentProfile.deleteButtonSet(buttonSet);
+                  store.loadButtonSets();
+                  break;
+              }
+            },
+          ),
           onTap: () async {
             final updated = await Navigator.pushNamed(
               context,

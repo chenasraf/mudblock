@@ -32,6 +32,24 @@ class TriggerListPage extends StatelessWidget with GameStoreMixin {
               save(store, trigger);
             },
           ),
+          trailing: PopupMenuButton(
+            itemBuilder: (context) {
+              return [
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Text('Delete'),
+                ),
+              ];
+            },
+            onSelected: (value) {
+              switch (value) {
+                case 'delete':
+                  store.currentProfile.deleteTrigger(trigger);
+                  store.loadTriggers();
+                  break;
+              }
+            },
+          ),
           onTap: () async {
             final updated = await Navigator.pushNamed(
               context,

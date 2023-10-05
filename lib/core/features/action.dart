@@ -91,3 +91,16 @@ class MUDAction {
   }
 }
 
+class NativeMUDAction extends MUDAction {
+  NativeMUDAction(this.customInvoke)
+      : super('-- native code --', target: MUDActionTarget.script);
+
+  final void Function(GameStore store, Automation parent, List<String> matches)
+      customInvoke;
+
+  @override
+  void invoke(GameStore store, Automation parent, List<String> matches) {
+    customInvoke(store, parent, matches);
+  }
+}
+
