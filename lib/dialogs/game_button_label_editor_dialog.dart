@@ -16,6 +16,7 @@ class GameButtonLabelEditorDialog extends StatefulWidget {
 class _GameButtonLabelEditorDialogState
     extends State<GameButtonLabelEditorDialog> {
   String search = '';
+  IconSelectorDisplay display = IconSelectorDisplay.grid;
 
   @override
   Widget build(BuildContext context) {
@@ -32,17 +33,35 @@ class _GameButtonLabelEditorDialogState
                   'Edit Label',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
-                TextField(
-                  onChanged: (value) => setState(() => search = value),
-                  decoration: const InputDecoration(
-                    labelText: 'Search Icon',
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        onChanged: (value) => setState(() => search = value),
+                        decoration: const InputDecoration(
+                          labelText: 'Search Icon',
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        display == IconSelectorDisplay.grid
+                            ? Icons.view_list
+                            : Icons.view_module,
+                      ),
+                      onPressed: () => setState(() => display =
+                          display == IconSelectorDisplay.grid
+                              ? IconSelectorDisplay.list
+                              : IconSelectorDisplay.grid),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
                 SizedBox(
                   height: 600,
                   child: IconSelector(
                     search: search,
+                    display: display,
                     onSelected: (icon) {
                       Navigator.of(context).pop(icon);
                     },

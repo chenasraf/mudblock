@@ -233,9 +233,11 @@ class GameButton extends StatefulWidget {
   const GameButton({
     super.key,
     required this.data,
+    this.enabled = true,
   });
 
   final GameButtonData data;
+  final bool enabled;
 
   @override
   State<GameButton> createState() => _GameButtonState();
@@ -259,17 +261,21 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
   @override
   Widget build(BuildContext context) {
     final curLabel = _currentDirectionIcon(context) ?? data.label;
+    final child = Container(
+      width: data.size,
+      height: data.size,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: _color(context),
+      ),
+      child: GameButtonLabel(data: curLabel),
+    );
+    if (!widget.enabled) {
+      return child;
+    }
     return _listener(
       context: context,
-      child: Container(
-        width: data.size,
-        height: data.size,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          color: _color(context),
-        ),
-        child: GameButtonLabel(data: curLabel),
-      ),
+      child: child,
     );
   }
 
@@ -285,7 +291,6 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
   }) {
     if (PlatformUtils.isDesktop) {
       return Listener(
-        behavior: HitTestBehavior.translucent,
         onPointerDown: _onPointerDown,
         onPointerMove: _onPointerMove,
         onPointerUp: _onPointerUp,
