@@ -1,4 +1,4 @@
-# Mudblock
+# ![Logo](/assets/logo/logo.png) Mudblock
 
 This is a MUD ([Multi User Dungeon](https://en.wikipedia.org/wiki/Multi-user_dungeon)) client,
 designed to be cross platform for both mobile and desktop.
@@ -20,6 +20,7 @@ aliases, triggers and other familiar MUD client features.
 ## Features
 
 - Multiple profiles
+- Customizable on-screen buttons
 - Triggers
 - Aliases
 - Supports scripting (Lua) that aims to be compatible with MUSHclient
@@ -27,7 +28,6 @@ aliases, triggers and other familiar MUD client features.
 
 ### Planned features
 
-- Customizable on-screen buttons
 - Background app keepalive
 - Timers
 - MUSHclient plugin compatibility

@@ -61,6 +61,7 @@ dev_dependencies:
   btool: ^0.1.2
   script_runner:
     path: ../script_runner
+  icons_launcher: ^2.1.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -105,6 +106,32 @@ flutter:
     - family: Menlo
       fonts:
         - asset: assets/fonts/Menlo.ttc
+
+flutter_native_splash:
+  color: '#fcf5e5'
+  color_dark: '#1c1e21'
+  image: 'assets/images/logo/logo@4x.png'
+icons_launcher:
+  image_path: 'assets/images/logo/logo@6x.png'
+  platforms:
+    android:
+      enable: true
+      # image_path: 'assets/images/launcher_icons/android.png'
+    macos:
+      enable: true
+      # image_path: 'assets/images/launcher_icons/ios.png'
+      #   web:
+      #     enable: true
+      #     favicon_path: 'assets/images/logo.png'
+      #   ios:
+      #     enable: true
+      #     image_path: 'assets/images/launcher_icons/ios.png'
+      #   windows:
+      #     enable: true
+      #   linux:
+      #     enable: true
+      #   remove_alpha_ios: true
+      #   remove_alpha_macos: true
 
 script_runner:
   scripts:

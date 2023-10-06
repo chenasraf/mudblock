@@ -291,8 +291,7 @@ class GameStore extends ChangeNotifier {
 
   /// send - raw send string - no processing, DOES split by outgoingMsgSplitPattern
   void send(String text) {
-    for (var line in text.split(outgoingMsgSplitPattern)) {
-      line = line.replaceAll('$csp$csp', csp);
+    for (var line in _splitCsp(text)) {
       if (isCompressed) {
         debugPrint(
             'sending bytes${isCompressed ? ' (compressed)' : ''}: $line');
@@ -306,14 +305,20 @@ class GameStore extends ChangeNotifier {
 
   /// execute - process aliases and triggers, then send, also split by outgoingMsgSplitPattern
   void execute(String text) {
-    for (var line in text.split(outgoingMsgSplitPattern)) {
-      line = line.replaceAll('$csp$csp', csp);
+    for (var line in _splitCsp(text)) {
       debugPrint('processing aliases for: $line');
       var sendLine = processAliases(line);
       if (sendLine) {
         sendString(line);
       }
     }
+  }
+
+  List<String> _splitCsp(String line) {
+    return line
+        .split(outgoingMsgSplitPattern)
+        .map((l) => l.replaceAll('$csp$csp', csp))
+        .toList();
   }
 
   /// submitInput - echo input, process aliases and triggers, then send, scroll to end, select input

@@ -179,6 +179,54 @@ class GameButtonData {
         break;
     }
   }
+
+  GameButtonLabelData? getLabel(GameButtonInteraction interaction) {
+    switch (interaction) {
+      case GameButtonInteraction.press:
+        return label;
+      case GameButtonInteraction.longPress:
+        return label;
+      case GameButtonInteraction.dragUp:
+        return labelUp;
+      case GameButtonInteraction.dragDown:
+        return labelDown;
+      case GameButtonInteraction.dragLeft:
+        return labelLeft;
+      case GameButtonInteraction.dragRight:
+        return labelRight;
+      default:
+        return label;
+    }
+  }
+
+  void setLabel(GameButtonInteraction direction, GameButtonLabelData? label) {
+    switch (direction) {
+      case GameButtonInteraction.press:
+        if (label == null) {
+          throw ArgumentError('Label cannot be null');
+        }
+        this.label = label;
+        break;
+      case GameButtonInteraction.longPress:
+        if (label == null) {
+          throw ArgumentError('Label cannot be null');
+        }
+        this.label = label;
+        break;
+      case GameButtonInteraction.dragUp:
+        labelUp = label;
+        break;
+      case GameButtonInteraction.dragDown:
+        labelDown = label;
+        break;
+      case GameButtonInteraction.dragLeft:
+        labelLeft = label;
+        break;
+      case GameButtonInteraction.dragRight:
+        labelRight = label;
+        break;
+    }
+  }
 }
 
 class GameButton extends StatefulWidget {
@@ -210,7 +258,7 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final curIcon = _currentDirectionIcon(context);
+    final curLabel = _currentDirectionIcon(context);
     return _listener(
       context: context,
       child: Container(
@@ -220,10 +268,7 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
           borderRadius: BorderRadius.circular(10),
           color: _color(context),
         ),
-        child: IconTheme(
-          data: _iconTheme(curIcon, context),
-          child: Icon(curIcon.icon),
-        ),
+        child: GameButtonLabel(data: curLabel),
       ),
     );
   }
@@ -274,9 +319,6 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
         return data.label;
     }
   }
-
-  IconThemeData _iconTheme(GameButtonLabelData icon, BuildContext context) =>
-      icon.iconTheme ?? IconTheme.of(context);
 
   Color _color(BuildContext context) =>
       data.color ??
@@ -380,10 +422,27 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
   }
 }
 
+class GameButtonLabel extends StatelessWidget {
+  const GameButtonLabel({super.key, required this.data});
+
+  final GameButtonLabelData data;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconTheme(
+      data: _iconTheme(context),
+      child: Icon(data.icon),
+    );
+  }
+
+  IconThemeData _iconTheme(BuildContext context) =>
+      data.iconTheme ?? IconTheme.of(context);
+}
+
 class GameButtonLabelData {
-  final String? label;
-  final IconData? icon;
-  final IconThemeData? iconTheme;
+  String? label;
+  IconData? icon;
+  IconThemeData? iconTheme;
 
   GameButtonLabelData({
     this.label,
@@ -429,6 +488,18 @@ class GameButtonLabelData {
         'opacity': data.opacity,
         'size': data.size,
       };
+
+  GameButtonLabelData copyWith({
+    String? label,
+    IconData? icon,
+    IconThemeData? iconTheme,
+  }) {
+    return GameButtonLabelData(
+      label: label ?? this.label,
+      icon: icon ?? this.icon,
+      iconTheme: iconTheme ?? this.iconTheme,
+    );
+  }
 }
 
 enum GameButtonInteraction {
