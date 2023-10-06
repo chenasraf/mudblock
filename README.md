@@ -1,4 +1,4 @@
-# ![Logo](/assets/logo/logo.png) Mudblock
+# ![Logo](/assets/images/logo/logo.png) Mudblock
 
 This is a MUD ([Multi User Dungeon](https://en.wikipedia.org/wiki/Multi-user_dungeon)) client,
 designed to be cross platform for both mobile and desktop.
