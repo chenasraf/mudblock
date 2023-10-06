@@ -258,7 +258,7 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final curLabel = _currentDirectionIcon(context);
+    final curLabel = _currentDirectionIcon(context) ?? data.label;
     return _listener(
       context: context,
       child: Container(
@@ -285,6 +285,7 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
   }) {
     if (PlatformUtils.isDesktop) {
       return Listener(
+        behavior: HitTestBehavior.translucent,
         onPointerDown: _onPointerDown,
         onPointerMove: _onPointerMove,
         onPointerUp: _onPointerUp,
@@ -305,16 +306,16 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
     );
   }
 
-  GameButtonLabelData _currentDirectionIcon(BuildContext context) {
+  GameButtonLabelData? _currentDirectionIcon(BuildContext context) {
     switch (_direction) {
       case GameButtonInteraction.dragUp:
-        return data.labelUp ?? data.label;
+        return data.labelUp;
       case GameButtonInteraction.dragDown:
-        return data.labelDown ?? data.label;
+        return data.labelDown;
       case GameButtonInteraction.dragLeft:
-        return data.labelLeft ?? data.label;
+        return data.labelLeft;
       case GameButtonInteraction.dragRight:
-        return data.labelRight ?? data.label;
+        return data.labelRight;
       default:
         return data.label;
     }

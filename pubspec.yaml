@@ -46,6 +46,7 @@ dependencies:
   meta: ^1.9.1
   lua_dardo: ^0.0.5
   path_provider: ^2.1.1
+  package_info_plus: ^4.1.0
   # permission_handler: ^11.0.0
 
 dev_dependencies:
@@ -76,6 +77,8 @@ flutter:
   # assets:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
+  assets:
+    - assets/images/logo/logo.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
@@ -135,14 +138,14 @@ icons_launcher:
 
 script_runner:
   scripts:
-    - build:apk: flutter build apk
+    - build:apk: flutter build apk --no-tree-shake-icons
     - name: get-version
       cmd: dart run btool get packageVersion
       suppress_header_output: true
     - name: get-name
       cmd: dart run btool get packageName
       suppress_header_output: true
-    - push: 'name=$(get-name); version=$(get-version); echo "adb push build/app/outputs/flutter-apk/app-release.apk /sdcard/Download/$name-$version.apk"; adb push build/app/outputs/flutter-apk/app-release.apk "/sdcard/Download/$name-$version.apk"'
+    - push: 'name=$(get-name); version=$(get-version); echo "adb push $(pwd)/build/app/outputs/flutter-apk/app-release.apk /sdcard/Download/$name-$version.apk"; adb push "$(pwd)/build/app/outputs/flutter-apk/app-release.apk" "/sdcard/Download/$name-$version.apk"'
     - install: adb install build/app/outputs/flutter-apk/app-release.apk
     - to-device: build:apk && push && install
     - auto-fix: dart fix --apply

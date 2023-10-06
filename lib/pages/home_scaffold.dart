@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:mudblock/core/features/game_button_set.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
+import '../core/features/alias.dart';
 import '../core/features/profile.dart';
-import '../core/platform_utils.dart';
+import '../core/features/trigger.dart';
+import '../core/features/variable.dart';
 import '../core/routes.dart';
 import '../core/store.dart';
 
@@ -15,40 +19,47 @@ class HomeScaffold extends StatelessWidget with GameStoreMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mudblock'),
+        title: GameStore.consumer(
+          builder: (context, store, child) => Text(store.connected
+              ? '${store.currentProfile.name} - Mudblock'
+              : 'Mudblock'),
+        ),
       ),
       body: ChangeNotifierProvider.value(
         value: gameStore,
         builder: builder,
       ),
       endDrawer: Drawer(
-        child: Padding(
-          padding: PlatformUtils.isDesktop
-              ? const EdgeInsets.only(top: 60)
-              // ? const EdgeInsets.only(top: 0)
-              : EdgeInsets.zero,
-          child: ListView(
-            children: [
-              ListTile(
-                title: const Text('Button Sets'),
-                onTap: () => Navigator.pushNamed(context, Paths.buttons),
+        child: ListView(
+          children: [
+            ListTile(
+              leading: const Image(
+                image: AssetImage('assets/images/logo/logo.png'),
+                width: 32,
+                height: 32,
               ),
-              ListTile(
-                title: const Text('Aliases'),
-                onTap: () => Navigator.pushNamed(context, Paths.aliases),
+              title: const Text('Mudblock'),
+              subtitle: FutureBuilder<String>(
+                future: PackageInfo.fromPlatform().then((pkg) => pkg.version),
+                builder: (context, data) {
+                  final version = data.data ?? '...';
+                  return Text('v$version');
+                },
               ),
-              ListTile(
-                title: const Text('Triggers'),
-                onTap: () => Navigator.pushNamed(context, Paths.triggers),
-              ),
-              ListTile(
-                title: const Text('Variables'),
-                onTap: () => Navigator.pushNamed(context, Paths.variables),
-              ),
-              ListTile(
-                title: const Text('Profile'),
+            ),
+            const Divider(),
+            GameStore.consumer(
+              builder: (context, store, child) => ListTile(
+                title: store.connected
+                    ? Text(store.currentProfile.name)
+                    : const Text('Not connected'),
+                subtitle: store.connected
+                    ? Text(
+                        '${store.currentProfile.host}:${store.currentProfile.port}',
+                      )
+                    : const Text('-'),
+                leading: const CircleAvatar(child: Icon(Icons.cable)),
                 onTap: () async {
-                  final store = storeOf(context);
                   final updated = await Navigator.pushNamed(
                     context,
                     Paths.profile,
@@ -60,23 +71,48 @@ class HomeScaffold extends StatelessWidget with GameStoreMixin {
                   }
                 },
               ),
-              ListTile(
-                title: const Text('Settings'),
-                onTap: () => Navigator.pushNamed(context, Paths.settings),
-              ),
-              ListTile(
-                title: const Text('Disconnect'),
-                onTap: () async {
-                  await gameStore.disconnect();
-                  if (context.mounted) {
-                    gameStore.connect(context);
-                  }
-                },
-              ),
-            ],
-          ),
+            ),
+            ListTile(
+              title: const Text('Button Sets'),
+              leading: const Icon(GameButtonSetData.iconData),
+              onTap: () => Navigator.pushNamed(context, Paths.buttons),
+            ),
+            ListTile(
+              title: const Text('Aliases'),
+              leading: const Icon(Alias.iconData),
+              onTap: () => Navigator.pushNamed(context, Paths.aliases),
+            ),
+            ListTile(
+              title: const Text('Triggers'),
+              leading: const Icon(Trigger.iconData),
+              onTap: () => Navigator.pushNamed(context, Paths.triggers),
+            ),
+            ListTile(
+              title: const Text('Variables'),
+              leading: const Icon(Variable.iconData),
+              onTap: () => Navigator.pushNamed(context, Paths.variables),
+            ),
+            const Divider(),
+            ListTile(
+              title: const Text('Settings'),
+              leading: const Icon(Icons.settings),
+              onTap: () => Navigator.pushNamed(context, Paths.settings),
+            ),
+            ListTile(
+              title: const Text('Disconnect'),
+              leading: const Icon(Icons.exit_to_app),
+              onTap: () async {
+                Navigator.of(context).pop();
+                await gameStore.disconnect();
+                if (context.mounted) {
+                  gameStore.connect(context);
+                }
+              },
+            ),
+          ],
         ),
       ),
     );
   }
 }
+

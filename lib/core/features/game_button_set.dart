@@ -88,6 +88,7 @@ class GameButtonSet extends StatelessWidget {
 
 class GameButtonSetData {
   final String id;
+  bool enabled;
   String name;
   GameButtonSetType type;
   List<GameButtonData?> buttons;
@@ -105,7 +106,10 @@ class GameButtonSetData {
     this.alignment = Alignment.center,
     this.spacing = 8,
     this.group = '',
+    this.enabled = true,
   });
+
+  static const IconData iconData = Icons.gamepad;
 
   factory GameButtonSetData.empty() => GameButtonSetData(
         id: uuid(),
@@ -116,9 +120,13 @@ class GameButtonSetData {
 
   Size get size => Size(calculateWidth(), calculateHeight());
 
+  List<GameButtonData> get nonEmptyButtons =>
+      buttons.whereType<GameButtonData>().toList();
+
   factory GameButtonSetData.fromJson(Map<String, dynamic> json) =>
       GameButtonSetData(
         id: json['id'] as String,
+        enabled: json['enabled'] as bool? ?? true,
         name: json['name'] as String,
         type: GameButtonSetType.values.firstWhere(
           (type) => type.name == json['type'],
@@ -141,6 +149,7 @@ class GameButtonSetData {
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'id': id,
+        'enabled': enabled,
         'name': name,
         'type': type.name,
         'buttons': buttons.map((button) => button?.toJson()).toList(),
@@ -155,6 +164,7 @@ class GameButtonSetData {
 
   GameButtonSetData copyWith({
     String? id,
+    bool? enabled,
     String? name,
     GameButtonSetType? type,
     List<GameButtonData?>? buttons,
@@ -165,6 +175,7 @@ class GameButtonSetData {
   }) =>
       GameButtonSetData(
         id: id ?? this.id,
+        enabled: enabled ?? this.enabled,
         name: name ?? this.name,
         type: type ?? this.type,
         buttons: buttons ?? this.buttons,
@@ -262,7 +273,11 @@ final movementPreset = GameButtonSetData(
       label: GameButtonLabelData(icon: Icons.keyboard_arrow_up),
       pressAction: MUDAction('north'),
     ),
-    null,
+    GameButtonData(
+      id: uuid(),
+      label: GameButtonLabelData(icon: Icons.keyboard_double_arrow_up),
+      pressAction: MUDAction('up'),
+    ),
     GameButtonData(
       id: uuid(),
       label: GameButtonLabelData(icon: Icons.keyboard_arrow_left),
@@ -288,7 +303,11 @@ final movementPreset = GameButtonSetData(
       label: GameButtonLabelData(icon: Icons.keyboard_arrow_down),
       pressAction: MUDAction('south'),
     ),
-    null,
+    GameButtonData(
+      id: uuid(),
+      label: GameButtonLabelData(icon: Icons.keyboard_double_arrow_down),
+      pressAction: MUDAction('down'),
+    ),
   ],
 );
 

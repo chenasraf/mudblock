@@ -1,6 +1,9 @@
+import 'package:flutter/material.dart';
+
 import '../string_utils.dart';
 import 'action.dart';
 import 'automation.dart';
+import 'builtin_command.dart';
 
 class Alias extends Automation {
   Alias({
@@ -15,6 +18,8 @@ class Alias extends Automation {
     super.invokeCount = 0,
     super.group = '',
   });
+
+  static const IconData iconData = Icons.text_fields;
 
   factory Alias.empty() => Alias(
         id: uuid(),
@@ -68,3 +73,27 @@ class Alias extends Automation {
         group: group ?? this.group,
       );
 }
+
+final builtInAliases = <Alias>[
+  Alias(
+    id: 'builtin-alias-lua-long',
+    pattern: 'lua *',
+    action: MUDAction('%1', target: MUDActionTarget.script),
+  ),
+  Alias(
+    id: 'builtin-alias-lua-short',
+    pattern: r'[\\]{3}(.*)',
+    isRegex: true,
+    action: MUDAction('%1', target: MUDActionTarget.script),
+  ),
+  Alias(
+    id: 'builtin-alias-help',
+    pattern: 'mudhelp',
+    action: NativeMUDAction(
+      (store, parent, matches) {
+        store.echo(BuiltinCommand.help());
+      },
+    ),
+  )
+];
+

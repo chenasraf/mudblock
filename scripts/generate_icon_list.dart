@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'dart:io';
 
 void main() async {
@@ -13,20 +15,14 @@ void main() async {
     exit(1);
   }
 
-// final fileHref = 'https://github.com/flutter/flutter/blob/master/packages/flutter/lib/src/material/icons.dart?raw=true';
   final inputFile =
       File("$flutterSdk/packages/flutter/lib/src/material/icons.dart");
   final output = File('lib/core/icon_list.g.dart');
 
-// final source = await HttpClient().getUrl(Uri.parse(fileHref));
-// final content = await source.close();
-// final lines = await content.transform(const Utf8Decoder()).transform(const LineSplitter()).toList();
   final icons = <String, Set<String>>{};
 
   final lines = await inputFile.readAsLines();
   for (final line in lines) {
-    // example line:
-    //   static const IconData home = IconData(0xe318, fontFamily: 'MaterialIcons');
     try {
       if (line.contains('static const IconData')) {
         final parts = line.trim().split(RegExp(r'\s+'));

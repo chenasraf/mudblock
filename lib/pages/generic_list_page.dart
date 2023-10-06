@@ -30,13 +30,11 @@ class GenericListPage<T> extends StatefulWidget with GameStoreMixin {
 
 class _GenericListPageState<T> extends State<GenericListPage<T>>
     with GameStoreStateMixin {
-  List<T> _filteredItems = [];
   String _searchTerms = '';
 
   @override
   void initState() {
     super.initState();
-    _filteredItems = [...widget.items];
   }
 
   @override
@@ -48,6 +46,7 @@ class _GenericListPageState<T> extends State<GenericListPage<T>>
       ),
       body: GameStore.consumer(
         builder: (context, store, child) {
+          final filteredItems = _search();
           debugPrint('Generic list rebuild');
           return Column(
             children: [
@@ -58,15 +57,17 @@ class _GenericListPageState<T> extends State<GenericListPage<T>>
                     hintText: 'Search',
                   ),
                   onChanged: (value) {
-                    _search(value);
+                    setState(() {
+                      _searchTerms = value;
+                    });
                   },
                 ),
               ),
               ListView.builder(
-                itemCount: _filteredItems.length,
+                itemCount: filteredItems.length,
                 shrinkWrap: true,
                 itemBuilder: (context, i) {
-                  final item = _filteredItems[i];
+                  final item = filteredItems[i];
                   return widget.itemBuilder(context, store, item);
                 },
               ),
@@ -80,23 +81,20 @@ class _GenericListPageState<T> extends State<GenericListPage<T>>
           final item = await Navigator.pushNamed(context, widget.detailsPath);
           if (item != null) {
             await widget.save(store, item as T);
-            _search(_searchTerms);
+            setState(() {});
           }
         },
       ),
     );
   }
 
-  void _search(String value) {
-    setState(() {
-      _searchTerms = value;
-      _filteredItems = widget.items.where((item) {
-        final tags = widget.searchTags(item);
-        final displayName = widget.displayName(item).toLowerCase();
-        return displayName.contains(value.toLowerCase()) ||
-            tags.any((tag) => tag.contains(value.toLowerCase()));
-      }).toList();
-    });
+  List<T> _search() {
+    return widget.items.where((item) {
+      final tags = widget.searchTags(item);
+      final displayName = widget.displayName(item).toLowerCase();
+      return displayName.contains(_searchTerms.toLowerCase()) ||
+          tags.any((tag) => tag.contains(_searchTerms.toLowerCase()));
+    }).toList();
   }
 }
 

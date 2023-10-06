@@ -21,7 +21,8 @@ class _GameButtonSetPageState extends State<GameButtonSetPage> {
 
   @override
   void initState() {
-    buttonSet = widget.buttonSet?.copyWith() ?? GameButtonSetData.empty();
+    buttonSet = widget.buttonSet?.copyWith() ??
+        GameButtonSetData.empty().copyWith(buttons: [null, null, null]);
     super.initState();
   }
 
@@ -30,14 +31,14 @@ class _GameButtonSetPageState extends State<GameButtonSetPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Button Set'),
-        // actions: [
-        //   Switch.adaptive(
-        //     value: buttonSet.enabled,
-        //     onChanged: (value) {
-        //       buttonSet.enabled = value;
-        //     },
-        //   )
-        // ],
+        actions: [
+          Switch.adaptive(
+            value: buttonSet.enabled,
+            onChanged: (value) {
+              buttonSet.enabled = value;
+            },
+          )
+        ],
       ),
       body: Align(
         alignment: Alignment.topCenter,
@@ -51,15 +52,22 @@ class _GameButtonSetPageState extends State<GameButtonSetPage> {
                   return ListView(
                     shrinkWrap: true,
                     children: [
-                      TextField(
+                      TextFormField(
                         decoration: const InputDecoration(
                           labelText: 'Name',
                         ),
-                        controller: TextEditingController(
-                          text: buttonSet.name,
-                        ),
+                        initialValue: buttonSet.name,
                         onChanged: (value) {
                           buttonSet.name = value;
+                        },
+                      ),
+                      TextFormField(
+                        decoration: const InputDecoration(
+                          labelText: 'Group',
+                        ),
+                        initialValue: buttonSet.group,
+                        onChanged: (value) {
+                          buttonSet.group = value;
                         },
                       ),
                       const SizedBox(height: 16),
@@ -75,11 +83,14 @@ class _GameButtonSetPageState extends State<GameButtonSetPage> {
                             )
                             .toList(),
                         onSelected: (value) {
-                          buttonSet.type = value as GameButtonSetType;
+                          setState(() {
+                            buttonSet.type = value as GameButtonSetType;
+                          });
                         },
                       ),
                       const SizedBox(height: 16),
-                      ButtonSetEditor(data: buttonSet),
+                      ButtonSetEditor(
+                          key: Key(buttonSet.type.name), data: buttonSet),
                     ],
                   );
                 },
@@ -124,19 +135,21 @@ class _ButtonSetEditorState extends State<ButtonSetEditor> {
     return _buildContainer(
       context,
       (context, index) {
-        final data = this.data.buttons[index];
+        final button = data.buttons[index];
         return Container(
+          height: (button?.size ?? GameButtonData.defaultSize) - data.spacing,
+          width: (button?.size ?? GameButtonData.defaultSize) - data.spacing,
           color: Colors.grey,
-          child: data != null
+          child: button != null
               ? FakeGameButton(
-                  label: data.label,
-                  size: data.size ?? GameButtonData.defaultSize,
-                  spacing: this.data.spacing,
+                  label: button.label,
+                  size: button.size ?? GameButtonData.defaultSize,
+                  spacing: data.spacing,
                   onEdit: () {
                     showDialog(
                       context: context,
                       builder: (context) => ButtonEditorDialog(
-                        data: data,
+                        data: button,
                         onSave: (data) {
                           setState(() {
                             this.data.buttons[index] = data;

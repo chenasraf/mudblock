@@ -11,7 +11,7 @@ class ButtonSetListPage extends StatelessWidget with GameStoreMixin {
   @override
   Widget build(BuildContext context) {
     return GenericListPage(
-      title: const Text('ButtonSets'),
+      title: const Text('Button Sets'),
       save: save,
       items: storeOf(context).buttonSets,
       detailsPath: Paths.buttonSet,
@@ -32,12 +32,11 @@ class ButtonSetListPage extends StatelessWidget with GameStoreMixin {
           onSelected: (value) {
             switch (value) {
               case 'navigation_preset':
-                // Navigator.pushNamed(
-                //   context,
-                //   Paths.buttonSet,
-                //   arguments: movementPreset,
-                // );
-                save(storeOf(context), movementPreset);
+                Navigator.pushNamed(
+                  context,
+                  Paths.buttonSet,
+                  arguments: movementPreset,
+                );
                 break;
             }
           },
@@ -47,14 +46,14 @@ class ButtonSetListPage extends StatelessWidget with GameStoreMixin {
         return ListTile(
           key: Key(buttonSet.id),
           title: Text(buttonSet.name),
-          // subtitle: Text(buttonSet.name),
-          // leading: Switch.adaptive(
-          //   value: buttonSet.enabled,
-          //   onChanged: (value) {
-          //     buttonSet.enabled = value;
-          //     save(store, buttonSet);
-          //   },
-          // ),
+          subtitle: Text('${buttonSet.nonEmptyButtons.length} buttons'),
+          leading: Switch.adaptive(
+            value: buttonSet.enabled,
+            onChanged: (value) {
+              buttonSet.enabled = value;
+              save(store, buttonSet);
+            },
+          ),
           trailing: PopupMenuButton(
             itemBuilder: (context) {
               return [

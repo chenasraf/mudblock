@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 import '../string_utils.dart';
 import 'action.dart';
 import 'automation.dart';
@@ -15,6 +17,8 @@ class Trigger extends Automation {
     super.invokeCount = 0,
     super.group = '',
   });
+
+  static const IconData iconData = Icons.lightbulb;
 
   factory Trigger.empty() => Trigger(
         id: uuid(),
@@ -68,3 +72,4 @@ class Trigger extends Automation {
         group: group ?? this.group,
       );
 }
+

@@ -87,7 +87,7 @@ final routes = <String, Widget Function(BuildContext)>{
   },
   Paths.home: (context) => HomeScaffold(
         builder: (context, _) {
-          return HomePage(key: homeKey);
+          return const HomePage();
         },
       ),
 };

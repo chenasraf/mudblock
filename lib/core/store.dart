@@ -51,6 +51,8 @@ class GameStore extends ChangeNotifier {
 
   MUDProfile get currentProfile => _currentProfile!;
 
+  get connected => _clientReady && _client.connected;
+
   Future<GameStore> init() async {
     debugPrint('GameStore.init');
     fillStockProfiles();
@@ -98,6 +100,7 @@ class GameStore extends ChangeNotifier {
     final list = await currentProfile.loadAliases();
     aliases.clear();
     aliases.addAll(list);
+    aliases.addAll(builtInAliases);
     notifyListeners();
     debugPrint('Aliases: ${aliases.length}');
   }
