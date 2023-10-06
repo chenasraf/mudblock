@@ -274,8 +274,8 @@ final movementPreset = GameButtonSetData(
       labelUp: GameButtonLabelData(icon: Icons.exit_to_app),
       labelDown: GameButtonLabelData(icon: Icons.exit_to_app),
       pressAction: MUDAction('look'),
-      swipeUpAction: MUDAction('exits'),
-      swipeDownAction: MUDAction('exits'),
+      dragUpAction: MUDAction('exits'),
+      dragDownAction: MUDAction('exits'),
     ),
     GameButtonData(
       id: uuid(),

@@ -29,6 +29,7 @@ class GameStore extends ChangeNotifier {
   bool isCompressed = false;
   final ZLibDecoder decoder = ZLibDecoder();
   final msgSplitPattern = RegExp("($cr$lf)|($lf$cr)|$cr|$lf");
+  final outgoingMsgSplitPattern = RegExp("($cr$lf)|($lf$cr)|$cr|$lf|$csp");
   final ZLibCodec _decoder = ZLibCodec();
   final StreamController<List<int>> _rawStreamController = StreamController();
   late Stream<List<int>> _decodedStream;
@@ -36,6 +37,10 @@ class GameStore extends ChangeNotifier {
   late final List<MUDProfile> profiles = [];
   MUDProfile? _currentProfile;
   bool _clientReady = false;
+
+  // TODO move to settings
+  /// command separator
+  static const csp = ";";
 
   // features
   // TODO - move to MUDProfile and make that reactive
@@ -280,21 +285,26 @@ class GameStore extends ChangeNotifier {
     _client.send(line + newline);
   }
 
-  void send(String line) {
-    if (isCompressed) {
-      debugPrint('sending bytes${isCompressed ? ' (compressed)' : ''}: $line');
-      sendBytes(line.codeUnits + newline.codeUnits);
-    } else {
-      debugPrint('sending string: $line');
-      sendString(line);
+  void send(String text) {
+    for (final line in text.trimRight().split(outgoingMsgSplitPattern)) {
+      if (isCompressed) {
+        debugPrint(
+            'sending bytes${isCompressed ? ' (compressed)' : ''}: $line');
+        sendBytes(line.codeUnits + newline.codeUnits);
+      } else {
+        debugPrint('sending string: $line');
+        sendString(line);
+      }
     }
   }
 
-  void execute(String line) {
-    debugPrint('processing aliases for: $line');
-    var sendLine = processAliases(line);
-    if (sendLine) {
-      sendString(line);
+  void execute(String text) {
+    debugPrint('processing aliases for: $text');
+    for (final line in text.trimRight().split(outgoingMsgSplitPattern)) {
+      var sendLine = processAliases(line);
+      if (sendLine) {
+        sendString(line);
+      }
     }
   }
 
@@ -408,3 +418,4 @@ mixin GameStoreStateMixin<T extends StatefulWidget> on State<T> {
 }
 
 final gameStore = GameStore();
+

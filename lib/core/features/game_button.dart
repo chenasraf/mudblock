@@ -7,7 +7,7 @@ import 'action.dart';
 import 'automation.dart';
 
 class GameButtonData {
-  const GameButtonData({
+  GameButtonData({
     required this.id,
     required this.label,
     required this.pressAction,
@@ -18,28 +18,28 @@ class GameButtonData {
     this.color,
     this.size = defaultSize,
     this.longPressAction,
-    this.swipeUpAction,
-    this.swipeDownAction,
-    this.swipeLeftAction,
-    this.swipeRightAction,
+    this.dragUpAction,
+    this.dragDownAction,
+    this.dragLeftAction,
+    this.dragRightAction,
   });
 
   static const defaultSize = 60.0;
 
   final String id;
-  final GameButtonLabelData label;
-  final GameButtonLabelData? labelUp;
-  final GameButtonLabelData? labelDown;
-  final GameButtonLabelData? labelLeft;
-  final GameButtonLabelData? labelRight;
-  final Color? color;
-  final double? size;
-  final MUDAction pressAction;
-  final MUDAction? longPressAction;
-  final MUDAction? swipeUpAction;
-  final MUDAction? swipeDownAction;
-  final MUDAction? swipeLeftAction;
-  final MUDAction? swipeRightAction;
+  GameButtonLabelData label;
+  GameButtonLabelData? labelUp;
+  GameButtonLabelData? labelDown;
+  GameButtonLabelData? labelLeft;
+  GameButtonLabelData? labelRight;
+  Color? color;
+  double? size;
+  MUDAction pressAction;
+  MUDAction? longPressAction;
+  MUDAction? dragUpAction;
+  MUDAction? dragDownAction;
+  MUDAction? dragLeftAction;
+  MUDAction? dragRightAction;
 
   factory GameButtonData.empty() => GameButtonData(
         id: uuid(),
@@ -69,18 +69,18 @@ class GameButtonData {
       longPressAction: json['longPressAction'] == null
           ? null
           : MUDAction.fromJson(json['longPressAction']),
-      swipeUpAction: json['swipeUpAction'] == null
+      dragUpAction: json['dragUpAction'] == null
           ? null
-          : MUDAction.fromJson(json['swipeUpAction']),
-      swipeDownAction: json['swipeDownAction'] == null
+          : MUDAction.fromJson(json['dragUpAction']),
+      dragDownAction: json['dragDownAction'] == null
           ? null
-          : MUDAction.fromJson(json['swipeDownAction']),
-      swipeLeftAction: json['swipeLeftAction'] == null
+          : MUDAction.fromJson(json['dragDownAction']),
+      dragLeftAction: json['dragLeftAction'] == null
           ? null
-          : MUDAction.fromJson(json['swipeLeftAction']),
-      swipeRightAction: json['swipeRightAction'] == null
+          : MUDAction.fromJson(json['dragLeftAction']),
+      dragRightAction: json['dragRightAction'] == null
           ? null
-          : MUDAction.fromJson(json['swipeRightAction']),
+          : MUDAction.fromJson(json['dragRightAction']),
     );
   }
 
@@ -95,10 +95,10 @@ class GameButtonData {
     double? size,
     MUDAction? pressAction,
     MUDAction? longPressAction,
-    MUDAction? swipeUpAction,
-    MUDAction? swipeDownAction,
-    MUDAction? swipeLeftAction,
-    MUDAction? swipeRightAction,
+    MUDAction? dragUpAction,
+    MUDAction? dragDownAction,
+    MUDAction? dragLeftAction,
+    MUDAction? dragRightAction,
   }) =>
       GameButtonData(
         id: id ?? this.id,
@@ -111,10 +111,10 @@ class GameButtonData {
         size: size ?? this.size,
         pressAction: pressAction ?? this.pressAction,
         longPressAction: longPressAction ?? this.longPressAction,
-        swipeUpAction: swipeUpAction ?? this.swipeUpAction,
-        swipeDownAction: swipeDownAction ?? this.swipeDownAction,
-        swipeLeftAction: swipeLeftAction ?? this.swipeLeftAction,
-        swipeRightAction: swipeRightAction ?? this.swipeRightAction,
+        dragUpAction: dragUpAction ?? this.dragUpAction,
+        dragDownAction: dragDownAction ?? this.dragDownAction,
+        dragLeftAction: dragLeftAction ?? this.dragLeftAction,
+        dragRightAction: dragRightAction ?? this.dragRightAction,
       );
 
   Map<String, dynamic> toJson() => {
@@ -128,41 +128,55 @@ class GameButtonData {
         'color': color?.value,
         'size': size,
         'longPressAction': longPressAction?.toJson(),
-        'swipeUpAction': swipeUpAction?.toJson(),
-        'swipeDownAction': swipeDownAction?.toJson(),
-        'swipeLeftAction': swipeLeftAction?.toJson(),
-        'swipeRightAction': swipeRightAction?.toJson(),
+        'dragUpAction': dragUpAction?.toJson(),
+        'dragDownAction': dragDownAction?.toJson(),
+        'dragLeftAction': dragLeftAction?.toJson(),
+        'dragRightAction': dragRightAction?.toJson(),
       };
 
-  MUDAction directionalAction(GameButtonDirection direction) {
-    switch (direction) {
-      case GameButtonDirection.up:
-        return swipeUpAction ?? pressAction;
-      case GameButtonDirection.down:
-        return swipeDownAction ?? pressAction;
-      case GameButtonDirection.left:
-        return swipeLeftAction ?? pressAction;
-      case GameButtonDirection.right:
-        return swipeRightAction ?? pressAction;
-      default:
+  MUDAction getActionOrDefault(GameButtonInteraction interaction) {
+    return getAction(interaction) ?? pressAction;
+  }
+
+  MUDAction? getAction(GameButtonInteraction interaction) {
+    switch (interaction) {
+      case GameButtonInteraction.press:
         return pressAction;
+      case GameButtonInteraction.longPress:
+        return longPressAction;
+      case GameButtonInteraction.dragUp:
+        return dragUpAction;
+      case GameButtonInteraction.dragDown:
+        return dragDownAction;
+      case GameButtonInteraction.dragLeft:
+        return dragLeftAction;
+      case GameButtonInteraction.dragRight:
+        return dragRightAction;
+      default:
+        return null;
     }
   }
 
-  MUDAction? actionForDirection(GameButtonDirection direction) {
+  void setAction(GameButtonInteraction direction, MUDAction mudAction) {
     switch (direction) {
-      case GameButtonDirection.none:
-        return pressAction;
-      case GameButtonDirection.up:
-        return swipeUpAction;
-      case GameButtonDirection.down:
-        return swipeDownAction;
-      case GameButtonDirection.left:
-        return swipeLeftAction;
-      case GameButtonDirection.right:
-        return swipeRightAction;
-      default:
-        return null;
+      case GameButtonInteraction.press:
+        pressAction = mudAction;
+        break;
+      case GameButtonInteraction.longPress:
+        longPressAction = mudAction;
+        break;
+      case GameButtonInteraction.dragUp:
+        dragUpAction = mudAction;
+        break;
+      case GameButtonInteraction.dragDown:
+        dragDownAction = mudAction;
+        break;
+      case GameButtonInteraction.dragLeft:
+        dragLeftAction = mudAction;
+        break;
+      case GameButtonInteraction.dragRight:
+        dragRightAction = mudAction;
+        break;
     }
   }
 }
@@ -180,7 +194,7 @@ class GameButton extends StatefulWidget {
 }
 
 class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
-  late GameButtonDirection _direction;
+  late GameButtonInteraction _direction;
   final parentAutomation = Automation.empty();
   Offset? _dragStart;
   Offset? _dragEnd;
@@ -190,7 +204,7 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
 
   @override
   void initState() {
-    _direction = GameButtonDirection.none;
+    _direction = GameButtonInteraction.press;
     super.initState();
   }
 
@@ -214,7 +228,7 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
     );
   }
 
-  double get _swipeMinDist =>
+  double get _dragMinDist =>
       (data.size ??
           IconTheme.of(context).size ??
           const IconThemeData.fallback().size!) /
@@ -248,13 +262,13 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
 
   GameButtonLabelData _currentDirectionIcon(BuildContext context) {
     switch (_direction) {
-      case GameButtonDirection.up:
+      case GameButtonInteraction.dragUp:
         return data.labelUp ?? data.label;
-      case GameButtonDirection.down:
+      case GameButtonInteraction.dragDown:
         return data.labelDown ?? data.label;
-      case GameButtonDirection.left:
+      case GameButtonInteraction.dragLeft:
         return data.labelLeft ?? data.label;
-      case GameButtonDirection.right:
+      case GameButtonInteraction.dragRight:
         return data.labelRight ?? data.label;
       default:
         return data.label;
@@ -280,17 +294,17 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
   void _onDragStart(DragStartDetails details) {
     _dragStart = details.globalPosition;
     setState(() {
-      _direction = GameButtonDirection.none;
+      _direction = GameButtonInteraction.press;
     });
   }
 
   void _onDragUpdate(DragUpdateDetails details) {
     final pos = details.globalPosition;
-    final direction = _getRelativeDragDirection(_dragStart!, pos);
+    final interaction = _getRelativeDragDirection(_dragStart!, pos);
 
-    if (direction != _direction) {
+    if (interaction != _direction) {
       setState(() {
-        _direction = direction;
+        _direction = interaction;
       });
     }
   }
@@ -298,70 +312,71 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
   void _onDragEnd(DragEndDetails details) {
     _callCurrentDirection();
     setState(() {
-      _direction = GameButtonDirection.none;
+      _direction = GameButtonInteraction.press;
     });
   }
 
   void _onPointerUp(PointerUpEvent event) {
     _callCurrentDirection();
     setState(() {
-      _direction = GameButtonDirection.none;
+      _direction = GameButtonInteraction.press;
     });
   }
 
   void _onPointerDown(PointerDownEvent event) {
     _dragStart = event.position;
     setState(() {
-      _direction = GameButtonDirection.none;
+      _direction = GameButtonInteraction.press;
     });
   }
 
   void _onPointerMove(PointerMoveEvent event) {
     _dragEnd = event.position;
-    final direction = _getRelativeDragDirection(_dragStart!, _dragEnd!);
+    final interaction = _getRelativeDragDirection(_dragStart!, _dragEnd!);
 
-    if (direction != _direction) {
+    if (interaction != _direction) {
       setState(() {
-        _direction = direction;
+        _direction = interaction;
       });
     }
   }
 
-  GameButtonDirection _getRelativeDragDirection(Offset start, Offset current) {
+  GameButtonInteraction _getRelativeDragDirection(
+      Offset start, Offset current) {
     final diff = start - current;
-    GameButtonDirection direction = _direction;
+    GameButtonInteraction interaction = _direction;
 
-    if (diff.distance > _swipeMinDist) {
-      // detect primary direction
+    if (diff.distance > _dragMinDist) {
+      // detect primary interaction
       // horizontal
       if (diff.dx.abs() > diff.dy.abs()) {
-        if (diff.dx > _swipeMinDist) {
-          direction = GameButtonDirection.left;
+        if (diff.dx > _dragMinDist) {
+          interaction = GameButtonInteraction.dragLeft;
         } else {
-          direction = GameButtonDirection.right;
+          interaction = GameButtonInteraction.dragRight;
         }
         // vertical
       } else {
-        if (diff.dy > _swipeMinDist) {
-          direction = GameButtonDirection.up;
+        if (diff.dy > _dragMinDist) {
+          interaction = GameButtonInteraction.dragUp;
         } else {
-          direction = GameButtonDirection.down;
+          interaction = GameButtonInteraction.dragDown;
         }
       }
-      // pos is within button - no direction
+      // pos is within button - no interaction
     } else {
-      direction = GameButtonDirection.none;
+      interaction = GameButtonInteraction.press;
     }
-    return direction;
+    return interaction;
   }
 
   void _callAction(MUDAction? action) {
-    final act = action ?? data.directionalAction(GameButtonDirection.none);
+    final act = action ?? data.getActionOrDefault(GameButtonInteraction.press);
     act.invoke(store, parentAutomation, []);
   }
 
   void _callCurrentDirection() {
-    _callAction(data.directionalAction(_direction));
+    _callAction(data.getActionOrDefault(_direction));
   }
 }
 
@@ -416,11 +431,12 @@ class GameButtonLabelData {
       };
 }
 
-enum GameButtonDirection {
-  none,
-  up,
-  down,
-  left,
-  right,
+enum GameButtonInteraction {
+  press,
+  longPress,
+  dragUp,
+  dragDown,
+  dragLeft,
+  dragRight,
 }
 

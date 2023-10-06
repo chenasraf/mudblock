@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../core/dialog_utils.dart';
 import '../core/features/action.dart';
 import '../core/features/game_button.dart';
 import '../core/features/game_button_set.dart';
-import '../core/platform_utils.dart';
+import '../core/string_utils.dart';
 
 class GameButtonSetPage extends StatefulWidget {
   const GameButtonSetPage({super.key, required this.buttonSet});
@@ -133,7 +134,14 @@ class _ButtonSetEditorState extends State<ButtonSetEditor> {
                   onEdit: () {
                     showDialog(
                       context: context,
-                      builder: (context) => ButtonEditorDialog(data: data),
+                      builder: (context) => ButtonEditorDialog(
+                        data: data,
+                        onSave: (data) {
+                          setState(() {
+                            this.data.buttons[index] = data;
+                          });
+                        },
+                      ),
                     );
                   },
                 )
@@ -183,6 +191,7 @@ class FakeGameButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return PopupMenuButton(
       offset: Offset(0, size),
+      tooltip: '',
       itemBuilder: (context) => const [
         PopupMenuItem(
           value: 'edit',
@@ -203,10 +212,10 @@ class FakeGameButton extends StatelessWidget {
           label: label,
           pressAction: MUDAction.empty(),
           longPressAction: MUDAction.empty(),
-          swipeUpAction: MUDAction.empty(),
-          swipeDownAction: MUDAction.empty(),
-          swipeLeftAction: MUDAction.empty(),
-          swipeRightAction: MUDAction.empty(),
+          dragUpAction: MUDAction.empty(),
+          dragDownAction: MUDAction.empty(),
+          dragLeftAction: MUDAction.empty(),
+          dragRightAction: MUDAction.empty(),
         ),
       ),
     );
@@ -217,9 +226,11 @@ class ButtonEditorDialog extends StatefulWidget {
   const ButtonEditorDialog({
     super.key,
     this.data,
+    required this.onSave,
   });
 
   final GameButtonData? data;
+  final void Function(GameButtonData data) onSave;
 
   @override
   State<ButtonEditorDialog> createState() => _ButtonEditorDialogState();
@@ -236,6 +247,11 @@ class _ButtonEditorDialogState extends State<ButtonEditorDialog> {
 
   @override
   Widget build(BuildContext context) {
+    const interactions = GameButtonInteraction.values;
+    final actions = DialogUtils.saveButtons(context, () {
+      widget.onSave(data);
+    });
+
     return Dialog(
       child: SizedBox(
         width: 600,
@@ -244,14 +260,37 @@ class _ButtonEditorDialogState extends State<ButtonEditorDialog> {
           child: ListView(
             shrinkWrap: true,
             children: [
-              for (final direction in GameButtonDirection.values)
-                TextFormField(
-                  initialValue:
-                      data.actionForDirection(direction)?.content ?? '',
-                  decoration: InputDecoration(
-                    label: Text("${direction.name} action"),
-                  ),
+              Text(
+                'Edit Button',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              for (final direction in interactions)
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        initialValue: data.getAction(direction)?.content ?? '',
+                        decoration: InputDecoration(
+                          label: Text(capitalize(direction.name)),
+                        ),
+                        onChanged: (value) {
+                          data.setAction(direction, MUDAction(value));
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: Placeholder(),
+                      ),
+                    ),
+                  ],
                 ),
+              const SizedBox(height: 32),
+              actions.row(),
             ],
           ),
         ),

@@ -15,7 +15,7 @@ enum MUDActionTarget {
 class MUDAction {
   String content;
   MUDActionTarget target;
-  MUDAction(this.content, {this.target = MUDActionTarget.world});
+  MUDAction(this.content, {this.target = MUDActionTarget.execute});
 
   void invoke(GameStore store, Automation parent, List<String> matches) {
     debugPrint('MUDAction.invoke: ${this.content}, $matches');
