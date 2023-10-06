@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -29,7 +28,8 @@ class GameStore extends ChangeNotifier {
   bool isCompressed = false;
   final ZLibDecoder decoder = ZLibDecoder();
   final msgSplitPattern = RegExp("($cr$lf)|($lf$cr)|$cr|$lf");
-  final outgoingMsgSplitPattern = RegExp("($cr$lf)|($lf$cr)|$cr|$lf|$csp");
+  // accepts csp but NOT double csp
+  final outgoingMsgSplitPattern = RegExp("(?<!$csp)$csp(?!$csp)");
   final ZLibCodec _decoder = ZLibCodec();
   final StreamController<List<int>> _rawStreamController = StreamController();
   late Stream<List<int>> _decodedStream;
@@ -190,7 +190,7 @@ class GameStore extends ChangeNotifier {
     try {
       final data = Message(bytes);
       handleMCCPHandshake(data);
-      for (final line in data.text.trimRight().split(msgSplitPattern)) {
+      for (final line in data.text.split(msgSplitPattern)) {
         onLine(line);
       }
     } catch (e, stack) {
@@ -210,7 +210,7 @@ class GameStore extends ChangeNotifier {
         handleMCCPHandshake(data);
       }
 
-      for (final line in data.text.trimRight().split(msgSplitPattern)) {
+      for (final line in data.text.split(msgSplitPattern)) {
         onLine(line);
       }
     } catch (e, stack) {
@@ -263,30 +263,36 @@ class GameStore extends ChangeNotifier {
   List<String> get lines =>
       _lines.sublist(max(0, _lines.length - maxLines), _lines.length);
 
+  /// echo - echo to screen, DOES NOT split by msgSplitPattern, is not send to server
   void echo(String line) {
     _lines.add(line);
     notifyListeners();
     scrollToEnd();
   }
 
+  /// echoOwn - same as echo, but with predefined color
   void echoOwn(String line) {
     _lines.add('$esc[93m$line');
     notifyListeners();
     scrollToEnd();
   }
 
+  /// sendBytes - raw send bytes - DOES NOT split by outgoingMsgSplitPattern, no processing
   void sendBytes(List<int> bytes) {
     var output = bytes;
     _client.sendBytes(output);
   }
 
+  /// sendString - send string - DOES NOT split by outgoingMsgSplitPattern, no processing
   void sendString(String line) {
     debugPrint('sending string: $line');
     _client.send(line + newline);
   }
 
+  /// send - raw send string - no processing, DOES split by outgoingMsgSplitPattern
   void send(String text) {
-    for (final line in text.trimRight().split(outgoingMsgSplitPattern)) {
+    for (var line in text.split(outgoingMsgSplitPattern)) {
+      line = line.replaceAll('$csp$csp', csp);
       if (isCompressed) {
         debugPrint(
             'sending bytes${isCompressed ? ' (compressed)' : ''}: $line');
@@ -298,9 +304,11 @@ class GameStore extends ChangeNotifier {
     }
   }
 
+  /// execute - process aliases and triggers, then send, also split by outgoingMsgSplitPattern
   void execute(String text) {
-    debugPrint('processing aliases for: $text');
-    for (final line in text.trimRight().split(outgoingMsgSplitPattern)) {
+    for (var line in text.split(outgoingMsgSplitPattern)) {
+      line = line.replaceAll('$csp$csp', csp);
+      debugPrint('processing aliases for: $line');
       var sendLine = processAliases(line);
       if (sendLine) {
         sendString(line);
@@ -308,6 +316,7 @@ class GameStore extends ChangeNotifier {
     }
   }
 
+  /// submitInput - echo input, process aliases and triggers, then send, scroll to end, select input
   void submitInput(String text) {
     if (!_clientReady || !_client.connected) {
       return;
