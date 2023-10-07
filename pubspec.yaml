@@ -139,23 +139,17 @@ icons_launcher:
 script_runner:
   scripts:
     - build:apk: flutter build apk --no-tree-shake-icons
-    - name: get-version
-      cmd: dart run btool get packageVersion
-      suppress_header_output: true
-    - name: get-name
-      cmd: dart run btool get packageName
-      suppress_header_output: true
-    - name: push
+    - name: push:apk
       suppress_header_output: true
       cmd: |-
-        name=$(get-name)
-        version=$(get-version)
+        name=$(dart run btool get packageName)
+        version=$(dart run btool get packageVersion)
         source="$(pwd)/build/app/outputs/flutter-apk/app-release.apk"
         target="/sdcard/Download/$name-$version.apk"
         echo "adb push $source $target"
         adb push $source $target
-    - install: adb install build/app/outputs/flutter-apk/app-release.apk
-    - to-device: build:apk && push && install
+    - install:apk: adb install build/app/outputs/flutter-apk/app-release.apk
+    - to-android: build:apk && push:apk && install:apk
     - auto-fix: dart fix --apply
     - format: dart format .
     - gen:page: npx simple-scaffold@latest -t templates/page -o lib/modules -s true

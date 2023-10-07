@@ -33,11 +33,6 @@ class _GenericListPageState<T> extends State<GenericListPage<T>>
   String _searchTerms = '';
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -47,7 +42,6 @@ class _GenericListPageState<T> extends State<GenericListPage<T>>
       body: GameStore.consumer(
         builder: (context, store, child) {
           final filteredItems = _search();
-          debugPrint('Generic list rebuild');
           return Column(
             children: [
               Padding(

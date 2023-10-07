@@ -100,7 +100,6 @@ class GameStore extends ChangeNotifier {
     final list = await currentProfile.loadAliases();
     aliases.clear();
     aliases.addAll(list);
-    aliases.addAll(builtInAliases);
     notifyListeners();
     debugPrint('Aliases: ${aliases.length}');
   }
@@ -144,7 +143,7 @@ class GameStore extends ChangeNotifier {
   bool processAliases(String line) {
     bool sendLine = true;
     final str = line;
-    for (final alias in aliases) {
+    for (final alias in [...builtInAliases, ...aliases]) {
       if (!alias.isAvailable) {
         continue;
       }

@@ -106,7 +106,8 @@ class HomePageState extends State<HomePage>
                           ),
                         ),
                       ),
-                      for (final buttonSet in store.buttonSets)
+                      for (final buttonSet
+                          in store.buttonSets.where((b) => b.enabled))
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: GameButtonSet(data: buttonSet),
@@ -164,3 +165,4 @@ class HomePageState extends State<HomePage>
     );
   }
 }
+
