@@ -72,4 +72,3 @@ class Trigger extends Automation {
         group: group ?? this.group,
       );
 }
-

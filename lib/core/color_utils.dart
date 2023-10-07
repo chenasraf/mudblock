@@ -378,4 +378,3 @@ const xtermColorMap = {
   254: 0xFFE4E4E4,
   255: 0xFFEEEEEE,
 };
-

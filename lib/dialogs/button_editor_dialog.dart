@@ -115,4 +115,3 @@ class _ButtonEditorDialogState extends State<ButtonEditorDialog> {
     );
   }
 }
-

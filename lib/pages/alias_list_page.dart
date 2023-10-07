@@ -71,4 +71,3 @@ class AliasListPage extends StatelessWidget with GameStoreMixin {
     await store.loadAliases();
   }
 }
-

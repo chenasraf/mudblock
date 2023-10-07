@@ -85,4 +85,3 @@ class IconSelector extends StatelessWidget {
     return search.isEmpty || key.contains(search.toLowerCase());
   }
 }
-

@@ -157,7 +157,7 @@ script_runner:
     - install: adb install build/app/outputs/flutter-apk/app-release.apk
     - to-device: build:apk && push && install
     - auto-fix: dart fix --apply
-    - format: flutter format -l 100 --fix lib/ test/
+    - format: dart format .
     - gen:page: npx simple-scaffold@latest -t templates/page -o lib/modules -s true
     - gen:model: npx simple-scaffold@latest -t templates/model -o lib/models -s false
     - gen:widget: npx simple-scaffold@latest -t templates/widget -o lib/widgets -s false

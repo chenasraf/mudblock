@@ -435,4 +435,3 @@ mixin GameStoreStateMixin<T extends StatefulWidget> on State<T> {
 }
 
 final gameStore = GameStore();
-

@@ -71,4 +71,3 @@ class TriggerListPage extends StatelessWidget with GameStoreMixin {
     await store.loadTriggers();
   }
 }
-

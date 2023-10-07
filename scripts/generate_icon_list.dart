@@ -36,7 +36,8 @@ void main() async {
       print('Error parsing line: $line');
       print(e);
       print(stack);
-      print('parts: ${line.split(RegExp(r'\s+')).map((e) => '"$e"').join(', ')}');
+      print(
+          'parts: ${line.split(RegExp(r'\s+')).map((e) => '"$e"').join(', ')}');
       break;
     }
   }
@@ -67,4 +68,3 @@ ${iconListLines.join('\n')}
 
   print('Done');
 }
-

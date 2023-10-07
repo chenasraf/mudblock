@@ -93,4 +93,3 @@ class ButtonSetListPage extends StatelessWidget with GameStoreMixin {
     await store.loadButtonSets();
   }
 }
-

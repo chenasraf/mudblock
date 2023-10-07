@@ -103,4 +103,3 @@ class NativeMUDAction extends MUDAction {
     customInvoke(store, parent, matches);
   }
 }
-

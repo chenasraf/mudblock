@@ -7,4 +7,3 @@ const colorPatternRaw = r'\[\d*m';
 const boldByte = 1;
 const italicByte = 3;
 const underlineByte = 4;
-

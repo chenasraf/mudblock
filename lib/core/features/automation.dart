@@ -78,7 +78,9 @@ class Automation {
   }
 
   String get actualPattern => isRegex ? pattern : _strToRegExp(pattern).pattern;
-  RegExp get actualRegex => isRegex ? RegExp(pattern, caseSensitive: isCaseSensitive) : _strToRegExp(pattern);
+  RegExp get actualRegex => isRegex
+      ? RegExp(pattern, caseSensitive: isCaseSensitive)
+      : _strToRegExp(pattern);
 
   RegExp _strToRegExp(String pattern) {
     final updatedPattern = pattern
@@ -139,4 +141,3 @@ class Automation {
         action: action ?? this.action,
       );
 }
-

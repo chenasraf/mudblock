@@ -97,4 +97,3 @@ class _GenericListPageState<T> extends State<GenericListPage<T>>
     }).toList();
   }
 }
-

@@ -310,4 +310,3 @@ final movementPreset = GameButtonSetData(
     ),
   ],
 );
-

@@ -75,4 +75,3 @@ class _GameButtonLabelEditorDialogState
     );
   }
 }
-

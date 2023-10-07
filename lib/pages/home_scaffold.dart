@@ -115,4 +115,3 @@ class HomeScaffold extends StatelessWidget with GameStoreMixin {
     );
   }
 }
-

@@ -251,4 +251,3 @@ enum AuthMethod {
   none,
   diku,
 }
-

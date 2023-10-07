@@ -516,4 +516,3 @@ enum GameButtonInteraction {
   dragLeft,
   dragRight,
 }
-
