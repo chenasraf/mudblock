@@ -59,7 +59,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^2.0.0
-  btool: ^0.1.2
+  btool: ^0.1.3
   script_runner:
     path: ../script_runner
   icons_launcher: ^2.1.4
@@ -145,7 +145,15 @@ script_runner:
     - name: get-name
       cmd: dart run btool get packageName
       suppress_header_output: true
-    - push: 'name=$(get-name); version=$(get-version); echo "adb push $(pwd)/build/app/outputs/flutter-apk/app-release.apk /sdcard/Download/$name-$version.apk"; adb push "$(pwd)/build/app/outputs/flutter-apk/app-release.apk" "/sdcard/Download/$name-$version.apk"'
+    - name: push
+      suppress_header_output: true
+      cmd: |-
+        name=$(get-name)
+        version=$(get-version)
+        source="$(pwd)/build/app/outputs/flutter-apk/app-release.apk"
+        target="/sdcard/Download/$name-$version.apk"
+        echo "adb push $source $target"
+        adb push $source $target
     - install: adb install build/app/outputs/flutter-apk/app-release.apk
     - to-device: build:apk && push && install
     - auto-fix: dart fix --apply
