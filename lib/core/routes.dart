@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mudblock/pages/keyboard_shortcuts_page.dart';
 
 import '../core/features/alias.dart';
 import '../core/features/trigger.dart';
@@ -15,7 +16,6 @@ import '../pages/trigger_list_page.dart';
 import '../pages/trigger_page.dart';
 import '../pages/variable_list_page.dart';
 import '../pages/variable_page.dart';
-import 'consts.dart';
 import 'features/game_button_set.dart';
 import 'features/profile.dart';
 import 'features/variable.dart';
@@ -38,6 +38,8 @@ class Paths {
   static const buttons = '/buttons';
   static const buttonSet = '/button-set';
   static const button = '/button';
+
+  static const shortcuts = '/shortcuts';
 
   static const settings = '/settings';
 }
@@ -85,9 +87,21 @@ final routes = <String, Widget Function(BuildContext)>{
         ModalRoute.of(context)!.settings.arguments as GameButtonSetData?;
     return GameButtonSetPage(buttonSet: buttonSet);
   },
+  Paths.shortcuts: (context) {
+    return GameStore.consumer(builder: (context, store, child) {
+      return KeyboardShortcutsPage(
+        shortcuts: store.keyboardShortcuts,
+        onSave: (shortcuts) {
+          store.keyboardShortcuts = shortcuts;
+          store.currentProfile.saveKeyboardShortcuts(shortcuts);
+        },
+      );
+    });
+  },
   Paths.home: (context) => HomeScaffold(
         builder: (context, _) {
           return const HomePage();
         },
       ),
 };
+

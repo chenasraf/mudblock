@@ -60,15 +60,18 @@ class FileStorage {
 }
 
 class ProfileStorage {
+  static const encoder = JsonEncoder.withIndent('  ');
+  static const decoder = JsonDecoder();
+
   static Future<Map<String, dynamic>?> readProfileFile(
       String profile, String filename) async {
     final data = await FileStorage.readFile('profiles/$profile/$filename.json');
-    return data != null ? jsonDecode(data) : null;
+    return data != null ? decoder.convert(data) : null;
   }
 
   static Future<void> writeProfileFile(
       String profile, String filename, dynamic data) async {
-    data = jsonEncode(data);
+    data = encoder.convert(data);
     await FileStorage.writeFile('profiles/$profile/$filename.json', data);
   }
 

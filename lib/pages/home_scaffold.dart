@@ -92,6 +92,11 @@ class HomeScaffold extends StatelessWidget with GameStoreMixin {
               leading: const Icon(Variable.iconData),
               onTap: () => Navigator.pushNamed(context, Paths.variables),
             ),
+            ListTile(
+              title: const Text('Keyboard Shortcuts'),
+              leading: const Icon(Icons.keyboard),
+              onTap: () => Navigator.pushNamed(context, Paths.shortcuts),
+            ),
             const Divider(),
             ListTile(
               title: const Text('Settings'),
@@ -115,3 +120,4 @@ class HomeScaffold extends StatelessWidget with GameStoreMixin {
     );
   }
 }
+

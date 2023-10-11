@@ -16,6 +16,7 @@ import 'features/game_button_set.dart';
 import 'features/profile.dart';
 import 'features/trigger.dart';
 import 'features/variable.dart';
+import 'keyboard_shortcuts.dart';
 
 const maxLines = 2000;
 
@@ -48,6 +49,7 @@ class GameStore extends ChangeNotifier {
   final List<Alias> aliases = [];
   final Map<String, Variable> variables = {};
   final List<GameButtonSetData> buttonSets = [];
+  KeyboardShortcuts keyboardShortcuts = KeyboardShortcuts();
 
   MUDProfile get currentProfile => _currentProfile!;
 
@@ -83,6 +85,7 @@ class GameStore extends ChangeNotifier {
       loadAliases(),
       loadVariables(),
       loadButtonSets(),
+      loadKeyboardShortcuts(),
     ]);
     _client.connect();
   }
@@ -118,6 +121,13 @@ class GameStore extends ChangeNotifier {
     buttonSets.addAll(list);
     notifyListeners();
     debugPrint('ButtonSets: ${buttonSets.length}');
+  }
+
+  Future<void> loadKeyboardShortcuts() async {
+    final shortcuts = await currentProfile.loadKeyboardShortcuts();
+    keyboardShortcuts = shortcuts;
+    notifyListeners();
+    debugPrint('KeyboardShortcuts loaded');
   }
 
   bool processTriggers(String line) {
@@ -422,6 +432,13 @@ class GameStore extends ChangeNotifier {
     debugPrint('profiles: ${profiles.map((e) => [e.name, e.password])}');
     notifyListeners();
   }
+
+  void onShortcut(NumpadKey key, BuildContext context) {
+    final action = keyboardShortcuts.get(key);
+    if (action.isNotEmpty) {
+      submitInput(action);
+    }
+  }
 }
 
 mixin GameStoreMixin {
@@ -434,3 +451,4 @@ mixin GameStoreStateMixin<T extends StatefulWidget> on State<T> {
 }
 
 final gameStore = GameStore();
+

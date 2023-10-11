@@ -23,7 +23,7 @@ class MUDAction {
     for (var i = 0; i < matches.length; i++) {
       content = content.replaceAll('%$i', matches[i]);
     }
-    content = _doSpecialReplacements(store, content);
+    content = doVariableReplacements(store, content);
     debugPrint('MUDAction.invoking: $content');
 
     switch (target) {
@@ -76,7 +76,7 @@ class MUDAction {
         'target': target.name,
       };
 
-  String _doSpecialReplacements(GameStore store, String content) {
+  static String doVariableReplacements(GameStore store, String content) {
     debugPrint('MUDAction._doSpecialReplacements: $content');
     content = content
         .replaceAll('%PASSWORD', store.currentProfile.password)

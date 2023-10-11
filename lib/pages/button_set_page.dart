@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../core/features/game_button_set.dart';
+import '../core/platform_utils.dart';
+import '../core/string_utils.dart';
 import '../widgets/button_set_editor.dart';
 
 class GameButtonSetPage extends StatefulWidget {
@@ -24,6 +26,7 @@ class _GameButtonSetPageState extends State<GameButtonSetPage> {
 
   @override
   Widget build(BuildContext context) {
+    final platformWindowName = PlatformUtils.isDesktop ? 'window' : 'screen';
     return Scaffold(
       appBar: AppBar(
         title: const Text('Button Set'),
@@ -74,7 +77,7 @@ class _GameButtonSetPageState extends State<GameButtonSetPage> {
                             .map(
                               (e) => DropdownMenuEntry(
                                 value: e,
-                                label: e.name,
+                                label: capitalize(e.name),
                               ),
                             )
                             .toList(),
@@ -85,12 +88,40 @@ class _GameButtonSetPageState extends State<GameButtonSetPage> {
                         },
                       ),
                       const SizedBox(height: 16),
+                      DropdownMenu(
+                        label: Text('Position on $platformWindowName'),
+                        initialSelection: buttonSet.alignment,
+                        dropdownMenuEntries: [
+                          Alignment.topLeft,
+                          Alignment.topCenter,
+                          Alignment.topRight,
+                          Alignment.centerLeft,
+                          Alignment.center,
+                          Alignment.centerRight,
+                          Alignment.bottomLeft,
+                          Alignment.bottomCenter,
+                          Alignment.bottomRight,
+                        ]
+                            .map(
+                              (e) => DropdownMenuEntry(
+                                value: e,
+                                label: capitalize(e.toString().split('.')[1]),
+                              ),
+                            )
+                            .toList(),
+                        onSelected: (value) {
+                          setState(() {
+                            buttonSet.alignment = value as Alignment;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
                       ButtonSetEditor(
                         key: Key(buttonSet.type.name),
                         data: buttonSet,
                         onUpdate: (data) {
                           setState(() {
-                            buttonSet = data;
+                            buttonSet = buttonSet.copyWith(buttons: data.buttons);
                           });
                         },
                       ),

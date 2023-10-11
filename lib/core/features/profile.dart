@@ -2,6 +2,7 @@ import 'package:encrypt/encrypt.dart' as enc;
 import 'package:flutter/foundation.dart';
 
 import '../consts.dart';
+import '../keyboard_shortcuts.dart';
 import '../secrets.dart';
 import '../storage.dart';
 import '../string_utils.dart';
@@ -149,6 +150,16 @@ class MUDProfile {
     return buttonSetFiles.map((e) => GameButtonSetData.fromJson(e)).toList();
   }
 
+  Future<KeyboardShortcuts> loadKeyboardShortcuts() async {
+    debugPrint('MUDProfile.loadKeyboardShortcuts: $id');
+    final shortcuts =
+        await ProfileStorage.readProfileFile(id, 'keyboard_shortcuts');
+    if (shortcuts == null) {
+      return KeyboardShortcuts.empty();
+    }
+    return KeyboardShortcuts.fromJson(shortcuts);
+  }
+
   Future<void> saveAlias(Alias alias) async {
     debugPrint('MUDProfile.saveAlias: $id/aliases/${alias.id}');
     return ProfileStorage.writeProfileFile(
@@ -175,6 +186,12 @@ class MUDProfile {
     debugPrint('MUDProfile.saveButtonSet: $id/button_sets/${buttonSet.id}');
     return ProfileStorage.writeProfileFile(
         id, 'button_sets/${buttonSet.id}', buttonSet.toJson());
+  }
+
+  Future<void> saveKeyboardShortcuts(KeyboardShortcuts shortcuts) async {
+    debugPrint('MUDProfile.saveKeyboardShortcuts: $id');
+    return ProfileStorage.writeProfileFile(
+        id, 'keyboard_shortcuts', shortcuts.toJson());
   }
 
   Future<void> deleteButtonSet(GameButtonSetData buttonSet) async {
