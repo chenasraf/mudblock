@@ -29,14 +29,19 @@ class ButtonSetListPage extends StatelessWidget with GameStoreMixin {
               ),
             ];
           },
-          onSelected: (value) {
+          onSelected: (value) async {
+            final store = storeOf(context);
             switch (value) {
               case 'navigation_preset':
-                Navigator.pushNamed(
+                final data = await Navigator.pushNamed(
                   context,
                   Paths.buttonSet,
                   arguments: movementPreset,
                 );
+                if (data != null) {
+                  store.currentProfile.saveButtonSet(data as GameButtonSetData);
+                  store.loadButtonSets();
+                }
                 break;
             }
           },
@@ -93,3 +98,4 @@ class ButtonSetListPage extends StatelessWidget with GameStoreMixin {
     await store.loadButtonSets();
   }
 }
+

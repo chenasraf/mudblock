@@ -26,6 +26,7 @@ void main() async {
       backgroundColor: Colors.transparent,
       skipTaskbar: false,
       titleBarStyle: TitleBarStyle.hidden,
+      center: true,
     );
     windowManager.waitUntilReadyToShow(windowOptions, () async {
       await windowManager.show();
@@ -66,3 +67,4 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
