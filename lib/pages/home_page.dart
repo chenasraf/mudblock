@@ -45,7 +45,7 @@ class HomePageState extends State<HomePage>
     final inputStyle = consoleStyle.copyWith(color: Colors.grey);
 
     return Shortcuts(
-      shortcuts: numpadKeysIntentMap(context),
+      shortcuts: numpadKeysIntentMap,
       child: Actions(
         actions: {
           KeyboardIntent: KeyboardAction(),

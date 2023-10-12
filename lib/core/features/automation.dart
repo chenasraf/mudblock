@@ -97,7 +97,6 @@ class Automation {
 
   void invokeEffect(GameStore store, String line) {
     invokeCount++;
-    line = MUDAction.doVariableReplacements(store, line);
     action.invoke(store, this, allMatches(line));
   }
 

@@ -7,6 +7,7 @@ import '../core/features/alias.dart';
 import '../core/features/profile.dart';
 import '../core/features/trigger.dart';
 import '../core/features/variable.dart';
+import '../core/platform_utils.dart';
 import '../core/routes.dart';
 import '../core/store.dart';
 
@@ -92,11 +93,12 @@ class HomeScaffold extends StatelessWidget with GameStoreMixin {
               leading: const Icon(Variable.iconData),
               onTap: () => Navigator.pushNamed(context, Paths.variables),
             ),
-            ListTile(
-              title: const Text('Keyboard Shortcuts'),
-              leading: const Icon(Icons.keyboard),
-              onTap: () => Navigator.pushNamed(context, Paths.shortcuts),
-            ),
+            if (PlatformUtils.isDesktop)
+              ListTile(
+                title: const Text('Keyboard Shortcuts'),
+                leading: const Icon(Icons.keyboard),
+                onTap: () => Navigator.pushNamed(context, Paths.shortcuts),
+              ),
             const Divider(),
             ListTile(
               title: const Text('Settings'),

@@ -4,17 +4,25 @@ import 'package:flutter/services.dart';
 import 'store.dart';
 
 class KeyboardIntent extends Intent {
-  const KeyboardIntent(this.key, this.context);
+  const KeyboardIntent(this.key);
 
   final NumpadKey key;
-  final BuildContext context;
 }
 
-class KeyboardAction extends Action<KeyboardIntent> with GameStoreMixin {
+class KeyboardAction extends ContextAction<KeyboardIntent> with GameStoreMixin {
   @override
-  void invoke(covariant KeyboardIntent intent) {
-    final store = storeOf(intent.context);
-    store.onShortcut(intent.key, intent.context);
+  void invoke(covariant KeyboardIntent intent, [BuildContext? context]) {
+    if (context == null) return;
+    final store = storeOf(context);
+    store.onShortcut(intent.key, context);
+  }
+
+  @override
+  bool isEnabled(KeyboardIntent intent, [BuildContext? context]) {
+    if (context == null) return false;
+    final store = storeOf(context);
+    if (store.keyboardShortcuts.get(intent.key).isEmpty) return false;
+    return super.isEnabled(intent, context);
   }
 }
 
@@ -58,23 +66,23 @@ class KeyboardShortcuts {
   String numpadEqual;
 
   KeyboardShortcuts({
-    this.numpad0 = '',
-    this.numpad1 = '',
-    this.numpad2 = '',
-    this.numpad3 = '',
-    this.numpad4 = '',
-    this.numpad5 = '',
-    this.numpad6 = '',
-    this.numpad7 = '',
-    this.numpad8 = '',
-    this.numpad9 = '',
-    this.numpadEnter = '',
-    this.numpadDecimal = '',
-    this.numpadAdd = '',
-    this.numpadSubtract = '',
-    this.numpadMultiply = '',
-    this.numpadDivide = '',
-    this.numpadEqual = '',
+    required this.numpad0,
+    required this.numpad1,
+    required this.numpad2,
+    required this.numpad3,
+    required this.numpad4,
+    required this.numpad5,
+    required this.numpad6,
+    required this.numpad7,
+    required this.numpad8,
+    required this.numpad9,
+    required this.numpadEnter,
+    required this.numpadDecimal,
+    required this.numpadAdd,
+    required this.numpadSubtract,
+    required this.numpadMultiply,
+    required this.numpadDivide,
+    required this.numpadEqual,
   });
 
   factory KeyboardShortcuts.empty() => KeyboardShortcuts(
@@ -223,42 +231,40 @@ class KeyboardShortcuts {
       );
 }
 
-Map<ShortcutActivator, Intent> numpadKeysIntentMap(BuildContext context) =>
-    <ShortcutActivator, Intent>{
-      // SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
-      const SingleActivator(LogicalKeyboardKey.numpad0):
-          KeyboardIntent(NumpadKey.numpad0, context),
-      const SingleActivator(LogicalKeyboardKey.numpad1):
-          KeyboardIntent(NumpadKey.numpad1, context),
-      const SingleActivator(LogicalKeyboardKey.numpad2):
-          KeyboardIntent(NumpadKey.numpad2, context),
-      const SingleActivator(LogicalKeyboardKey.numpad3):
-          KeyboardIntent(NumpadKey.numpad3, context),
-      const SingleActivator(LogicalKeyboardKey.numpad4):
-          KeyboardIntent(NumpadKey.numpad4, context),
-      const SingleActivator(LogicalKeyboardKey.numpad5):
-          KeyboardIntent(NumpadKey.numpad5, context),
-      const SingleActivator(LogicalKeyboardKey.numpad6):
-          KeyboardIntent(NumpadKey.numpad6, context),
-      const SingleActivator(LogicalKeyboardKey.numpad7):
-          KeyboardIntent(NumpadKey.numpad7, context),
-      const SingleActivator(LogicalKeyboardKey.numpad8):
-          KeyboardIntent(NumpadKey.numpad8, context),
-      const SingleActivator(LogicalKeyboardKey.numpad9):
-          KeyboardIntent(NumpadKey.numpad9, context),
-      const SingleActivator(LogicalKeyboardKey.numpadDivide):
-          KeyboardIntent(NumpadKey.numpadDivide, context),
-      const SingleActivator(LogicalKeyboardKey.numpadMultiply):
-          KeyboardIntent(NumpadKey.numpadMultiply, context),
-      const SingleActivator(LogicalKeyboardKey.numpadSubtract):
-          KeyboardIntent(NumpadKey.numpadSubtract, context),
-      const SingleActivator(LogicalKeyboardKey.numpadAdd):
-          KeyboardIntent(NumpadKey.numpadAdd, context),
-      const SingleActivator(LogicalKeyboardKey.numpadDecimal):
-          KeyboardIntent(NumpadKey.numpadDecimal, context),
-      const SingleActivator(LogicalKeyboardKey.numpadEnter):
-          KeyboardIntent(NumpadKey.numpadEnter, context),
-    };
+const numpadKeysIntentMap = <ShortcutActivator, Intent>{
+  SingleActivator(LogicalKeyboardKey.numpad0):
+      KeyboardIntent(NumpadKey.numpad0),
+  SingleActivator(LogicalKeyboardKey.numpad1):
+      KeyboardIntent(NumpadKey.numpad1),
+  SingleActivator(LogicalKeyboardKey.numpad2):
+      KeyboardIntent(NumpadKey.numpad2),
+  SingleActivator(LogicalKeyboardKey.numpad3):
+      KeyboardIntent(NumpadKey.numpad3),
+  SingleActivator(LogicalKeyboardKey.numpad4):
+      KeyboardIntent(NumpadKey.numpad4),
+  SingleActivator(LogicalKeyboardKey.numpad5):
+      KeyboardIntent(NumpadKey.numpad5),
+  SingleActivator(LogicalKeyboardKey.numpad6):
+      KeyboardIntent(NumpadKey.numpad6),
+  SingleActivator(LogicalKeyboardKey.numpad7):
+      KeyboardIntent(NumpadKey.numpad7),
+  SingleActivator(LogicalKeyboardKey.numpad8):
+      KeyboardIntent(NumpadKey.numpad8),
+  SingleActivator(LogicalKeyboardKey.numpad9):
+      KeyboardIntent(NumpadKey.numpad9),
+  SingleActivator(LogicalKeyboardKey.numpadDivide):
+      KeyboardIntent(NumpadKey.numpadDivide),
+  SingleActivator(LogicalKeyboardKey.numpadMultiply):
+      KeyboardIntent(NumpadKey.numpadMultiply),
+  SingleActivator(LogicalKeyboardKey.numpadSubtract):
+      KeyboardIntent(NumpadKey.numpadSubtract),
+  SingleActivator(LogicalKeyboardKey.numpadAdd):
+      KeyboardIntent(NumpadKey.numpadAdd),
+  SingleActivator(LogicalKeyboardKey.numpadDecimal):
+      KeyboardIntent(NumpadKey.numpadDecimal),
+  SingleActivator(LogicalKeyboardKey.numpadEnter):
+      KeyboardIntent(NumpadKey.numpadEnter),
+};
 
 final numpadKeyLabels = {
   NumpadKey.numpad0: '0',

@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 
 import 'color_utils.dart';
 import 'consts.dart';
+import 'features/action.dart';
 import 'features/alias.dart';
 import 'features/game_button_set.dart';
 import 'features/profile.dart';
@@ -49,7 +50,7 @@ class GameStore extends ChangeNotifier {
   final List<Alias> aliases = [];
   final Map<String, Variable> variables = {};
   final List<GameButtonSetData> buttonSets = [];
-  KeyboardShortcuts keyboardShortcuts = KeyboardShortcuts();
+  KeyboardShortcuts keyboardShortcuts = KeyboardShortcuts.empty();
 
   MUDProfile get currentProfile => _currentProfile!;
 
@@ -318,6 +319,7 @@ class GameStore extends ChangeNotifier {
   /// execute - process aliases and triggers, then send, also split by outgoingMsgSplitPattern
   void execute(String text) {
     for (var line in _splitCsp(text)) {
+      line = MUDAction.doVariableReplacements(this, line);
       debugPrint('processing aliases for: $line');
       var sendLine = processAliases(line);
       if (sendLine) {
@@ -437,6 +439,7 @@ class GameStore extends ChangeNotifier {
     final action = keyboardShortcuts.get(key);
     if (action.isNotEmpty) {
       submitInput(action);
+      selectInput();
     }
   }
 }
