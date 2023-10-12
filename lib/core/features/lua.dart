@@ -2,6 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:lua_dardo/lua.dart';
 
 import '../store.dart';
+import 'alias.dart';
+import 'game_button_set.dart';
+import 'trigger.dart';
 import 'variable.dart';
 
 class LuaInterpreter {
@@ -25,30 +28,9 @@ class LuaInterpreter {
     state.setGlobal("GetVariable");
     state.pushDartFunction(bindings.setVariable);
     state.setGlobal("SetVariable");
-    state.pushDartFunction(bindings.enableTrigger);
-    state.setGlobal("EnableTrigger");
-    state.pushDartFunction(bindings.disableTrigger);
-    state.setGlobal("DisableTrigger");
-    state.pushDartFunction(bindings.enableTriggerGroup);
-    state.setGlobal("EnableTriggerGroup");
-    state.pushDartFunction(bindings.disableTriggerGroup);
-    state.setGlobal("DisableTriggerGroup");
-    state.pushDartFunction(bindings.enableAlias);
-    state.setGlobal("EnableAlias");
-    state.pushDartFunction(bindings.disableAlias);
-    state.setGlobal("DisableAlias");
-    state.pushDartFunction(bindings.enableAliasGroup);
-    state.setGlobal("EnableAliasGroup");
-    state.pushDartFunction(bindings.disableAliasGroup);
-    state.setGlobal("DisableAliasGroup");
-    state.pushDartFunction(bindings.enableButtonSet);
-    state.setGlobal("EnableButtonSet");
-    state.pushDartFunction(bindings.disableButtonSet);
-    state.setGlobal("DisableButtonSet");
-    state.pushDartFunction(bindings.enableButtonGroup);
-    state.setGlobal("EnableButtonGroup");
-    state.pushDartFunction(bindings.disableButtonGroup);
-    state.setGlobal("DisableButtonGroup");
+    LuaAliasBindings(store).register(state);
+    LuaTriggerBindings(store).register(state);
+    LuaButtonSetBindings(store).register(state);
   }
 
   void loadString(String string) {
@@ -116,188 +98,170 @@ class LuaBindings {
         .saveVariable(store.variables.values.toList(), store.variables[name]!);
     return 0;
   }
+}
 
-  int enableTrigger(LuaState ls) {
+class LuaAliasBindings extends LuaAutomationBindings<Alias> {
+  LuaAliasBindings(this.store);
+
+  final GameStore store;
+
+  @override
+  final entityName = 'Alias';
+
+  @override
+  List<Alias> getGroup(String group) =>
+      store.aliases.where((alias) => alias.group == group).toList();
+
+  @override
+  Alias getSingle(String label) =>
+      store.aliases.firstWhere((alias) => alias.label == label);
+
+  @override
+  Future<void> saveGroup(List<Alias> items, bool state) async {
+    await Future.wait(items.map((i) {
+      i.enabled = state;
+      return store.currentProfile.saveAlias(i);
+    }));
+    return store.loadAliases();
+  }
+
+  @override
+  Future<void> saveSingle(Alias item, bool state) async {
+    item.enabled = state;
+    await store.currentProfile.saveAlias(item);
+    return store.loadAliases();
+  }
+}
+
+class LuaTriggerBindings extends LuaAutomationBindings<Trigger> {
+  LuaTriggerBindings(this.store);
+
+  final GameStore store;
+
+  @override
+  final entityName = 'Trigger';
+
+  @override
+  List<Trigger> getGroup(String group) =>
+      store.triggers.where((alias) => alias.group == group).toList();
+
+  @override
+  Trigger getSingle(String label) =>
+      store.triggers.firstWhere((alias) => alias.label == label);
+
+  @override
+  Future<void> saveGroup(List<Trigger> items, bool state) async {
+    await Future.wait(items.map((i) {
+      i.enabled = state;
+      return store.currentProfile.saveTrigger(i);
+    }));
+    return store.loadTriggers();
+  }
+
+  @override
+  Future<void> saveSingle(Trigger item, bool state) async {
+    item.enabled = state;
+    await store.currentProfile.saveTrigger(item);
+    return store.loadTriggers();
+  }
+}
+
+class LuaButtonSetBindings extends LuaAutomationBindings<GameButtonSetData> {
+  LuaButtonSetBindings(this.store);
+
+  final GameStore store;
+
+  @override
+  final entityName = 'ButtonSet';
+
+  @override
+  List<GameButtonSetData> getGroup(String group) =>
+      store.buttonSets.where((alias) => alias.group == group).toList();
+
+  @override
+  GameButtonSetData getSingle(String label) =>
+      store.buttonSets.firstWhere((alias) => alias.label == label);
+
+  @override
+  Future<void> saveGroup(List<GameButtonSetData> items, bool state) async {
+    await Future.wait(items.map((i) {
+      i.enabled = state;
+      return store.currentProfile.saveButtonSet(i);
+    }));
+    return store.loadTriggers();
+  }
+
+  @override
+  Future<void> saveSingle(GameButtonSetData item, bool state) async {
+    item.enabled = state;
+    await store.currentProfile.saveButtonSet(item);
+    return store.loadTriggers();
+  }
+}
+
+abstract class LuaAutomationBindings<T> {
+  Future<void> saveSingle(T item, bool state);
+  Future<void> saveGroup(List<T> items, bool state);
+
+  T getSingle(String label);
+  List<T> getGroup(String group);
+
+  String get entityName;
+
+  void register(LuaState ls) {
+    ls.pushDartFunction(enableSingle);
+    ls.setGlobal('Enable$entityName');
+    ls.pushDartFunction(disableSingle);
+    ls.setGlobal('Disable$entityName');
+    ls.pushDartFunction(enableGroup);
+    ls.setGlobal('Enable${entityName}Group');
+    ls.pushDartFunction(disableGroup);
+    ls.setGlobal('Disable${entityName}Group');
+  }
+
+  int enableSingle(LuaState ls) {
     final id = ls.checkString(1)!;
     ls.pop(1);
-    debugPrint("lua.enableTrigger $id");
-    final trigger = store.triggers.firstWhere((trigger) => trigger.label == id);
-    trigger.enabled = true;
-    store.currentProfile.saveTrigger(trigger).then((_) => store.loadTriggers());
+    bool state = true;
+    if (ls.isBoolean(2)) {
+      state = ls.toBoolean(2);
+      ls.pop(1);
+    }
+    debugPrint("lua.enableTrigger $id, $state");
+    final item = getSingle(id);
+    saveSingle(item, state);
     return 0;
   }
 
-  int disableTrigger(LuaState ls) {
+  int disableSingle(LuaState ls) {
     final id = ls.checkString(1)!;
     ls.pop(1);
     debugPrint("lua.disableTrigger $id");
-    final trigger = store.triggers.firstWhere((trigger) => trigger.label == id);
-    trigger.enabled = false;
-    store.currentProfile.saveTrigger(trigger).then((_) => store.loadTriggers());
+    final item = getSingle(id);
+    saveSingle(item, false);
     return 0;
   }
 
-  int enableTriggerGroup(LuaState ls) {
+  int enableGroup(LuaState ls) {
     final id = ls.checkString(1)!;
     ls.pop(1);
-    debugPrint("lua.enableTriggerGroup $id");
-    final triggers = store.triggers.where((trigger) => trigger.group == id);
-    Future.wait(triggers.map((trigger) {
-      trigger.enabled = true;
-      return store.currentProfile.saveTrigger(trigger);
-    })).then((_) => store.loadTriggers());
+    bool state = true;
+    if (ls.isBoolean(2)) {
+      state = ls.toBoolean(2);
+      ls.pop(1);
+    }
+    debugPrint("lua.enableTriggerGroup $id, $state");
+    final items = getGroup(id);
+    saveGroup(items, state);
     return 0;
   }
 
-  int disableTriggerGroup(LuaState ls) {
+  int disableGroup(LuaState ls) {
     final id = ls.checkString(1)!;
     ls.pop(1);
     debugPrint("lua.disableTriggerGroup $id");
-    final triggers = store.triggers.where((trigger) => trigger.group == id);
-    Future.wait(triggers.map((trigger) {
-      trigger.enabled = false;
-      return store.currentProfile.saveTrigger(trigger);
-    })).then((_) => store.loadTriggers());
-    return 0;
-  }
-
-  int enableAlias(LuaState ls) {
-    final id = ls.checkString(1)!;
-    ls.pop(1);
-    debugPrint("lua.enableAlias $id");
-    final alias = store.aliases.firstWhere((alias) => alias.label == id);
-    alias.enabled = true;
-    store.currentProfile.saveAlias(alias).then((_) => store.loadAliases());
-    return 0;
-  }
-
-  int disableAlias(LuaState ls) {
-    final id = ls.checkString(1)!;
-    ls.pop(1);
-    debugPrint("lua.disableAlias $id");
-    final alias = store.aliases.firstWhere((alias) => alias.label == id);
-    alias.enabled = false;
-    store.currentProfile.saveAlias(alias).then((_) => store.loadAliases());
-    return 0;
-  }
-
-  int enableAliasGroup(LuaState ls) {
-    final id = ls.checkString(1)!;
-    ls.pop(1);
-    debugPrint("lua.enableAliasGroup $id");
-    final aliases = store.aliases.where((alias) => alias.group == id);
-    Future.wait(aliases.map((alias) {
-      alias.enabled = true;
-      return store.currentProfile.saveAlias(alias);
-    })).then((_) => store.loadAliases());
-    return 0;
-  }
-
-  int disableAliasGroup(LuaState ls) {
-    final id = ls.checkString(1)!;
-    ls.pop(1);
-    debugPrint("lua.disableAliasGroup $id");
-    final aliases = store.aliases.where((alias) => alias.group == id);
-    Future.wait(aliases.map((alias) {
-      alias.enabled = false;
-      return store.currentProfile.saveAlias(alias);
-    })).then((_) => store.loadAliases());
-    return 0;
-  }
-
-  // int enableTimer(LuaState ls) {
-  //   final id = ls.checkString(1)!;
-  //   ls.pop(1);
-  //   debugPrint("lua.enableTimer $id");
-  //   final timer = store.timers.firstWhere((timer) => timer.label == id);
-  //   timer.enabled = true;
-  //   store.currentProfile.saveTimer(timer).then((_) => store.loadTimers());
-  //   return 0;
-  // }
-  //
-  // int disableTimer(LuaState ls) {
-  //   final id = ls.checkString(1)!;
-  //   ls.pop(1);
-  //   debugPrint("lua.disableTimer $id");
-  //   final timer = store.timers.firstWhere((timer) => timer.label == id);
-  //   timer.enabled = false;
-  //   store.currentProfile.saveTimer(timer).then((_) => store.loadTimers());
-  //   return 0;
-  // }
-  //
-  // int enableTimerGroup(LuaState ls) {
-  //   final id = ls.checkString(1)!;
-  //   ls.pop(1);
-  //   debugPrint("lua.enableTimerGroup $id");
-  //   final timers = store.timers.where((timer) => timer.group == id);
-  //   Future.wait(timers.map((timer) {
-  //     timer.enabled = true;
-  //     return store.currentProfile.saveTimer(timer);
-  //   })).then((_) => store.loadTimers());
-  //   return 0;
-  // }
-  //
-  // int disableTimerGroup(LuaState ls) {
-  //   final id = ls.checkString(1)!;
-  //   ls.pop(1);
-  //   debugPrint("lua.disableTimerGroup $id");
-  //   final timers = store.timers.where((timer) => timer.group == id);
-  //   Future.wait(timers.map((timer) {
-  //     timer.enabled = false;
-  //     return store.currentProfile.saveTimer(timer);
-  //   })).then((_) => store.loadTimers());
-  //   return 0;
-  // }
-
-  int enableButtonSet(LuaState ls) {
-    final id = ls.checkString(1)!;
-    ls.pop(1);
-    debugPrint("lua.enableButtonSet $id");
-    final buttonSet =
-        store.buttonSets.firstWhere((buttonSet) => buttonSet.label == id);
-    buttonSet.enabled = true;
-    store.currentProfile
-        .saveButtonSet(buttonSet)
-        .then((_) => store.loadButtonSets());
-    return 0;
-  }
-
-  int disableButtonSet(LuaState ls) {
-    final id = ls.checkString(1)!;
-    ls.pop(1);
-    debugPrint("lua.disableButtonSet $id");
-    final buttonSet =
-        store.buttonSets.firstWhere((buttonSet) => buttonSet.label == id);
-    buttonSet.enabled = false;
-    store.currentProfile
-        .saveButtonSet(buttonSet)
-        .then((_) => store.loadButtonSets());
-    return 0;
-  }
-
-  int enableButtonGroup(LuaState ls) {
-    final id = ls.checkString(1)!;
-    ls.pop(1);
-    debugPrint("lua.enableButtonGroup $id");
-    final buttonSets =
-        store.buttonSets.where((buttonSet) => buttonSet.group == id);
-    Future.wait(buttonSets.map((buttonSet) {
-      buttonSet.enabled = true;
-      return store.currentProfile.saveButtonSet(buttonSet);
-    })).then((_) => store.loadButtonSets());
-    return 0;
-  }
-
-  int disableButtonGroup(LuaState ls) {
-    final id = ls.checkString(1)!;
-    ls.pop(1);
-    debugPrint("lua.disableButtonGroup $id");
-    final buttonSets =
-        store.buttonSets.where((buttonSet) => buttonSet.group == id);
-    Future.wait(buttonSets.map((buttonSet) {
-      buttonSet.enabled = false;
-      return store.currentProfile.saveButtonSet(buttonSet);
-    })).then((_) => store.loadButtonSets());
+    final items = getGroup(id);
+    saveGroup(items, false);
     return 0;
   }
 }
