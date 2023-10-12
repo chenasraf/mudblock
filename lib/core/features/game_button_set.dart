@@ -93,6 +93,7 @@ class GameButtonSet extends StatelessWidget {
 
 class GameButtonSetData {
   final String id;
+  String label;
   bool enabled;
   String name;
   GameButtonSetType type;
@@ -107,6 +108,7 @@ class GameButtonSetData {
     required this.type,
     required this.name,
     required this.buttons,
+    this.label = '',
     this.crossAxisCount,
     this.alignment = Alignment.center,
     this.spacing = 8,
@@ -119,6 +121,7 @@ class GameButtonSetData {
   factory GameButtonSetData.empty() => GameButtonSetData(
         id: uuid(),
         name: '',
+        label: '',
         type: GameButtonSetType.row,
         buttons: [],
       );
@@ -131,6 +134,7 @@ class GameButtonSetData {
   factory GameButtonSetData.fromJson(Map<String, dynamic> json) =>
       GameButtonSetData(
         id: json['id'] as String,
+        label: json['label'] as String? ?? '',
         enabled: json['enabled'] as bool? ?? true,
         name: json['name'] as String,
         type: GameButtonSetType.values.firstWhere(
@@ -154,6 +158,7 @@ class GameButtonSetData {
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'id': id,
+        'label': label,
         'enabled': enabled,
         'name': name,
         'type': type.name,

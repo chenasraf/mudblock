@@ -88,12 +88,23 @@ class _TriggerPageState extends State<TriggerPage> {
                         regexCheckbox,
                       ],
                       TextField(
+                        controller: TextEditingController(text: trigger.label),
+                        decoration: const InputDecoration(
+                          labelText: 'Label',
+                          helperText: 'Can be used to identify the trigger in scripts',
+                        ),
+                        onChanged: (value) {
+                          trigger.label = value;
+                        },
+                      ),
+                      TextField(
                         controller:
                             TextEditingController(text: trigger.action.content),
                         minLines: PlatformUtils.isDesktop ? 20 : 5,
                         maxLines: PlatformUtils.isDesktop ? 50 : 20,
                         decoration: const InputDecoration(
                           labelText: 'Action',
+                          floatingLabelBehavior: FloatingLabelBehavior.always,
                         ),
                         onChanged: (value) {
                           trigger.action.content = value;

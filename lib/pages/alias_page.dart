@@ -88,12 +88,23 @@ class _AliasPageState extends State<AliasPage> {
                         regexCheckbox,
                       ],
                       TextField(
+                        controller: TextEditingController(text: alias.label),
+                        decoration: const InputDecoration(
+                          labelText: 'Label',
+                          helperText: 'Can be used to identify the alias in scripts',
+                        ),
+                        onChanged: (value) {
+                          alias.label = value;
+                        },
+                      ),
+                      TextField(
                         controller:
                             TextEditingController(text: alias.action.content),
                         minLines: PlatformUtils.isDesktop ? 20 : 5,
                         maxLines: PlatformUtils.isDesktop ? 50 : 20,
                         decoration: const InputDecoration(
                           labelText: 'Action',
+                          floatingLabelBehavior: FloatingLabelBehavior.always,
                         ),
                         onChanged: (value) {
                           alias.action.content = value;
@@ -188,3 +199,4 @@ class _AliasPageState extends State<AliasPage> {
     );
   }
 }
+

@@ -11,6 +11,7 @@ class Alias extends Automation {
     required super.id,
     required super.pattern,
     required super.action,
+    super.label = '',
     super.isRegex = false,
     super.isCaseSensitive = false,
     super.isRemovedFromBuffer = false,
@@ -23,6 +24,7 @@ class Alias extends Automation {
 
   factory Alias.empty() => Alias(
         id: uuid(),
+        label: '',
         pattern: '',
         enabled: true,
         isRegex: false,
@@ -36,6 +38,7 @@ class Alias extends Automation {
 
   factory Alias.fromJson(Map<String, dynamic> json) => Alias(
         id: json['id'],
+        label: json['label'] ?? '',
         pattern: json['pattern'],
         enabled: json['enabled'],
         isRegex: json['isRegex'],
@@ -50,6 +53,7 @@ class Alias extends Automation {
   @override
   Alias copyWith({
     String? id,
+    String? label,
     String? pattern,
     bool? enabled,
     bool? isRegex,
@@ -62,6 +66,7 @@ class Alias extends Automation {
   }) =>
       Alias(
         id: id ?? this.id,
+        label: label ?? this.label,
         pattern: pattern ?? this.pattern,
         enabled: enabled ?? this.enabled,
         isRegex: isRegex ?? this.isRegex,
@@ -74,25 +79,28 @@ class Alias extends Automation {
       );
 }
 
+String _key(String str) => 'builtin-alias-$str';
+
 final builtInAliases = <Alias>[
   Alias(
-    id: 'builtin-alias-lua-long',
+    id: _key('lua-long'),
     pattern: 'lua *',
     action: MUDAction('%1', target: MUDActionTarget.script),
   ),
   Alias(
-    id: 'builtin-alias-lua-short',
+    id: _key('lua-short'),
     pattern: r'[\\]{3}(.*)',
     isRegex: true,
     action: MUDAction('%1', target: MUDActionTarget.script),
   ),
   Alias(
-    id: 'builtin-alias-help',
+    id: _key('help'),
     pattern: 'mudhelp',
     action: NativeMUDAction(
       (store, parent, matches) {
         store.echo(BuiltinCommand.help());
       },
     ),
-  )
+  ),
 ];
+

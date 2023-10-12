@@ -10,6 +10,7 @@ class Trigger extends Automation {
     required super.id,
     required super.pattern,
     required super.action,
+    super.label = '',
     super.isRegex = false,
     super.isCaseSensitive = false,
     super.isRemovedFromBuffer = false,
@@ -22,6 +23,7 @@ class Trigger extends Automation {
 
   factory Trigger.empty() => Trigger(
         id: uuid(),
+        label: '',
         pattern: '',
         enabled: true,
         isRegex: false,
@@ -35,6 +37,7 @@ class Trigger extends Automation {
 
   factory Trigger.fromJson(Map<String, dynamic> json) => Trigger(
         id: json['id'],
+        label: json['label'] ?? '',
         pattern: json['pattern'],
         enabled: json['enabled'],
         isRegex: json['isRegex'],
@@ -49,6 +52,7 @@ class Trigger extends Automation {
   @override
   Trigger copyWith({
     String? id,
+    String? label,
     String? pattern,
     bool? enabled,
     bool? isRegex,
@@ -61,6 +65,7 @@ class Trigger extends Automation {
   }) =>
       Trigger(
         id: id ?? this.id,
+        label: label ?? this.label,
         pattern: pattern ?? this.pattern,
         enabled: enabled ?? this.enabled,
         isRegex: isRegex ?? this.isRegex,

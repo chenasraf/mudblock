@@ -121,7 +121,9 @@ class LuaBindings {
     final id = ls.checkString(1)!;
     ls.pop(1);
     debugPrint("lua.enableTrigger $id");
-    store.triggers.firstWhere((trigger) => trigger.id == id).enabled = true;
+    final trigger = store.triggers.firstWhere((trigger) => trigger.label == id);
+    trigger.enabled = true;
+    store.currentProfile.saveTrigger(trigger).then((_) => store.loadTriggers());
     return 0;
   }
 
@@ -129,7 +131,9 @@ class LuaBindings {
     final id = ls.checkString(1)!;
     ls.pop(1);
     debugPrint("lua.disableTrigger $id");
-    store.triggers.firstWhere((trigger) => trigger.id == id).enabled = false;
+    final trigger = store.triggers.firstWhere((trigger) => trigger.label == id);
+    trigger.enabled = false;
+    store.currentProfile.saveTrigger(trigger).then((_) => store.loadTriggers());
     return 0;
   }
 
@@ -137,9 +141,11 @@ class LuaBindings {
     final id = ls.checkString(1)!;
     ls.pop(1);
     debugPrint("lua.enableTriggerGroup $id");
-    store.triggers
-        .where((trigger) => trigger.group == id)
-        .forEach((trigger) => trigger.enabled = true);
+    final triggers = store.triggers.where((trigger) => trigger.group == id);
+    Future.wait(triggers.map((trigger) {
+      trigger.enabled = true;
+      return store.currentProfile.saveTrigger(trigger);
+    })).then((_) => store.loadTriggers());
     return 0;
   }
 
@@ -147,9 +153,11 @@ class LuaBindings {
     final id = ls.checkString(1)!;
     ls.pop(1);
     debugPrint("lua.disableTriggerGroup $id");
-    store.triggers
-        .where((trigger) => trigger.group == id)
-        .forEach((trigger) => trigger.enabled = false);
+    final triggers = store.triggers.where((trigger) => trigger.group == id);
+    Future.wait(triggers.map((trigger) {
+      trigger.enabled = false;
+      return store.currentProfile.saveTrigger(trigger);
+    })).then((_) => store.loadTriggers());
     return 0;
   }
 
@@ -157,7 +165,9 @@ class LuaBindings {
     final id = ls.checkString(1)!;
     ls.pop(1);
     debugPrint("lua.enableAlias $id");
-    store.aliases.firstWhere((alias) => alias.id == id).enabled = true;
+    final alias = store.aliases.firstWhere((alias) => alias.label == id);
+    alias.enabled = true;
+    store.currentProfile.saveAlias(alias).then((_) => store.loadAliases());
     return 0;
   }
 
@@ -165,7 +175,9 @@ class LuaBindings {
     final id = ls.checkString(1)!;
     ls.pop(1);
     debugPrint("lua.disableAlias $id");
-    store.aliases.firstWhere((alias) => alias.id == id).enabled = false;
+    final alias = store.aliases.firstWhere((alias) => alias.label == id);
+    alias.enabled = false;
+    store.currentProfile.saveAlias(alias).then((_) => store.loadAliases());
     return 0;
   }
 
@@ -173,9 +185,11 @@ class LuaBindings {
     final id = ls.checkString(1)!;
     ls.pop(1);
     debugPrint("lua.enableAliasGroup $id");
-    store.aliases
-        .where((alias) => alias.group == id)
-        .forEach((alias) => alias.enabled = true);
+    final aliases = store.aliases.where((alias) => alias.group == id);
+    Future.wait(aliases.map((alias) {
+      alias.enabled = true;
+      return store.currentProfile.saveAlias(alias);
+    })).then((_) => store.loadAliases());
     return 0;
   }
 
@@ -183,9 +197,11 @@ class LuaBindings {
     final id = ls.checkString(1)!;
     ls.pop(1);
     debugPrint("lua.disableAliasGroup $id");
-    store.aliases
-        .where((alias) => alias.group == id)
-        .forEach((alias) => alias.enabled = false);
+    final aliases = store.aliases.where((alias) => alias.group == id);
+    Future.wait(aliases.map((alias) {
+      alias.enabled = false;
+      return store.currentProfile.saveAlias(alias);
+    })).then((_) => store.loadAliases());
     return 0;
   }
 
@@ -193,7 +209,9 @@ class LuaBindings {
   //   final id = ls.checkString(1)!;
   //   ls.pop(1);
   //   debugPrint("lua.enableTimer $id");
-  //   store.timers.firstWhere((timer) => timer.id == id).enabled = true;
+  //   final timer = store.timers.firstWhere((timer) => timer.label == id);
+  //   timer.enabled = true;
+  //   store.currentProfile.saveTimer(timer).then((_) => store.loadTimers());
   //   return 0;
   // }
   //
@@ -201,7 +219,9 @@ class LuaBindings {
   //   final id = ls.checkString(1)!;
   //   ls.pop(1);
   //   debugPrint("lua.disableTimer $id");
-  //   store.timers.firstWhere((timer) => timer.id == id).enabled = false;
+  //   final timer = store.timers.firstWhere((timer) => timer.label == id);
+  //   timer.enabled = false;
+  //   store.currentProfile.saveTimer(timer).then((_) => store.loadTimers());
   //   return 0;
   // }
   //
@@ -209,9 +229,11 @@ class LuaBindings {
   //   final id = ls.checkString(1)!;
   //   ls.pop(1);
   //   debugPrint("lua.enableTimerGroup $id");
-  //   store.timers
-  //       .where((timer) => timer.group == id)
-  //       .forEach((timer) => timer.enabled = true);
+  //   final timers = store.timers.where((timer) => timer.group == id);
+  //   Future.wait(timers.map((timer) {
+  //     timer.enabled = true;
+  //     return store.currentProfile.saveTimer(timer);
+  //   })).then((_) => store.loadTimers());
   //   return 0;
   // }
   //
@@ -219,9 +241,11 @@ class LuaBindings {
   //   final id = ls.checkString(1)!;
   //   ls.pop(1);
   //   debugPrint("lua.disableTimerGroup $id");
-  //   store.timers
-  //       .where((timer) => timer.group == id)
-  //       .forEach((timer) => timer.enabled = false);
+  //   final timers = store.timers.where((timer) => timer.group == id);
+  //   Future.wait(timers.map((timer) {
+  //     timer.enabled = false;
+  //     return store.currentProfile.saveTimer(timer);
+  //   })).then((_) => store.loadTimers());
   //   return 0;
   // }
 
@@ -229,8 +253,12 @@ class LuaBindings {
     final id = ls.checkString(1)!;
     ls.pop(1);
     debugPrint("lua.enableButtonSet $id");
-    store.buttonSets.firstWhere((buttonSet) => buttonSet.id == id).enabled =
-        true;
+    final buttonSet =
+        store.buttonSets.firstWhere((buttonSet) => buttonSet.label == id);
+    buttonSet.enabled = true;
+    store.currentProfile
+        .saveButtonSet(buttonSet)
+        .then((_) => store.loadButtonSets());
     return 0;
   }
 
@@ -238,8 +266,12 @@ class LuaBindings {
     final id = ls.checkString(1)!;
     ls.pop(1);
     debugPrint("lua.disableButtonSet $id");
-    store.buttonSets.firstWhere((buttonSet) => buttonSet.id == id).enabled =
-        false;
+    final buttonSet =
+        store.buttonSets.firstWhere((buttonSet) => buttonSet.label == id);
+    buttonSet.enabled = false;
+    store.currentProfile
+        .saveButtonSet(buttonSet)
+        .then((_) => store.loadButtonSets());
     return 0;
   }
 
@@ -247,9 +279,12 @@ class LuaBindings {
     final id = ls.checkString(1)!;
     ls.pop(1);
     debugPrint("lua.enableButtonGroup $id");
-    store.buttonSets
-        .where((buttonSet) => buttonSet.group == id)
-        .forEach((buttonSet) => buttonSet.enabled = true);
+    final buttonSets =
+        store.buttonSets.where((buttonSet) => buttonSet.group == id);
+    Future.wait(buttonSets.map((buttonSet) {
+      buttonSet.enabled = true;
+      return store.currentProfile.saveButtonSet(buttonSet);
+    })).then((_) => store.loadButtonSets());
     return 0;
   }
 
@@ -257,9 +292,13 @@ class LuaBindings {
     final id = ls.checkString(1)!;
     ls.pop(1);
     debugPrint("lua.disableButtonGroup $id");
-    store.buttonSets
-        .where((buttonSet) => buttonSet.group == id)
-        .forEach((buttonSet) => buttonSet.enabled = false);
+    final buttonSets =
+        store.buttonSets.where((buttonSet) => buttonSet.group == id);
+    Future.wait(buttonSets.map((buttonSet) {
+      buttonSet.enabled = false;
+      return store.currentProfile.saveButtonSet(buttonSet);
+    })).then((_) => store.loadButtonSets());
     return 0;
   }
 }
+

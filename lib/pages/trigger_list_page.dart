@@ -24,7 +24,7 @@ class TriggerListPage extends StatelessWidget with GameStoreMixin {
         return ListTile(
           key: Key(trigger.id),
           title: Text(trigger.pattern),
-          subtitle: Text(trigger.action.content),
+          subtitle: Text(trigger.action.content.replaceAll('\n', ' ')),
           leading: Switch.adaptive(
             value: trigger.enabled,
             onChanged: (value) {
@@ -32,6 +32,7 @@ class TriggerListPage extends StatelessWidget with GameStoreMixin {
               save(store, trigger);
             },
           ),
+          isThreeLine: true,
           trailing: PopupMenuButton(
             itemBuilder: (context) {
               return [
@@ -71,3 +72,4 @@ class TriggerListPage extends StatelessWidget with GameStoreMixin {
     await store.loadTriggers();
   }
 }
+

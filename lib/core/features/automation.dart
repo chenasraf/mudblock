@@ -6,6 +6,7 @@ import 'action.dart';
 
 class Automation {
   String id;
+  String label;
   String pattern;
   bool enabled;
   bool isRegex;
@@ -24,6 +25,7 @@ class Automation {
     required this.id,
     required this.pattern,
     required this.action,
+    this.label = '',
     this.isRegex = false,
     this.isCaseSensitive = false,
     this.isRemovedFromBuffer = false,
@@ -37,6 +39,7 @@ class Automation {
 
   factory Automation.empty() => Automation(
         id: uuid(),
+        label: '',
         pattern: '',
         enabled: true,
         isRegex: false,
@@ -49,6 +52,7 @@ class Automation {
 
   factory Automation.fromJson(Map<String, dynamic> json) => Automation(
         id: json['id'],
+        label: json['label'],
         pattern: json['pattern'],
         enabled: json['enabled'],
         isRegex: json['isRegex'],
@@ -62,6 +66,7 @@ class Automation {
 
   Map<String, dynamic> toJson() => {
         'id': id,
+        'label': label,
         'pattern': pattern,
         'enabled': enabled,
         'isRegex': isRegex,
@@ -121,6 +126,7 @@ class Automation {
   Automation copyWith({
     String? id,
     String? pattern,
+    String? label,
     bool? enabled,
     bool? isRegex,
     bool? isCaseSensitive,
@@ -132,6 +138,7 @@ class Automation {
       Automation(
         id: id ?? this.id,
         pattern: pattern ?? this.pattern,
+        label: label ?? this.label,
         enabled: enabled ?? this.enabled,
         isRegex: isRegex ?? this.isRegex,
         isCaseSensitive: isCaseSensitive ?? this.isCaseSensitive,

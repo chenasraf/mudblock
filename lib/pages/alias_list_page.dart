@@ -24,7 +24,7 @@ class AliasListPage extends StatelessWidget with GameStoreMixin {
         return ListTile(
           key: Key(alias.id),
           title: Text(alias.pattern),
-          subtitle: Text(alias.action.content),
+          subtitle: Text(alias.action.content.replaceAll('\n', ' ')),
           leading: Switch.adaptive(
             value: alias.enabled,
             onChanged: (value) {
