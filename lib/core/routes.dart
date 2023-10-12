@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mudblock/pages/keyboard_shortcuts_page.dart';
 
 import '../core/features/alias.dart';
 import '../core/features/trigger.dart';
@@ -10,8 +9,10 @@ import '../pages/button_set_page.dart';
 import '../pages/button_sets_list_page.dart';
 import '../pages/home_page.dart';
 import '../pages/home_scaffold.dart';
+import '../pages/keyboard_shortcuts_page.dart';
 import '../pages/profile_page.dart';
 import '../pages/select_profile_page.dart';
+import '../pages/settings_page.dart';
 import '../pages/trigger_list_page.dart';
 import '../pages/trigger_page.dart';
 import '../pages/variable_list_page.dart';
@@ -97,6 +98,9 @@ final routes = <String, Widget Function(BuildContext)>{
         },
       );
     });
+  },
+  Paths.settings: (context) {
+    return const SettingsPage();
   },
   Paths.home: (context) => HomeScaffold(
         builder: (context, _) {

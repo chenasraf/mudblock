@@ -8,6 +8,7 @@ import '../storage.dart';
 import '../string_utils.dart';
 import 'alias.dart';
 import 'game_button_set.dart';
+import 'settings.dart';
 import 'trigger.dart';
 import 'variable.dart';
 
@@ -160,6 +161,15 @@ class MUDProfile {
     return KeyboardShortcuts.fromJson(shortcuts);
   }
 
+  Future<Settings> loadSettings() async {
+    debugPrint('MUDProfile.loadSettings: $id');
+    final settings = await ProfileStorage.readProfileFile(id, 'settings');
+    if (settings == null) {
+      return Settings.empty();
+    }
+    return Settings.fromJson(settings);
+  }
+
   Future<void> saveAlias(Alias alias) async {
     debugPrint('MUDProfile.saveAlias: $id/aliases/${alias.id}');
     return ProfileStorage.writeProfileFile(
@@ -192,6 +202,11 @@ class MUDProfile {
     debugPrint('MUDProfile.saveKeyboardShortcuts: $id');
     return ProfileStorage.writeProfileFile(
         id, 'keyboard_shortcuts', shortcuts.toJson());
+  }
+
+  Future<void> saveSettings(Settings settings) async {
+    debugPrint('MUDProfile.saveSettings: $id');
+    return ProfileStorage.writeProfileFile(id, 'settings', settings.toJson());
   }
 
   Future<void> deleteButtonSet(GameButtonSetData buttonSet) async {

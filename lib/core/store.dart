@@ -15,6 +15,7 @@ import 'features/action.dart';
 import 'features/alias.dart';
 import 'features/game_button_set.dart';
 import 'features/profile.dart';
+import 'features/settings.dart';
 import 'features/trigger.dart';
 import 'features/variable.dart';
 import 'keyboard_shortcuts.dart';
@@ -29,9 +30,8 @@ class GameStore extends ChangeNotifier {
   final FocusNode inputFocus = FocusNode();
   bool isCompressed = false;
   final ZLibDecoder decoder = ZLibDecoder();
-  final msgSplitPattern = RegExp("($cr$lf)|($lf$cr)|$cr|$lf");
+  final incomingMsgSplitPattern = RegExp("($cr$lf)|($lf$cr)|$cr|$lf");
   // accepts csp but NOT double csp
-  final outgoingMsgSplitPattern = RegExp("(?<!$csp)$csp(?!$csp)");
   final ZLibCodec _decoder = ZLibCodec();
   final StreamController<List<int>> _rawStreamController = StreamController();
   late Stream<List<int>> _decodedStream;
@@ -40,12 +40,13 @@ class GameStore extends ChangeNotifier {
   MUDProfile? _currentProfile;
   bool _clientReady = false;
 
-  // TODO move to settings
-  /// command separator
-  static const csp = ";";
+  String get commandSeparator => settings.commandSeparator;
+  RegExp get outgoingMsgSplitPattern =>
+      RegExp("(?<!$commandSeparator)$commandSeparator(?!$commandSeparator)");
 
   // features
   // TODO - move to MUDProfile and make that reactive
+  Settings settings = Settings.empty();
   final List<Trigger> triggers = [];
   final List<Alias> aliases = [];
   final Map<String, Variable> variables = {};
@@ -87,6 +88,8 @@ class GameStore extends ChangeNotifier {
       loadVariables(),
       loadButtonSets(),
       loadKeyboardShortcuts(),
+
+      loadSettings(),
     ]);
     _client.connect();
   }
@@ -129,6 +132,13 @@ class GameStore extends ChangeNotifier {
     keyboardShortcuts = shortcuts;
     notifyListeners();
     debugPrint('KeyboardShortcuts loaded');
+  }
+
+  Future<void> loadSettings() async {
+    final settings = await currentProfile.loadSettings();
+    this.settings = settings;
+    notifyListeners();
+    debugPrint('Settings loaded');
   }
 
   bool processTriggers(String line) {
@@ -203,7 +213,7 @@ class GameStore extends ChangeNotifier {
     try {
       final data = Message(bytes);
       handleMCCPHandshake(data);
-      for (final line in data.text.split(msgSplitPattern)) {
+      for (final line in data.text.split(incomingMsgSplitPattern)) {
         onLine(line);
       }
     } catch (e, stack) {
@@ -223,7 +233,7 @@ class GameStore extends ChangeNotifier {
         handleMCCPHandshake(data);
       }
 
-      for (final line in data.text.split(msgSplitPattern)) {
+      for (final line in data.text.split(incomingMsgSplitPattern)) {
         onLine(line);
       }
     } catch (e, stack) {
@@ -331,7 +341,8 @@ class GameStore extends ChangeNotifier {
   List<String> _splitCsp(String line) {
     return line
         .split(outgoingMsgSplitPattern)
-        .map((l) => l.replaceAll('$csp$csp', csp))
+        .map((l) => l.replaceAll(
+            '$commandSeparator$commandSeparator', commandSeparator))
         .toList();
   }
 
