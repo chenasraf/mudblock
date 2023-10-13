@@ -46,41 +46,68 @@ class Paths {
 }
 
 final routes = <String, Widget Function(BuildContext)>{
+  // profiles
   Paths.profiles: (context) => const SelectProfilePage(),
   Paths.profile: (context) {
     final profile = ModalRoute.of(context)!.settings.arguments as MUDProfile?;
     return ProfilePage(profile: profile);
   },
+
+  // aliases
   Paths.aliases: (context) => GameStore.consumer(
-        builder: (context, store, child) {
-          return const AliasListPage();
-        },
+        builder: (context, store, child) => AliasListPage(
+          aliases: store.currentProfile.aliases,
+          onSave: (alias) async {
+            store.currentProfile.saveAlias(alias);
+          },
+          onDelete: (alias) async {
+            store.currentProfile.deleteAlias(alias);
+          },
+        ),
       ),
   Paths.alias: (context) {
     final alias = ModalRoute.of(context)!.settings.arguments as Alias?;
     return AliasPage(alias: alias);
   },
+
+  // triggers
   Paths.triggers: (context) => GameStore.consumer(
-        builder: (context, store, child) {
-          return const TriggerListPage();
-        },
+        builder: (context, store, child) => TriggerListPage(
+          triggers: store.currentProfile.triggers,
+          onSave: (trigger) async {
+            store.currentProfile.saveTrigger(trigger);
+          },
+          onDelete: (trigger) async {
+            store.currentProfile.deleteTrigger(trigger);
+          },
+        ),
       ),
   Paths.trigger: (context) {
     final trigger = ModalRoute.of(context)!.settings.arguments as Trigger?;
     return TriggerPage(trigger: trigger);
   },
+
+  // variables
   Paths.variables: (context) => GameStore.consumer(
-        builder: (context, store, child) {
-          return const VariableListPage();
-        },
+        builder: (context, store, child) => const VariableListPage(),
       ),
   Paths.variable: (context) {
     final variable = ModalRoute.of(context)!.settings.arguments as Variable?;
     return VariablePage(variable: variable);
   },
+
+  // buttons
   Paths.buttons: (context) => GameStore.consumer(
         builder: (context, store, child) {
-          return const ButtonSetListPage();
+          return ButtonSetListPage(
+            buttonSets: store.currentProfile.buttonSets,
+            onSave: (buttonSet) async {
+              store.currentProfile.saveButtonSet(buttonSet);
+            },
+            onDelete: (buttonSet) async {
+              store.currentProfile.deleteButtonSet(buttonSet);
+            },
+          );
         },
       ),
   Paths.buttonSet: (context) {
@@ -88,20 +115,35 @@ final routes = <String, Widget Function(BuildContext)>{
         ModalRoute.of(context)!.settings.arguments as GameButtonSetData?;
     return GameButtonSetPage(buttonSet: buttonSet);
   },
+
+  // shortcuts
   Paths.shortcuts: (context) {
-    return GameStore.consumer(builder: (context, store, child) {
-      return KeyboardShortcutsPage(
-        shortcuts: store.keyboardShortcuts,
+    return GameStore.consumer(
+      builder: (context, store, child) => KeyboardShortcutsPage(
+        shortcuts: store.currentProfile.keyboardShortcuts,
         onSave: (shortcuts) {
-          store.keyboardShortcuts = shortcuts;
-          store.saveKeyboardShortcuts(shortcuts);
+          store.currentProfile.saveKeyboardShortcuts(shortcuts);
         },
-      );
-    });
+      ),
+    );
   },
+
+  // settings
   Paths.settings: (context) {
-    return const SettingsPage();
+    return GameStore.consumer(
+      builder: (context, store, child) => SettingsPage(
+        settings: store.currentProfile.settings,
+        onSave: (settings) async {
+          Navigator.pop(context);
+          final old = store.currentProfile.settings.copyWith();
+          await store.currentProfile.saveSettings(settings);
+          store.echoSettingsChanged(old, settings);
+        },
+      ),
+    );
   },
+
+  // home
   Paths.home: (context) => HomeScaffold(
         builder: (context, _) {
           return const HomePage();

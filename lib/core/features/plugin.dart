@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import '../storage.dart';
 import 'alias.dart';
 import 'game_button_set.dart';
-import 'settings.dart';
 import 'trigger.dart';
 import 'variable.dart';
 
@@ -23,10 +22,13 @@ class PluginBase extends ChangeNotifier {
       getTriggers(),
       getVariables(),
       getButtonSets(),
+      ...additionalLoaders(),
     ]);
 
     notifyListeners();
   }
+
+  List<Future<void>> additionalLoaders() => [];
 
   Future<List<Trigger>> loadTriggers() async {
     debugPrint('MUDProfile.loadTriggers: $id');
@@ -84,16 +86,6 @@ class PluginBase extends ChangeNotifier {
     return buttonSetFiles.map((e) => GameButtonSetData.fromJson(e)).toList();
   }
 
-
-  Future<Settings> loadSettings() async {
-    debugPrint('MUDProfile.loadSettings: $id');
-    final settings = await ProfileStorage.readProfileFile(id, 'settings');
-    if (settings == null) {
-      return Settings.empty();
-    }
-    return Settings.fromJson(settings);
-  }
-
   Future<void> saveAlias(Alias alias) async {
     debugPrint('MUDProfile.saveAlias: $id/aliases/${alias.id}');
     return ProfileStorage.writeProfileFile(
@@ -122,10 +114,6 @@ class PluginBase extends ChangeNotifier {
         id, 'button_sets/${buttonSet.id}', buttonSet.toJson());
   }
 
-  Future<void> saveSettings(Settings settings) async {
-    debugPrint('MUDProfile.saveSettings: $id');
-    return ProfileStorage.writeProfileFile(id, 'settings', settings.toJson());
-  }
 
   Future<void> deleteButtonSet(GameButtonSetData buttonSet) async {
     debugPrint('MUDProfile.deleteButtonSet: $id/button_sets/${buttonSet.id}');

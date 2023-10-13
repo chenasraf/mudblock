@@ -25,7 +25,7 @@ class HomePageState extends State<HomePage>
   void initState() {
     super.initState();
     windowManager.addListener(this);
-    Future.delayed(Duration.zero, () => store.connect(context));
+    Future.delayed(Duration.zero, () => store.showConnectionDialog(context));
   }
 
   @override

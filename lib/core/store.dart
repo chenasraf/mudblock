@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:ctelnet/ctelnet.dart';
 import 'package:flutter/material.dart';
+import 'package:mudblock/core/features/settings.dart';
 import 'package:mudblock/core/profile_presets.dart';
 import 'package:mudblock/core/storage.dart';
 import 'package:mudblock/pages/select_profile_page.dart';
@@ -15,7 +16,6 @@ import 'features/action.dart';
 import 'features/alias.dart';
 import 'features/keyboard_shortcuts.dart';
 import 'features/profile.dart';
-import 'features/settings.dart';
 
 const maxLines = 2000;
 
@@ -37,13 +37,9 @@ class GameStore extends ChangeNotifier {
   MUDProfile? _currentProfile;
   bool _clientReady = false;
 
-  String get commandSeparator => settings.commandSeparator;
+  String get commandSeparator => currentProfile.settings.commandSeparator;
   RegExp get outgoingMsgSplitPattern =>
       RegExp("(?<!$commandSeparator)$commandSeparator(?!$commandSeparator)");
-
-  // features
-  KeyboardShortcuts keyboardShortcuts = KeyboardShortcuts.empty();
-  Settings settings = Settings.empty();
 
   MUDProfile get currentProfile => _currentProfile!;
 
@@ -55,7 +51,7 @@ class GameStore extends ChangeNotifier {
     return this;
   }
 
-  void connect(BuildContext context) async {
+  void showConnectionDialog(BuildContext context) async {
     final profile = await showDialog<MUDProfile?>(
         context: context,
         builder: (context) {
@@ -64,7 +60,9 @@ class GameStore extends ChangeNotifier {
     if (profile == null) {
       return;
     }
+    _currentProfile?.removeListener(notifyListeners);
     _currentProfile = profile;
+    currentProfile.addListener(notifyListeners);
     echo('Connecting...');
     _client = CTelnetClient(
       host: currentProfile.host,
@@ -74,44 +72,9 @@ class GameStore extends ChangeNotifier {
       onData: onData,
       onError: onError,
     );
-    await Future.wait(<Future<dynamic>>[
-      currentProfile.load(),
-      loadKeyboardShortcuts(),
-      loadSettings(),
-    ]);
+    await currentProfile.load();
     _client.connect();
     notifyListeners();
-  }
-
-  Future<KeyboardShortcuts> getKeyboardShortcuts() async {
-    debugPrint('MUDProfile.loadKeyboardShortcuts: ${currentProfile.id}');
-    // TODO use global storage (not profile specific)
-    final shortcuts = await ProfileStorage.readProfileFile(
-        currentProfile.id, 'keyboard_shortcuts');
-    if (shortcuts == null) {
-      return KeyboardShortcuts.empty();
-    }
-    return KeyboardShortcuts.fromJson(shortcuts);
-  }
-
-  Future<void> saveKeyboardShortcuts(KeyboardShortcuts shortcuts) async {
-    debugPrint('MUDProfile.saveKeyboardShortcuts: ${currentProfile.id}');
-    return ProfileStorage.writeProfileFile(
-        currentProfile.id, 'keyboard_shortcuts', shortcuts.toJson());
-  }
-
-  Future<void> loadSettings() async {
-    final settings = await currentProfile.loadSettings();
-    this.settings = settings;
-    notifyListeners();
-    debugPrint('Settings loaded');
-  }
-
-  Future<void> loadKeyboardShortcuts() async {
-    final shortcuts = await getKeyboardShortcuts();
-    keyboardShortcuts = shortcuts;
-    notifyListeners();
-    debugPrint('KeyboardShortcuts loaded');
   }
 
   bool processTriggers(String line) {
@@ -261,6 +224,9 @@ class GameStore extends ChangeNotifier {
 
   /// echo - echo to screen, DOES NOT split by msgSplitPattern, is not send to server
   void echo(String line) {
+    if (currentProfile.settings.showTimestamps) {
+      line = '[${DateTime.now().toIso8601String()}] $line';
+    }
     _lines.add(line);
     notifyListeners();
     scrollToEnd();
@@ -269,6 +235,13 @@ class GameStore extends ChangeNotifier {
   /// echoOwn - same as echo, but with predefined color
   void echoOwn(String line) {
     _lines.add('$esc[93m$line');
+    notifyListeners();
+    scrollToEnd();
+  }
+
+  /// echoSystem - same as echo, but with predefined color
+  void echoSystem(String line) {
+    _lines.add('$esc[92m$line');
     notifyListeners();
     scrollToEnd();
   }
@@ -324,7 +297,9 @@ class GameStore extends ChangeNotifier {
     if (!_clientReady || !_client.connected) {
       return;
     }
-    echoOwn(text);
+    if (currentProfile.settings.echoCommands) {
+      echoOwn(text);
+    }
     execute(text);
     scrollToEnd();
     selectInput();
@@ -420,11 +395,38 @@ class GameStore extends ChangeNotifier {
   }
 
   void onShortcut(NumpadKey key, BuildContext context) {
-    final action = keyboardShortcuts.get(key);
+    final action = currentProfile.keyboardShortcuts.get(key);
     if (action.isNotEmpty) {
       submitInput(action);
       selectInput();
     }
+  }
+
+  void echoSettingsChanged(Settings old, Settings updated) {
+    echoSystem('Settings updated:');
+    var updateCount = 0;
+    if (updated.showTimestamps != old.showTimestamps) {
+      updateCount++;
+      echoSystem(
+          'Timestamps are now ${updated.showTimestamps ? 'enabled' : 'disabled'}');
+    }
+    if (updated.echoCommands != old.echoCommands) {
+      updateCount++;
+      echoSystem(
+          'Echoing own commands is now ${updated.echoCommands ? 'enabled' : 'disabled'}');
+    }
+    if (updated.commandSeparator != old.commandSeparator) {
+      updateCount++;
+      echoSystem(
+        'Command separator is now "${updated.commandSeparator}". '
+        'To escape when sending, use it twice like so: '
+        '"${updated.commandSeparator}${updated.commandSeparator}"',
+      );
+    }
+    if (updateCount == 0) {
+      echoSystem('<no changes>');
+    }
+    echoSystem('');
   }
 }
 

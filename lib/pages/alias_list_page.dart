@@ -6,13 +6,22 @@ import '../core/routes.dart';
 import 'generic_list_page.dart';
 
 class AliasListPage extends StatelessWidget with GameStoreMixin {
-  const AliasListPage({super.key});
+  const AliasListPage({
+    super.key,
+    required this.aliases,
+    required this.onSave,
+    required this.onDelete,
+  });
+
+  final List<Alias> aliases;
+  final Future<void> Function(Alias) onSave;
+  final Future<void> Function(Alias) onDelete;
 
   @override
   Widget build(BuildContext context) {
     return GenericListPage(
       title: const Text('Aliases'),
-      save: save,
+      save: onSave,
       items: storeOf(context).currentProfile.aliases,
       detailsPath: Paths.alias,
       displayName: (alias) => alias.pattern,
@@ -20,7 +29,7 @@ class AliasListPage extends StatelessWidget with GameStoreMixin {
         alias.action.content,
         alias.group,
       ],
-      itemBuilder: (context, store, alias) {
+      itemBuilder: (context, alias) {
         return ListTile(
           key: Key(alias.id),
           title: Text(alias.pattern),
@@ -29,7 +38,7 @@ class AliasListPage extends StatelessWidget with GameStoreMixin {
             value: alias.enabled,
             onChanged: (value) {
               alias.enabled = value;
-              save(store, alias);
+              onSave(alias);
             },
           ),
           trailing: PopupMenuButton(
@@ -44,8 +53,7 @@ class AliasListPage extends StatelessWidget with GameStoreMixin {
             onSelected: (value) {
               switch (value) {
                 case 'delete':
-                  store.currentProfile.deleteAlias(alias);
-                  store.currentProfile.loadAliases();
+                  onDelete(alias);
                   break;
               }
             },
@@ -57,7 +65,7 @@ class AliasListPage extends StatelessWidget with GameStoreMixin {
               arguments: alias,
             );
             if (updated != null) {
-              await save(store, updated as Alias);
+              await onSave(updated as Alias);
             }
           },
         );
@@ -65,9 +73,5 @@ class AliasListPage extends StatelessWidget with GameStoreMixin {
     );
   }
 
-  Future<void> save(GameStore store, Alias updated) async {
-    await store.currentProfile.saveAlias(updated);
-    // TODO - stop re-loading all aliases, only replace the one that changed
-    await store.currentProfile.loadAliases();
-  }
 }
+

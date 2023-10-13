@@ -112,7 +112,7 @@ class HomeScaffold extends StatelessWidget with GameStoreMixin {
                 Navigator.of(context).pop();
                 await gameStore.disconnect();
                 if (context.mounted) {
-                  gameStore.connect(context);
+                  gameStore.showConnectionDialog(context);
                 }
               },
             ),

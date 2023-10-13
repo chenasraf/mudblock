@@ -6,13 +6,22 @@ import '../core/routes.dart';
 import 'generic_list_page.dart';
 
 class TriggerListPage extends StatelessWidget with GameStoreMixin {
-  const TriggerListPage({super.key});
+  const TriggerListPage({
+    super.key,
+    required this.triggers,
+    required this.onSave,
+    required this.onDelete,
+  });
+
+  final List<Trigger> triggers;
+  final Future<void> Function(Trigger) onSave;
+  final Future<void> Function(Trigger) onDelete;
 
   @override
   Widget build(BuildContext context) {
     return GenericListPage(
       title: const Text('Triggers'),
-      save: save,
+      save: onSave,
       items: storeOf(context).currentProfile.triggers,
       detailsPath: Paths.trigger,
       displayName: (trigger) => trigger.pattern,
@@ -20,7 +29,7 @@ class TriggerListPage extends StatelessWidget with GameStoreMixin {
         trigger.action.content,
         trigger.group,
       ],
-      itemBuilder: (context, store, trigger) {
+      itemBuilder: (context, trigger) {
         return ListTile(
           key: Key(trigger.id),
           title: Text(trigger.pattern),
@@ -29,7 +38,7 @@ class TriggerListPage extends StatelessWidget with GameStoreMixin {
             value: trigger.enabled,
             onChanged: (value) {
               trigger.enabled = value;
-              save(store, trigger);
+              onSave(trigger);
             },
           ),
           isThreeLine: true,
@@ -45,9 +54,7 @@ class TriggerListPage extends StatelessWidget with GameStoreMixin {
             onSelected: (value) {
               switch (value) {
                 case 'delete':
-                  // TODO extract this to props
-                  store.currentProfile.deleteTrigger(trigger);
-                  store.currentProfile.loadTriggers();
+                  onDelete(trigger);
                   break;
               }
             },
@@ -59,19 +66,12 @@ class TriggerListPage extends StatelessWidget with GameStoreMixin {
               arguments: trigger,
             );
             if (updated != null) {
-              await save(store, updated as Trigger);
+              await onSave(updated as Trigger);
             }
           },
         );
       },
     );
-  }
-
-  // TODO extract this to props
-  Future<void> save(GameStore store, Trigger updated) async {
-    await store.currentProfile.saveTrigger(updated);
-    // TODO - stop re-loading all triggers, only replace the one that changed
-    await store.currentProfile.loadTriggers();
   }
 }
 

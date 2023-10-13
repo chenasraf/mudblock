@@ -6,14 +6,23 @@ import '../core/store.dart';
 import 'generic_list_page.dart';
 
 class ButtonSetListPage extends StatelessWidget with GameStoreMixin {
-  const ButtonSetListPage({super.key});
+  const ButtonSetListPage({
+    super.key,
+    required this.buttonSets,
+    required this.onSave,
+    required this.onDelete,
+  });
+
+  final List<GameButtonSetData> buttonSets;
+  final Future<void> Function(GameButtonSetData) onSave;
+  final Future<void> Function(GameButtonSetData) onDelete;
 
   @override
   Widget build(BuildContext context) {
     return GenericListPage(
       title: const Text('Button Sets'),
-      save: save,
-      items: storeOf(context).currentProfile.buttonSets,
+      save: onSave,
+      items: buttonSets,
       detailsPath: Paths.buttonSet,
       displayName: (buttonSet) => buttonSet.name,
       searchTags: (buttonSet) => [
@@ -47,7 +56,7 @@ class ButtonSetListPage extends StatelessWidget with GameStoreMixin {
           },
         ),
       ],
-      itemBuilder: (context, store, buttonSet) {
+      itemBuilder: (context, buttonSet) {
         return ListTile(
           key: Key(buttonSet.id),
           title: Text(buttonSet.name),
@@ -56,7 +65,7 @@ class ButtonSetListPage extends StatelessWidget with GameStoreMixin {
             value: buttonSet.enabled,
             onChanged: (value) {
               buttonSet.enabled = value;
-              save(store, buttonSet);
+              onSave(buttonSet);
             },
           ),
           trailing: PopupMenuButton(
@@ -71,8 +80,7 @@ class ButtonSetListPage extends StatelessWidget with GameStoreMixin {
             onSelected: (value) {
               switch (value) {
                 case 'delete':
-                  store.currentProfile.deleteButtonSet(buttonSet);
-                  store.currentProfile.loadButtonSets();
+                  onDelete(buttonSet);
                   break;
               }
             },
@@ -84,18 +92,12 @@ class ButtonSetListPage extends StatelessWidget with GameStoreMixin {
               arguments: buttonSet,
             );
             if (updated != null) {
-              await save(store, updated as GameButtonSetData);
+              await onSave(updated as GameButtonSetData);
             }
           },
         );
       },
     );
-  }
-
-  Future<void> save(GameStore store, GameButtonSetData updated) async {
-    await store.currentProfile.saveButtonSet(updated);
-    // TODO - stop re-loading all triggers, only replace the one that changed
-    await store.currentProfile.loadButtonSets();
   }
 }
 

@@ -21,7 +21,7 @@ class KeyboardAction extends ContextAction<KeyboardIntent> with GameStoreMixin {
   bool isEnabled(KeyboardIntent intent, [BuildContext? context]) {
     if (context == null) return false;
     final store = storeOf(context);
-    if (store.keyboardShortcuts.get(intent.key).isEmpty) return false;
+    if (store.currentProfile.keyboardShortcuts.get(intent.key).isEmpty) return false;
     return super.isEnabled(intent, context);
   }
 }

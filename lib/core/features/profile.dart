@@ -5,7 +5,9 @@ import '../consts.dart';
 import '../secrets.dart';
 import '../storage.dart';
 import '../string_utils.dart';
+import 'keyboard_shortcuts.dart';
 import 'plugin.dart';
+import 'settings.dart';
 
 class MUDProfile extends PluginBase {
   String name;
@@ -15,6 +17,9 @@ class MUDProfile extends PluginBase {
   String username;
   String password;
   AuthMethod authMethod;
+
+  Settings settings = Settings.empty();
+  KeyboardShortcuts keyboardShortcuts = KeyboardShortcuts.empty();
 
   MUDProfile({
     required String id,
@@ -83,12 +88,67 @@ class MUDProfile extends PluginBase {
         'authMethod': authMethod.name,
       };
 
+  @override
+  List<Future<void>> additionalLoaders() => [
+        getKeyboardShortcuts(),
+        getSettings(),
+      ];
+
+  Future<KeyboardShortcuts> loadKeyboardShortcuts() async {
+    debugPrint('MUDProfile.loadKeyboardShortcuts: $id');
+    final shortcuts =
+        await ProfileStorage.readProfileFile(id, 'keyboard_shortcuts');
+    debugPrint('MUDProfile.loadKeyboardShortcuts: $shortcuts');
+    if (shortcuts == null) {
+      return KeyboardShortcuts.empty();
+    }
+    return KeyboardShortcuts.fromJson(shortcuts);
+  }
+
+  Future<void> saveKeyboardShortcuts(KeyboardShortcuts shortcuts) async {
+    debugPrint('MUDProfile.saveKeyboardShortcuts: $id');
+    keyboardShortcuts = shortcuts;
+    notifyListeners();
+    return ProfileStorage.writeProfileFile(
+        id, 'keyboard_shortcuts', shortcuts.toJson());
+  }
+
+  Future<void> getKeyboardShortcuts() async {
+    final shortcuts = await loadKeyboardShortcuts();
+    keyboardShortcuts = shortcuts;
+    notifyListeners();
+    debugPrint('KeyboardShortcuts loaded');
+  }
+
+  Future<Settings> loadSettings() async {
+    debugPrint('MUDProfile.loadSettings');
+    final settings = await ProfileStorage.readProfileFile(id, 'settings');
+    debugPrint('MUDProfile.loadSettings: $settings');
+    if (settings == null) {
+      return Settings.empty();
+    }
+    return Settings.fromJson(settings);
+  }
+
+  Future<void> getSettings() async {
+    final settings = await loadSettings();
+    this.settings = settings;
+    notifyListeners();
+    debugPrint('Settings loaded: ${settings.showTimestamps}');
+  }
+
+  Future<void> saveSettings(Settings settings) async {
+    debugPrint('MUDProfile.saveSettings');
+    this.settings = settings;
+    notifyListeners();
+    return ProfileStorage.writeProfileFile(id, 'settings', settings.toJson());
+  }
+
   static Future<void> save(MUDProfile profile) async {
     debugPrint('MUDProfile.save: ${profile.id}');
     return ProfileStorage.writeProfileFile(
         profile.id, profile.id, (profile.toJson()));
   }
-
 
   static final encKey = enc.Key.fromUtf8(pwdKey);
   static final encrypter = enc.Encrypter(enc.AES(encKey, padding: null));
@@ -127,3 +187,4 @@ enum AuthMethod {
   none,
   diku,
 }
+

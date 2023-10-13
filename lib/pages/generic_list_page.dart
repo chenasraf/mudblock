@@ -17,8 +17,8 @@ class GenericListPage<T> extends StatefulWidget with GameStoreMixin {
   final List<T> items;
   final Widget title;
   final String detailsPath;
-  final Future<void> Function(GameStore store, T updated) save;
-  final Widget Function(BuildContext context, GameStore store, T item)
+  final Future<void> Function(T updated) save;
+  final Widget Function(BuildContext context, T item)
       itemBuilder;
   final String Function(T item) displayName;
   final List<String> Function(T item) searchTags;
@@ -62,7 +62,7 @@ class _GenericListPageState<T> extends State<GenericListPage<T>>
                 shrinkWrap: true,
                 itemBuilder: (context, i) {
                   final item = filteredItems[i];
-                  return widget.itemBuilder(context, store, item);
+                  return widget.itemBuilder(context, item);
                 },
               ),
             ],
@@ -74,7 +74,7 @@ class _GenericListPageState<T> extends State<GenericListPage<T>>
         onPressed: () async {
           final item = await Navigator.pushNamed(context, widget.detailsPath);
           if (item != null) {
-            await widget.save(store, item as T);
+            await widget.save(item as T);
             setState(() {});
           }
         },
