@@ -13,7 +13,7 @@ class AliasListPage extends StatelessWidget with GameStoreMixin {
     return GenericListPage(
       title: const Text('Aliases'),
       save: save,
-      items: storeOf(context).aliases,
+      items: storeOf(context).currentProfile.aliases,
       detailsPath: Paths.alias,
       displayName: (alias) => alias.pattern,
       searchTags: (alias) => [
@@ -45,7 +45,7 @@ class AliasListPage extends StatelessWidget with GameStoreMixin {
               switch (value) {
                 case 'delete':
                   store.currentProfile.deleteAlias(alias);
-                  store.loadAliases();
+                  store.currentProfile.loadAliases();
                   break;
               }
             },
@@ -68,6 +68,6 @@ class AliasListPage extends StatelessWidget with GameStoreMixin {
   Future<void> save(GameStore store, Alias updated) async {
     await store.currentProfile.saveAlias(updated);
     // TODO - stop re-loading all aliases, only replace the one that changed
-    await store.loadAliases();
+    await store.currentProfile.loadAliases();
   }
 }

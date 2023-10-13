@@ -13,10 +13,11 @@ class VariableListPage extends StatelessWidget with GameStoreMixin {
       appBar: AppBar(
         title: const Text('Variables'),
       ),
+      // TODO extract this to props
       body: GameStore.consumer(
         builder: (context, store, child) {
           debugPrint('Variable list rebuild');
-          final variables = store.variables.values;
+          final variables = store.currentProfile.variables.values;
           return ListView.builder(
             itemCount: variables.length,
             itemBuilder: (context, item) {
@@ -53,9 +54,11 @@ class VariableListPage extends StatelessWidget with GameStoreMixin {
     );
   }
 
+  // TODO extract this to props
   Future<void> save(GameStore store, Variable updated) async {
     await store.currentProfile
-        .saveVariable(store.variables.values.toList(), updated);
-    await store.loadVariables();
+        .saveVariable(store.currentProfile.variables.values.toList(), updated);
+    await store.currentProfile.loadVariables();
   }
 }
+

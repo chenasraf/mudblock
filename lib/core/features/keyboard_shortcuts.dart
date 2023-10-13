@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'store.dart';
+import '../store.dart';
 
 class KeyboardIntent extends Intent {
   const KeyboardIntent(this.key);

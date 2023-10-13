@@ -13,7 +13,7 @@ class TriggerListPage extends StatelessWidget with GameStoreMixin {
     return GenericListPage(
       title: const Text('Triggers'),
       save: save,
-      items: storeOf(context).triggers,
+      items: storeOf(context).currentProfile.triggers,
       detailsPath: Paths.trigger,
       displayName: (trigger) => trigger.pattern,
       searchTags: (trigger) => [
@@ -45,8 +45,9 @@ class TriggerListPage extends StatelessWidget with GameStoreMixin {
             onSelected: (value) {
               switch (value) {
                 case 'delete':
+                  // TODO extract this to props
                   store.currentProfile.deleteTrigger(trigger);
-                  store.loadTriggers();
+                  store.currentProfile.loadTriggers();
                   break;
               }
             },
@@ -66,10 +67,11 @@ class TriggerListPage extends StatelessWidget with GameStoreMixin {
     );
   }
 
+  // TODO extract this to props
   Future<void> save(GameStore store, Trigger updated) async {
     await store.currentProfile.saveTrigger(updated);
     // TODO - stop re-loading all triggers, only replace the one that changed
-    await store.loadTriggers();
+    await store.currentProfile.loadTriggers();
   }
 }
 

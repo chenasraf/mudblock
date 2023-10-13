@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../core/keyboard_shortcuts.dart';
+import '../core/features/keyboard_shortcuts.dart';
+
 
 class KeyboardShortcutsPage extends StatefulWidget {
   const KeyboardShortcutsPage({super.key, required this.shortcuts, required this.onSave});

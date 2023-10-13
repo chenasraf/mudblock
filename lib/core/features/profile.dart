@@ -2,18 +2,12 @@ import 'package:encrypt/encrypt.dart' as enc;
 import 'package:flutter/foundation.dart';
 
 import '../consts.dart';
-import '../keyboard_shortcuts.dart';
 import '../secrets.dart';
 import '../storage.dart';
 import '../string_utils.dart';
-import 'alias.dart';
-import 'game_button_set.dart';
-import 'settings.dart';
-import 'trigger.dart';
-import 'variable.dart';
+import 'plugin.dart';
 
-class MUDProfile {
-  String id;
+class MUDProfile extends PluginBase {
   String name;
   String host;
   int port;
@@ -23,7 +17,7 @@ class MUDProfile {
   AuthMethod authMethod;
 
   MUDProfile({
-    required this.id,
+    required String id,
     required this.name,
     required this.host,
     required this.port,
@@ -31,7 +25,7 @@ class MUDProfile {
     this.username = '',
     this.password = '',
     this.authMethod = AuthMethod.none,
-  });
+  }) : super(id);
 
   factory MUDProfile.empty() => MUDProfile(
         id: uuid(),
@@ -95,156 +89,6 @@ class MUDProfile {
         profile.id, profile.id, (profile.toJson()));
   }
 
-  Future<List<Trigger>> loadTriggers() async {
-    debugPrint('MUDProfile.loadTriggers: $id');
-    final triggers = await ProfileStorage.listProfileFiles(id, 'triggers');
-    final triggerFiles = <Map<String, dynamic>>[];
-    for (final trigger in triggers) {
-      debugPrint('MUDProfile.loadTriggers: $id/triggers/$trigger');
-      final triggerFile =
-          await ProfileStorage.readProfileFile(id, 'triggers/$trigger');
-      if (triggerFile != null) {
-        triggerFiles.add(triggerFile);
-      }
-    }
-    return triggerFiles.map((e) => Trigger.fromJson(e)).toList();
-  }
-
-  Future<List<Alias>> loadAliases() async {
-    debugPrint('MUDProfile.loadAliases: $id');
-    final aliases = await ProfileStorage.listProfileFiles(id, 'aliases');
-    final aliasFiles = <Map<String, dynamic>>[];
-    for (final alias in aliases) {
-      debugPrint('MUDProfile.loadAliases: $id/aliases/$alias');
-      final aliasFile =
-          await ProfileStorage.readProfileFile(id, 'aliases/$alias');
-      if (aliasFile != null) {
-        aliasFiles.add(aliasFile);
-      }
-    }
-    return aliasFiles.map((e) => Alias.fromJson(e)).toList();
-  }
-
-  Future<List<Variable>> loadVariables() async {
-    debugPrint('MUDProfile.loadVariables: $id');
-    final vars = await ProfileStorage.readProfileFile(id, 'vars');
-    if (vars == null) {
-      return [];
-    }
-    return (vars['vars'] as List<dynamic>)
-        .map((e) => Variable.fromJson(e))
-        .toList();
-  }
-
-  Future<List<GameButtonSetData>> loadButtonSets() async {
-    debugPrint('MUDProfile.loadButtonSets: $id');
-    final buttonSets = await ProfileStorage.listProfileFiles(id, 'button_sets');
-    final buttonSetFiles = <Map<String, dynamic>>[];
-    for (final buttonSet in buttonSets) {
-      debugPrint('MUDProfile.loadButtonSets: $id/buttonSets/$buttonSet');
-      final buttonSetFile =
-          await ProfileStorage.readProfileFile(id, 'button_sets/$buttonSet');
-      if (buttonSetFile != null) {
-        buttonSetFiles.add(buttonSetFile);
-      }
-    }
-    return buttonSetFiles.map((e) => GameButtonSetData.fromJson(e)).toList();
-  }
-
-  Future<KeyboardShortcuts> loadKeyboardShortcuts() async {
-    debugPrint('MUDProfile.loadKeyboardShortcuts: $id');
-    final shortcuts =
-        await ProfileStorage.readProfileFile(id, 'keyboard_shortcuts');
-    if (shortcuts == null) {
-      return KeyboardShortcuts.empty();
-    }
-    return KeyboardShortcuts.fromJson(shortcuts);
-  }
-
-  Future<Settings> loadSettings() async {
-    debugPrint('MUDProfile.loadSettings: $id');
-    final settings = await ProfileStorage.readProfileFile(id, 'settings');
-    if (settings == null) {
-      return Settings.empty();
-    }
-    return Settings.fromJson(settings);
-  }
-
-  Future<void> saveAlias(Alias alias) async {
-    debugPrint('MUDProfile.saveAlias: $id/aliases/${alias.id}');
-    return ProfileStorage.writeProfileFile(
-        id, 'aliases/${alias.id}', alias.toJson());
-  }
-
-  Future<void> deleteAlias(Alias alias) async {
-    debugPrint('MUDProfile.deleteAlias: $id/aliases/${alias.id}');
-    return ProfileStorage.deleteProfileFile(id, 'aliases/${alias.id}');
-  }
-
-  Future<void> saveTrigger(Trigger trigger) async {
-    debugPrint('MUDProfile.saveTrigger: $id/triggers/${trigger.id}');
-    return ProfileStorage.writeProfileFile(
-        id, 'triggers/${trigger.id}', trigger.toJson());
-  }
-
-  Future<void> deleteTrigger(Trigger trigger) async {
-    debugPrint('MUDProfile.deleteTrigger: $id/triggers/${trigger.id}');
-    return ProfileStorage.deleteProfileFile(id, 'triggers/${trigger.id}');
-  }
-
-  Future<void> saveButtonSet(GameButtonSetData buttonSet) async {
-    debugPrint('MUDProfile.saveButtonSet: $id/button_sets/${buttonSet.id}');
-    return ProfileStorage.writeProfileFile(
-        id, 'button_sets/${buttonSet.id}', buttonSet.toJson());
-  }
-
-  Future<void> saveKeyboardShortcuts(KeyboardShortcuts shortcuts) async {
-    debugPrint('MUDProfile.saveKeyboardShortcuts: $id');
-    return ProfileStorage.writeProfileFile(
-        id, 'keyboard_shortcuts', shortcuts.toJson());
-  }
-
-  Future<void> saveSettings(Settings settings) async {
-    debugPrint('MUDProfile.saveSettings: $id');
-    return ProfileStorage.writeProfileFile(id, 'settings', settings.toJson());
-  }
-
-  Future<void> deleteButtonSet(GameButtonSetData buttonSet) async {
-    debugPrint('MUDProfile.deleteButtonSet: $id/button_sets/${buttonSet.id}');
-    return ProfileStorage.deleteProfileFile(id, 'button_sets/${buttonSet.id}');
-  }
-
-  Future<void> saveVariable(List<Variable> current, Variable update) async {
-    debugPrint('MUDProfile.saveVariable: $id/vars');
-    final existing = current.indexWhere(
-      (v) => v.name == update.name,
-    );
-    if (existing >= 0) {
-      current[existing] = update;
-    } else {
-      current.add(update);
-    }
-    return ProfileStorage.writeProfileFile(
-      id,
-      'vars',
-      {'vars': current.map((v) => v.toJson()).toList()},
-    );
-  }
-
-  Future<void> deleteVariable(List<Variable> current, Variable update) async {
-    debugPrint('MUDProfile.deleteVariable: $id/vars');
-    final existing = current.indexWhere(
-      (v) => v.name == update.name,
-    );
-    if (existing >= 0) {
-      current.removeAt(existing);
-    }
-    return ProfileStorage.writeProfileFile(
-      id,
-      'vars',
-      {'vars': current.map((v) => v.toJson()).toList()},
-    );
-  }
 
   static final encKey = enc.Key.fromUtf8(pwdKey);
   static final encrypter = enc.Encrypter(enc.AES(encKey, padding: null));

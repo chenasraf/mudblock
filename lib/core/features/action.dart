@@ -14,10 +14,15 @@ enum MUDActionTarget {
 
 class MUDAction {
   String content;
+  Automation? parent;
   MUDActionTarget target;
-  MUDAction(this.content, {this.target = MUDActionTarget.execute});
+  MUDAction(
+    this.content, {
+    this.target = MUDActionTarget.execute,
+    this.parent,
+  });
 
-  void invoke(GameStore store, Automation parent, List<String> matches) {
+  void invoke(GameStore store, List<String> matches) {
     debugPrint('MUDAction.invoke: ${this.content}, $matches');
     var content = this.content;
     for (var i = 0; i < matches.length; i++) {
@@ -30,14 +35,14 @@ class MUDAction {
       case MUDActionTarget.world:
         debugPrint('ActionSendTo.world: $content');
         store.send(content);
-        if (!parent.isRemovedFromBuffer) {
+        if (parent != null && !parent!.isRemovedFromBuffer) {
           store.echoOwn(content);
         }
         break;
       case MUDActionTarget.execute:
         debugPrint('ActionSendTo.execute: $content');
         store.execute(content);
-        if (!parent.isRemovedFromBuffer) {
+        if (parent != null && !parent!.isRemovedFromBuffer) {
           store.echoOwn(content);
         }
         break;
@@ -84,7 +89,7 @@ class MUDAction {
 
     // variables from the store
     // TODO allow disabling this
-    for (final vari in store.variables.values) {
+    for (final vari in store.currentProfile.variables.values) {
       content = content.replaceAll('%${vari.name}', vari.value);
     }
     return content;
@@ -95,11 +100,12 @@ class NativeMUDAction extends MUDAction {
   NativeMUDAction(this.customInvoke)
       : super('-- native code --', target: MUDActionTarget.script);
 
-  final void Function(GameStore store, Automation parent, List<String> matches)
+  final void Function(GameStore store, List<String> matches)
       customInvoke;
 
   @override
-  void invoke(GameStore store, Automation parent, List<String> matches) {
-    customInvoke(store, parent, matches);
+  void invoke(GameStore store, List<String> matches) {
+    customInvoke(store, matches);
   }
 }
+

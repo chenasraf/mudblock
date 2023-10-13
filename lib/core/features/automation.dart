@@ -102,7 +102,7 @@ class Automation {
 
   void invokeEffect(GameStore store, String line) {
     invokeCount++;
-    action.invoke(store, this, allMatches(line));
+    action.invoke(store, allMatches(line));
   }
 
   List<String> allMatches(String str) {

@@ -420,7 +420,7 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
 
   void _callAction(MUDAction? action) {
     final act = action ?? data.getActionOrDefault(GameButtonInteraction.press);
-    act.invoke(store, parentAutomation, []);
+    act.invoke(store, []);
   }
 
   void _callCurrentDirection() {

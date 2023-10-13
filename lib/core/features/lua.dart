@@ -76,7 +76,7 @@ class LuaBindings {
     final name = ls.checkString(1)!;
     ls.pop(1);
     debugPrint("lua.getVariable $name");
-    final vari = store.variables[name];
+    final vari = store.currentProfile.variables[name];
     if (vari != null) {
       ls.pushString(vari.value);
     } else {
@@ -90,12 +90,15 @@ class LuaBindings {
     final value = ls.checkString(2)!;
     ls.pop(2);
     debugPrint("lua.setVariable $name, $value");
-    if (store.variables[name] == null) {
-      store.variables[name] = Variable(name, value);
+    final profile = store.currentProfile;
+    if (profile.variables[name] == null) {
+      profile.variables[name] = Variable(name, value);
     }
-    store.variables[name]!.value = value;
-    store.currentProfile
-        .saveVariable(store.variables.values.toList(), store.variables[name]!);
+    profile.variables[name]!.value = value;
+    profile.saveVariable(
+      profile.variables.values.toList(),
+      profile.variables[name]!,
+    );
     return 0;
   }
 }
@@ -110,11 +113,11 @@ class LuaAliasBindings extends LuaAutomationBindings<Alias> {
 
   @override
   List<Alias> getGroup(String group) =>
-      store.aliases.where((alias) => alias.group == group).toList();
+      store.currentProfile.aliases.where((alias) => alias.group == group).toList();
 
   @override
   Alias getSingle(String label) =>
-      store.aliases.firstWhere((alias) => alias.label == label);
+      store.currentProfile.aliases.firstWhere((alias) => alias.label == label);
 
   @override
   Future<void> saveGroup(List<Alias> items, bool state) async {
@@ -122,14 +125,14 @@ class LuaAliasBindings extends LuaAutomationBindings<Alias> {
       i.enabled = state;
       return store.currentProfile.saveAlias(i);
     }));
-    return store.loadAliases();
+    return store.currentProfile.getAliases();
   }
 
   @override
   Future<void> saveSingle(Alias item, bool state) async {
     item.enabled = state;
     await store.currentProfile.saveAlias(item);
-    return store.loadAliases();
+    return store.currentProfile.getAliases();
   }
 }
 
@@ -143,11 +146,11 @@ class LuaTriggerBindings extends LuaAutomationBindings<Trigger> {
 
   @override
   List<Trigger> getGroup(String group) =>
-      store.triggers.where((alias) => alias.group == group).toList();
+      store.currentProfile.triggers.where((alias) => alias.group == group).toList();
 
   @override
   Trigger getSingle(String label) =>
-      store.triggers.firstWhere((alias) => alias.label == label);
+      store.currentProfile.triggers.firstWhere((alias) => alias.label == label);
 
   @override
   Future<void> saveGroup(List<Trigger> items, bool state) async {
@@ -155,14 +158,14 @@ class LuaTriggerBindings extends LuaAutomationBindings<Trigger> {
       i.enabled = state;
       return store.currentProfile.saveTrigger(i);
     }));
-    return store.loadTriggers();
+    return store.currentProfile.getTriggers();
   }
 
   @override
   Future<void> saveSingle(Trigger item, bool state) async {
     item.enabled = state;
     await store.currentProfile.saveTrigger(item);
-    return store.loadTriggers();
+    return store.currentProfile.getTriggers();
   }
 }
 
@@ -176,11 +179,11 @@ class LuaButtonSetBindings extends LuaAutomationBindings<GameButtonSetData> {
 
   @override
   List<GameButtonSetData> getGroup(String group) =>
-      store.buttonSets.where((alias) => alias.group == group).toList();
+      store.currentProfile.buttonSets.where((alias) => alias.group == group).toList();
 
   @override
   GameButtonSetData getSingle(String label) =>
-      store.buttonSets.firstWhere((alias) => alias.label == label);
+      store.currentProfile.buttonSets.firstWhere((alias) => alias.label == label);
 
   @override
   Future<void> saveGroup(List<GameButtonSetData> items, bool state) async {
@@ -188,14 +191,14 @@ class LuaButtonSetBindings extends LuaAutomationBindings<GameButtonSetData> {
       i.enabled = state;
       return store.currentProfile.saveButtonSet(i);
     }));
-    return store.loadTriggers();
+    return store.currentProfile.getTriggers();
   }
 
   @override
   Future<void> saveSingle(GameButtonSetData item, bool state) async {
     item.enabled = state;
     await store.currentProfile.saveButtonSet(item);
-    return store.loadTriggers();
+    return store.currentProfile.getTriggers();
   }
 }
 

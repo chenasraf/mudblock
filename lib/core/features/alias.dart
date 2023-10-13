@@ -97,7 +97,7 @@ final builtInAliases = <Alias>[
     id: _key('help'),
     pattern: 'mudhelp',
     action: NativeMUDAction(
-      (store, parent, matches) {
+      (store, matches) {
         store.echo(BuiltinCommand.help());
       },
     ),

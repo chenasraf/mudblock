@@ -94,7 +94,7 @@ final routes = <String, Widget Function(BuildContext)>{
         shortcuts: store.keyboardShortcuts,
         onSave: (shortcuts) {
           store.keyboardShortcuts = shortcuts;
-          store.currentProfile.saveKeyboardShortcuts(shortcuts);
+          store.saveKeyboardShortcuts(shortcuts);
         },
       );
     });

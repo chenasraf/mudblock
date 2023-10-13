@@ -9,7 +9,7 @@ import 'package:window_manager/window_manager.dart';
 
 import '../core/consts.dart';
 import '../core/features/game_button_set.dart';
-import '../core/keyboard_shortcuts.dart';
+import '../core/features/keyboard_shortcuts.dart';
 import '../core/store.dart';
 
 class HomePage extends StatefulWidget {
@@ -85,9 +85,10 @@ class HomePageState extends State<HomePage>
                                             TextSpan(
                                               text: segment.text,
                                               style: consoleStyle.copyWith(
-                                                color: Color(segment.themedFgColor),
-                                                backgroundColor:
-                                                    Color(segment.themedBgColor),
+                                                color: Color(
+                                                    segment.themedFgColor),
+                                                backgroundColor: Color(
+                                                    segment.themedBgColor),
                                                 fontWeight: segment.bold
                                                     ? FontWeight.w800
                                                     : null,
@@ -114,12 +115,14 @@ class HomePageState extends State<HomePage>
                                 ),
                               ),
                             ),
-                            for (final buttonSet
-                                in store.buttonSets.where((b) => b.enabled))
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: GameButtonSet(data: buttonSet),
-                              )
+                            if (store.connected)
+                              for (final buttonSet in store
+                                  .currentProfile.buttonSets
+                                  .where((b) => b.enabled))
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: GameButtonSet(data: buttonSet),
+                                )
                           ],
                         ),
                       );

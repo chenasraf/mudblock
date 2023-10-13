@@ -13,7 +13,7 @@ class ButtonSetListPage extends StatelessWidget with GameStoreMixin {
     return GenericListPage(
       title: const Text('Button Sets'),
       save: save,
-      items: storeOf(context).buttonSets,
+      items: storeOf(context).currentProfile.buttonSets,
       detailsPath: Paths.buttonSet,
       displayName: (buttonSet) => buttonSet.name,
       searchTags: (buttonSet) => [
@@ -40,7 +40,7 @@ class ButtonSetListPage extends StatelessWidget with GameStoreMixin {
                 );
                 if (data != null) {
                   store.currentProfile.saveButtonSet(data as GameButtonSetData);
-                  store.loadButtonSets();
+                  store.currentProfile.loadButtonSets();
                 }
                 break;
             }
@@ -72,7 +72,7 @@ class ButtonSetListPage extends StatelessWidget with GameStoreMixin {
               switch (value) {
                 case 'delete':
                   store.currentProfile.deleteButtonSet(buttonSet);
-                  store.loadButtonSets();
+                  store.currentProfile.loadButtonSets();
                   break;
               }
             },
@@ -95,7 +95,7 @@ class ButtonSetListPage extends StatelessWidget with GameStoreMixin {
   Future<void> save(GameStore store, GameButtonSetData updated) async {
     await store.currentProfile.saveButtonSet(updated);
     // TODO - stop re-loading all triggers, only replace the one that changed
-    await store.loadButtonSets();
+    await store.currentProfile.loadButtonSets();
   }
 }
 

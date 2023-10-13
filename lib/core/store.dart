@@ -13,12 +13,9 @@ import 'color_utils.dart';
 import 'consts.dart';
 import 'features/action.dart';
 import 'features/alias.dart';
-import 'features/game_button_set.dart';
+import 'features/keyboard_shortcuts.dart';
 import 'features/profile.dart';
 import 'features/settings.dart';
-import 'features/trigger.dart';
-import 'features/variable.dart';
-import 'keyboard_shortcuts.dart';
 
 const maxLines = 2000;
 
@@ -45,13 +42,8 @@ class GameStore extends ChangeNotifier {
       RegExp("(?<!$commandSeparator)$commandSeparator(?!$commandSeparator)");
 
   // features
-  // TODO - move to MUDProfile and make that reactive
-  Settings settings = Settings.empty();
-  final List<Trigger> triggers = [];
-  final List<Alias> aliases = [];
-  final Map<String, Variable> variables = {};
-  final List<GameButtonSetData> buttonSets = [];
   KeyboardShortcuts keyboardShortcuts = KeyboardShortcuts.empty();
+  Settings settings = Settings.empty();
 
   MUDProfile get currentProfile => _currentProfile!;
 
@@ -82,56 +74,30 @@ class GameStore extends ChangeNotifier {
       onData: onData,
       onError: onError,
     );
-    await Future.wait([
-      loadTriggers(),
-      loadAliases(),
-      loadVariables(),
-      loadButtonSets(),
+    await Future.wait(<Future<dynamic>>[
+      currentProfile.load(),
       loadKeyboardShortcuts(),
-
       loadSettings(),
     ]);
     _client.connect();
+    notifyListeners();
   }
 
-  Future<void> loadTriggers() async {
-    debugPrint('loadTriggers');
-    final list = await currentProfile.loadTriggers();
-    triggers.clear();
-    triggers.addAll(list);
-    notifyListeners();
-    debugPrint('Triggers: ${triggers.length}');
+  Future<KeyboardShortcuts> getKeyboardShortcuts() async {
+    debugPrint('MUDProfile.loadKeyboardShortcuts: ${currentProfile.id}');
+    // TODO use global storage (not profile specific)
+    final shortcuts = await ProfileStorage.readProfileFile(
+        currentProfile.id, 'keyboard_shortcuts');
+    if (shortcuts == null) {
+      return KeyboardShortcuts.empty();
+    }
+    return KeyboardShortcuts.fromJson(shortcuts);
   }
 
-  Future<void> loadAliases() async {
-    final list = await currentProfile.loadAliases();
-    aliases.clear();
-    aliases.addAll(list);
-    notifyListeners();
-    debugPrint('Aliases: ${aliases.length}');
-  }
-
-  Future<void> loadVariables() async {
-    final list = await currentProfile.loadVariables();
-    variables.clear();
-    variables.addAll(Map.fromEntries(list.map((e) => MapEntry(e.name, e))));
-    notifyListeners();
-    debugPrint('Variables: ${variables.length}');
-  }
-
-  Future<void> loadButtonSets() async {
-    final list = await currentProfile.loadButtonSets();
-    buttonSets.clear();
-    buttonSets.addAll(list);
-    notifyListeners();
-    debugPrint('ButtonSets: ${buttonSets.length}');
-  }
-
-  Future<void> loadKeyboardShortcuts() async {
-    final shortcuts = await currentProfile.loadKeyboardShortcuts();
-    keyboardShortcuts = shortcuts;
-    notifyListeners();
-    debugPrint('KeyboardShortcuts loaded');
+  Future<void> saveKeyboardShortcuts(KeyboardShortcuts shortcuts) async {
+    debugPrint('MUDProfile.saveKeyboardShortcuts: ${currentProfile.id}');
+    return ProfileStorage.writeProfileFile(
+        currentProfile.id, 'keyboard_shortcuts', shortcuts.toJson());
   }
 
   Future<void> loadSettings() async {
@@ -141,10 +107,17 @@ class GameStore extends ChangeNotifier {
     debugPrint('Settings loaded');
   }
 
+  Future<void> loadKeyboardShortcuts() async {
+    final shortcuts = await getKeyboardShortcuts();
+    keyboardShortcuts = shortcuts;
+    notifyListeners();
+    debugPrint('KeyboardShortcuts loaded');
+  }
+
   bool processTriggers(String line) {
     bool showLine = true;
     final str = ColorUtils.stripColor(line);
-    for (final trigger in triggers) {
+    for (final trigger in currentProfile.triggers) {
       if (!trigger.isAvailable) {
         continue;
       }
@@ -164,7 +137,7 @@ class GameStore extends ChangeNotifier {
   bool processAliases(String line) {
     bool sendLine = true;
     final str = line;
-    for (final alias in [...builtInAliases, ...aliases]) {
+    for (final alias in [...builtInAliases, ...currentProfile.aliases]) {
       if (!alias.isAvailable) {
         continue;
       }
