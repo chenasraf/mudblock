@@ -20,16 +20,7 @@ class GameButtonSet extends StatelessWidget {
       alignment: data.alignment,
       child: IconTheme(
         data: IconTheme.of(context).copyWith(size: 32),
-        child: Builder(
-          builder: (context) {
-            final containerSize = data.size;
-            return SizedBox(
-              width: containerSize.width,
-              height: containerSize.height,
-              child: _buildButtonContainer(context),
-            );
-          },
-        ),
+        child: Builder(builder: _buildButtonContainer),
       ),
     );
   }
@@ -41,11 +32,13 @@ class GameButtonSet extends StatelessWidget {
       crossAxisCount: data.crossAxisCount,
       spacing: data.spacing,
       count: data.buttons.length,
-      size: data.size,
       alignment: data.alignment,
       builder: (context, index) => data.buttons[index] != null
           ? GameButton(data: data.buttons[index]!)
-          : Container(),
+          : const SizedBox(
+              width: GameButtonData.defaultSize,
+              height: GameButtonData.defaultSize,
+            ),
     );
   }
 
@@ -57,7 +50,6 @@ class GameButtonSet extends StatelessWidget {
     required int? crossAxisCount,
     required Alignment alignment,
     required double spacing,
-    required Size size,
   }) {
     final buttonWidgets = List.generate(
       count,
@@ -70,17 +62,41 @@ class GameButtonSet extends StatelessWidget {
       case GameButtonSetType.row:
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: buttonWidgets,
         );
       case GameButtonSetType.column:
         return Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: buttonWidgets,
         );
       case GameButtonSetType.grid:
-        return GridView.count(
-          crossAxisCount: crossAxisCount ?? 3,
-          children: buttonWidgets,
+        final rows = <List<Widget>>[];
+        final rowCount = (count / crossAxisCount!).ceil();
+        for (var i = 0; i < rowCount; i++) {
+          final row = <Widget>[];
+          for (var j = 0; j < crossAxisCount; j++) {
+            final index = i * crossAxisCount + j;
+            if (index < count) {
+              row.add(buttonWidgets[index]);
+            } else {
+              row.add(Container());
+            }
+          }
+          rows.add(row);
+        }
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: rows
+              .map((row) => Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: row,
+                  ))
+              .toList(),
         );
     }
   }
@@ -120,8 +136,6 @@ class GameButtonSetData {
         type: GameButtonSetType.row,
         buttons: [],
       );
-
-  Size get size => Size(calculateWidth(), calculateHeight());
 
   List<GameButtonData> get nonEmptyButtons =>
       buttons.whereType<GameButtonData>().toList();
@@ -190,52 +204,52 @@ class GameButtonSetData {
         group: group ?? this.group,
       );
 
-  double calculateWidth() {
-    switch (type) {
-      case GameButtonSetType.row:
-        return sumSize(buttons) + (buttons.length - 1) * spacing;
-      case GameButtonSetType.column:
-        return maxSize(buttons) + spacing;
-      case GameButtonSetType.grid:
-        final colWidths = List.generate(
-          colCount,
-          (index) => maxSize(getColumnButtons(index)),
-        );
-
-        return colWidths.fold<double>(0, (sum, width) => sum + width) +
-            (colCount - 0) * spacing;
-    }
-  }
-
-  double calculateHeight() {
-    switch (type) {
-      case GameButtonSetType.row:
-        return maxSize(buttons) + spacing;
-      case GameButtonSetType.column:
-        return sumSize(buttons) + (buttons.length - 1) * spacing;
-      case GameButtonSetType.grid:
-        final rowHeights = List.generate(
-          rowCount,
-          (index) => maxSize(getRowButtons(index)),
-        );
-        return rowHeights.fold<double>(0, (sum, height) => sum + height) +
-            (rowCount - 0) * spacing;
-    }
-  }
-
-  double maxSize(List<GameButtonData?> buttons) {
-    return buttons.fold<double>(
-      0,
-      (sum, button) => max(sum, button?.size ?? GameButtonData.defaultSize),
-    );
-  }
-
-  double sumSize(List<GameButtonData?> buttons) {
-    return buttons.fold<double>(
-      0,
-      (sum, button) => sum + (button?.size ?? GameButtonData.defaultSize),
-    );
-  }
+  // double calculateWidth() {
+  //   switch (type) {
+  //     case GameButtonSetType.row:
+  //       return sumSize(buttons) + buttons.length * spacing;
+  //     case GameButtonSetType.column:
+  //       return maxSize(buttons) + spacing;
+  //     case GameButtonSetType.grid:
+  //       final colWidths = List.generate(
+  //         colCount,
+  //         (index) => maxSize(getColumnButtons(index)),
+  //       );
+  //
+  //       return colWidths.fold<double>(
+  //           0, (sum, width) => sum + width + (spacing / 2));
+  //   }
+  // }
+  //
+  // double calculateHeight() {
+  //   switch (type) {
+  //     case GameButtonSetType.row:
+  //       return maxSize(buttons) + spacing;
+  //     case GameButtonSetType.column:
+  //       return sumSize(buttons) + buttons.length * spacing;
+  //     case GameButtonSetType.grid:
+  //       final rowHeights = List.generate(
+  //         rowCount,
+  //         (index) => maxSize(getRowButtons(index)),
+  //       );
+  //       return rowHeights.fold<double>(
+  //           0, (sum, height) => sum + height + (spacing / 2));
+  //   }
+  // }
+  //
+  // double maxSize(List<GameButtonData?> buttons) {
+  //   return buttons.fold<double>(
+  //     0,
+  //     (sum, button) => max(sum, button?.size ?? GameButtonData.defaultSize),
+  //   );
+  // }
+  //
+  // double sumSize(List<GameButtonData?> buttons) {
+  //   return buttons.fold<double>(
+  //     0,
+  //     (sum, button) => sum + (button?.size ?? GameButtonData.defaultSize),
+  //   );
+  // }
 
   List<GameButtonData?> getRowButtons(int row) =>
       getRowIndices(row).map((index) => buttons[index]).toList(growable: false);

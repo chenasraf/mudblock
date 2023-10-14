@@ -29,18 +29,19 @@ class _ButtonSetEditorState extends State<ButtonSetEditor> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return _buildContainer(
       context,
       (context, index) {
-        final theme = Theme.of(context);
         final button = data.buttons[index];
         final size = button?.size ?? GameButtonData.defaultSize;
         final Widget child = button != null
             ? FakeGameButton(label: button.label)
-            : const Icon(Icons.add, color: Colors.white);
+            : SizedBox.square(
+                dimension: size,
+                child: const Icon(Icons.add, color: Colors.white),
+              );
         return Container(
-          height: size,
-          width: size,
           decoration: BoxDecoration(
             color: button == null
                 ? theme.dividerColor.withOpacity(0.2)
@@ -52,7 +53,6 @@ class _ButtonSetEditorState extends State<ButtonSetEditor> {
               style: BorderStyle.solid,
             ),
           ),
-          // color: Colors.grey,
           child: GameButtonWrapper(
             size: size,
             isEmpty: button == null,
@@ -280,14 +280,8 @@ class _ButtonSetEditorState extends State<ButtonSetEditor> {
     BuildContext context,
     Widget Function(BuildContext context, int index) builder,
   ) {
-    final size = Size(
-      data.size.width + data.spacing * 6,
-      data.size.height + data.spacing * 10,
-    );
     return Center(
       child: Container(
-        width: size.width,
-        height: size.height,
         decoration: BoxDecoration(
           color: Colors.black,
           borderRadius: BorderRadius.circular(16),
@@ -298,10 +292,9 @@ class _ButtonSetEditorState extends State<ButtonSetEditor> {
             child: GameButtonSet.buildContainer(
               context: context,
               type: data.type,
-              size: data.size,
               count: data.buttons.length,
               crossAxisCount: data.crossAxisCount,
-              spacing: data.spacing / 3,
+              spacing: data.spacing / 4,
               alignment: data.alignment,
               builder: builder,
             ),

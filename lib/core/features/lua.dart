@@ -65,11 +65,9 @@ class LuaBindings {
 
   int gsub(LuaState ls) {
     final source = ls.checkString(1)!;
-    // ls.pop(1);
     final find = ls.checkString(2)!;
-    // ls.pop(1);
     final replace = ls.checkString(3)!;
-    // ls.pop(1);
+    ls.pop(3);
     debugPrint("lua string.gsub $source, $find, $replace");
 
     ls.pushString(source.replaceAll(find, replace));

@@ -16,6 +16,7 @@ class MUDAction {
   String content;
   Automation? parent;
   MUDActionTarget target;
+
   MUDAction(
     this.content, {
     this.target = MUDActionTarget.execute,
@@ -35,6 +36,7 @@ class MUDAction {
       case MUDActionTarget.world:
         debugPrint('ActionSendTo.world: $content');
         store.send(content);
+        // if (parent == null || !parent!.isRemovedFromBuffer) {
         if (parent != null && !parent!.isRemovedFromBuffer) {
           store.echoOwn(content);
         }
@@ -42,6 +44,7 @@ class MUDAction {
       case MUDActionTarget.execute:
         debugPrint('ActionSendTo.execute: $content');
         store.execute(content);
+        // if (parent == null || !parent!.isRemovedFromBuffer) {
         if (parent != null && !parent!.isRemovedFromBuffer) {
           store.echoOwn(content);
         }
