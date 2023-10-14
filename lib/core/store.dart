@@ -21,14 +21,14 @@ const maxLines = 2000;
 
 class GameStore extends ChangeNotifier {
   final List<String> _lines = [];
-  late CTelnetClient _client;
+  CTelnetClient get _client => _clientRef!;
+  CTelnetClient? _clientRef;
   final ScrollController scrollController = ScrollController();
   final TextEditingController input = TextEditingController();
   final FocusNode inputFocus = FocusNode();
   bool isCompressed = false;
   final ZLibDecoder decoder = ZLibDecoder();
   final incomingMsgSplitPattern = RegExp("($cr$lf)|($lf$cr)|$cr|$lf");
-  // accepts csp but NOT double csp
   final ZLibCodec _decoder = ZLibCodec();
   final StreamController<List<int>> _rawStreamController = StreamController();
   late Stream<List<int>> _decodedStream;
@@ -38,6 +38,8 @@ class GameStore extends ChangeNotifier {
   bool _clientReady = false;
 
   String get commandSeparator => currentProfile.settings.commandSeparator;
+
+  /// accepts csp but NOT double csp
   RegExp get outgoingMsgSplitPattern =>
       RegExp("(?<!$commandSeparator)$commandSeparator(?!$commandSeparator)");
 
@@ -53,18 +55,19 @@ class GameStore extends ChangeNotifier {
 
   void showConnectionDialog(BuildContext context) async {
     final profile = await showDialog<MUDProfile?>(
-        context: context,
-        builder: (context) {
-          return const SelectProfilePage();
-        });
+      context: context,
+      builder: (context) => const SelectProfilePage(),
+    );
     if (profile == null) {
       return;
     }
-    _currentProfile?.removeListener(notifyListeners);
+    _currentProfile?.removeListener(onProfileUpdate);
     _currentProfile = profile;
-    currentProfile.addListener(notifyListeners);
-    echo('Connecting...');
-    _client = CTelnetClient(
+    currentProfile.addListener(onProfileUpdate);
+
+    await _clientRef?.disconnect();
+
+    _clientRef = CTelnetClient(
       host: currentProfile.host,
       port: currentProfile.port,
       onConnect: _onConnect,
@@ -73,6 +76,7 @@ class GameStore extends ChangeNotifier {
       onError: onError,
     );
     await currentProfile.load();
+    echoSystem('Connecting...');
     _client.connect();
     notifyListeners();
   }
@@ -117,7 +121,7 @@ class GameStore extends ChangeNotifier {
 
   Future<void> _onConnect() async {
     _clientReady = true;
-    echo('Connected');
+    echoSystem('Connected');
     if (currentProfile.authMethod != AuthMethod.none &&
         currentProfile.username.isNotEmpty &&
         currentProfile.password.isNotEmpty) {
@@ -142,7 +146,7 @@ class GameStore extends ChangeNotifier {
   }
 
   void onDisconnect() {
-    echo('Disconnected');
+    echoSystem('Disconnected');
   }
 
   void onRawData(List<int> bytes) {
@@ -154,8 +158,9 @@ class GameStore extends ChangeNotifier {
       }
     } catch (e, stack) {
       debugPrint('error: $e$newline$stack');
-      echo(String.fromCharCodes(bytes));
-      echo('Error: $e');
+      echoError('Error: $e');
+      echoError('The original line was:');
+      echoError(String.fromCharCodes(bytes));
     }
   }
 
@@ -234,16 +239,17 @@ class GameStore extends ChangeNotifier {
 
   /// echoOwn - same as echo, but with predefined color
   void echoOwn(String line) {
-    _lines.add('$esc[93m$line');
-    notifyListeners();
-    scrollToEnd();
+    echo('$esc[93m$line');
   }
 
   /// echoSystem - same as echo, but with predefined color
   void echoSystem(String line) {
-    _lines.add('$esc[92m$line');
-    notifyListeners();
-    scrollToEnd();
+    echo('$esc[96m$line');
+  }
+
+  /// echoError - same as echo, but with predefined color
+  void echoError(String line) {
+    echo('$esc[31;1m$line');
   }
 
   /// sendBytes - raw send bytes - DOES NOT split by outgoingMsgSplitPattern, no processing
@@ -427,6 +433,10 @@ class GameStore extends ChangeNotifier {
       echoSystem('<no changes>');
     }
     echoSystem('');
+  }
+
+  void onProfileUpdate() {
+    notifyListeners();
   }
 }
 

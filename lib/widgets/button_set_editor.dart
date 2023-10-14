@@ -52,6 +52,7 @@ class _ButtonSetEditorState extends State<ButtonSetEditor> {
                   onSave: (data) {
                     setState(() {
                       this.data.buttons[index] = data;
+                      widget.onUpdate(this.data);
                     });
                   },
                 ),
@@ -65,6 +66,7 @@ class _ButtonSetEditorState extends State<ButtonSetEditor> {
                   onSave: (data) {
                     setState(() {
                       this.data.buttons[index] = data;
+                      widget.onUpdate(this.data);
                     });
                   },
                 ),

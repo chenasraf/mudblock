@@ -63,7 +63,9 @@ class _ButtonEditorDialogState extends State<ButtonEditorDialog> {
                               label: Text(capitalize(interaction.name)),
                             ),
                             onChanged: (value) {
-                              data.setAction(interaction, MUDAction(value));
+                              setState(() {
+                                data.setAction(interaction, MUDAction(value));
+                              });
                             },
                           ),
                         ),
@@ -115,3 +117,4 @@ class _ButtonEditorDialogState extends State<ButtonEditorDialog> {
     );
   }
 }
+

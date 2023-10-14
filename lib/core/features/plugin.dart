@@ -88,35 +88,70 @@ class PluginBase extends ChangeNotifier {
 
   Future<void> saveAlias(Alias alias) async {
     debugPrint('MUDProfile.saveAlias: $id/aliases/${alias.id}');
+    notifyListeners();
+    final idx = aliases.indexWhere((a) => a.id == alias.id);
+    if (idx >= 0) {
+      aliases[idx] = alias;
+    } else {
+      aliases.add(alias);
+    }
     return ProfileStorage.writeProfileFile(
         id, 'aliases/${alias.id}', alias.toJson());
   }
 
   Future<void> deleteAlias(Alias alias) async {
     debugPrint('MUDProfile.deleteAlias: $id/aliases/${alias.id}');
+    final idx = aliases.indexWhere((a) => a.id == alias.id);
+    if (idx >= 0) {
+      aliases.removeAt(idx);
+    }
+    notifyListeners();
     return ProfileStorage.deleteProfileFile(id, 'aliases/${alias.id}');
   }
 
   Future<void> saveTrigger(Trigger trigger) async {
     debugPrint('MUDProfile.saveTrigger: $id/triggers/${trigger.id}');
+    final idx = triggers.indexWhere((a) => a.id == trigger.id);
+    if (idx >= 0) {
+      triggers[idx] = trigger;
+    } else {
+      triggers.add(trigger);
+    }
+    notifyListeners();
     return ProfileStorage.writeProfileFile(
         id, 'triggers/${trigger.id}', trigger.toJson());
   }
 
   Future<void> deleteTrigger(Trigger trigger) async {
     debugPrint('MUDProfile.deleteTrigger: $id/triggers/${trigger.id}');
+    final idx = triggers.indexWhere((a) => a.id == trigger.id);
+    if (idx >= 0) {
+      triggers.removeAt(idx);
+    }
+    notifyListeners();
     return ProfileStorage.deleteProfileFile(id, 'triggers/${trigger.id}');
   }
 
   Future<void> saveButtonSet(GameButtonSetData buttonSet) async {
     debugPrint('MUDProfile.saveButtonSet: $id/button_sets/${buttonSet.id}');
+    final idx = buttonSets.indexWhere((a) => a.id == buttonSet.id);
+    if (idx >= 0) {
+      buttonSets[idx] = buttonSet;
+    } else {
+      buttonSets.add(buttonSet);
+    }
+    notifyListeners();
     return ProfileStorage.writeProfileFile(
         id, 'button_sets/${buttonSet.id}', buttonSet.toJson());
   }
 
-
   Future<void> deleteButtonSet(GameButtonSetData buttonSet) async {
     debugPrint('MUDProfile.deleteButtonSet: $id/button_sets/${buttonSet.id}');
+    final idx = buttonSets.indexWhere((a) => a.id == buttonSet.id);
+    if (idx >= 0) {
+      buttonSets.removeAt(idx);
+    }
+    notifyListeners();
     return ProfileStorage.deleteProfileFile(id, 'button_sets/${buttonSet.id}');
   }
 
@@ -130,6 +165,7 @@ class PluginBase extends ChangeNotifier {
     } else {
       current.add(update);
     }
+    notifyListeners();
     return ProfileStorage.writeProfileFile(
       id,
       'vars',
@@ -145,6 +181,7 @@ class PluginBase extends ChangeNotifier {
     if (existing >= 0) {
       current.removeAt(existing);
     }
+    notifyListeners();
     return ProfileStorage.writeProfileFile(
       id,
       'vars',
