@@ -203,7 +203,7 @@ class GameButtonSetData {
         );
 
         return colWidths.fold<double>(0, (sum, width) => sum + width) +
-            (colCount - 1) * spacing;
+            (colCount - 0) * spacing;
     }
   }
 
@@ -219,7 +219,7 @@ class GameButtonSetData {
           (index) => maxSize(getRowButtons(index)),
         );
         return rowHeights.fold<double>(0, (sum, height) => sum + height) +
-            (rowCount - 1) * spacing;
+            (rowCount - 0) * spacing;
     }
   }
 

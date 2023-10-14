@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/gestures/events.dart';
 import '../color_utils.dart';
 import '../platform_utils.dart';
 import '../store.dart';
@@ -252,6 +251,7 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
   Offset? _dragEnd;
   bool isHovering = false;
   bool isClicking = false;
+  DateTime? _startDragTime;
 
   //
   GameButtonData get data => widget.data;
@@ -431,19 +431,33 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
     });
   }
 
-  void _onPointerUp(PointerUpEvent event) {
-    _callCurrentDirection();
-    setState(() {
-      isClicking = false;
-      _direction = GameButtonInteraction.press;
-    });
-  }
-
   void _onPointerDown(PointerDownEvent event) {
     _dragStart = event.position;
     setState(() {
       isClicking = true;
       _direction = GameButtonInteraction.press;
+      _startDragTime = DateTime.now();
+    });
+  }
+
+  void _onPointerUp(PointerUpEvent event) {
+    final moveDist = (_dragStart! - event.position).distance;
+    final timeDiff = DateTime.now().difference(_startDragTime!);
+
+    // TODO currently this waits for mouse up,
+    //      but it should be changed to detect if mouse is still down
+    //      and still call the action after the timeout, if min dist is reached
+    if (timeDiff > const Duration(milliseconds: 200) &&
+        moveDist < _dragMinDist) {
+      _callAction(data.longPressAction);
+    } else {
+      _callCurrentDirection();
+    }
+
+    setState(() {
+      isClicking = false;
+      _direction = GameButtonInteraction.press;
+      _startDragTime = null;
     });
   }
 

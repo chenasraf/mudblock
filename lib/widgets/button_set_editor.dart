@@ -60,10 +60,10 @@ class _ButtonSetEditorState extends State<ButtonSetEditor> {
               showDialog(
                 context: context,
                 builder: (context) => ButtonEditorDialog(
-                  onSave: (data) {
+                  onSave: (added) {
                     setState(() {
-                      this.data.buttons[index] = data;
-                      widget.onUpdate(this.data);
+                      data.buttons[index] = added;
+                      widget.onUpdate(data);
                     });
                   },
                 ),
@@ -74,10 +74,10 @@ class _ButtonSetEditorState extends State<ButtonSetEditor> {
                 context: context,
                 builder: (context) => ButtonEditorDialog(
                   data: button,
-                  onSave: (data) {
+                  onSave: (updated) {
                     setState(() {
-                      this.data.buttons[index] = data;
-                      widget.onUpdate(this.data);
+                      data.buttons[index] = updated;
+                      widget.onUpdate(data);
                     });
                   },
                 ),
@@ -86,11 +86,13 @@ class _ButtonSetEditorState extends State<ButtonSetEditor> {
             onDelete: () {
               setState(() {
                 data.buttons.removeAt(index);
+                widget.onUpdate(data);
               });
             },
             onClear: () {
               setState(() {
                 data.buttons[index] = null;
+                widget.onUpdate(data);
               });
             },
             emptySpaceControls: data.type == GameButtonSetType.grid

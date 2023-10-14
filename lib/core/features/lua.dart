@@ -28,6 +28,10 @@ class LuaInterpreter {
     state.setGlobal("GetVariable");
     state.pushDartFunction(bindings.setVariable);
     state.setGlobal("SetVariable");
+    state.pushDartFunction(bindings.setInput);
+    state.setGlobal("SetInput");
+    state.pushDartFunction(bindings.setInputSelection);
+    state.setGlobal("SetInputSelection");
     LuaAliasBindings(store).register(state);
     LuaTriggerBindings(store).register(state);
     LuaButtonSetBindings(store).register(state);
@@ -100,6 +104,23 @@ class LuaBindings {
     );
     return 0;
   }
+
+  int setInput(LuaState ls) {
+    final input = ls.checkString(1)!;
+    ls.pop(1);
+    debugPrint("lua.setInput $input");
+    store.setInput(input);
+    return 0;
+  }
+
+  int setInputSelection(LuaState ls) {
+    final start = ls.checkInteger(1)!;
+    final end = ls.checkInteger(2)!;
+    ls.pop(2);
+    debugPrint("lua.setInputSelection $start, $end");
+    store.setInputSelection(start, end);
+    return 0;
+  }
 }
 
 class LuaAliasBindings extends LuaAutomationBindings<Alias> {
@@ -170,7 +191,17 @@ class LuaButtonSetBindings extends LuaAutomationBindings<GameButtonSetData> {
   final GameStore store;
 
   @override
+  void register(LuaState ls) {
+      super.register(ls);
+      ls.pushDartFunction(swapButtonSetGroup);
+      ls.setGlobal('Swap$groupEntityName');
+    }
+
+  @override
   final entityName = 'ButtonSet';
+
+  @override
+  final groupEntityName = 'ButtonGroup';
 
   @override
   List<GameButtonSetData> getGroup(String group) =>
@@ -193,6 +224,25 @@ class LuaButtonSetBindings extends LuaAutomationBindings<GameButtonSetData> {
     item.enabled = state;
     await store.currentProfile.saveButtonSet(item);
   }
+
+  int swapButtonSetGroup(LuaState ls) {
+    final disable = ls.checkString(1)!;
+    final enable = ls.checkString(2)!;
+    ls.pop(2);
+    debugPrint("lua.SwapButtonGroup $disable, $enable");
+    final profile = store.currentProfile;
+    final disableGroup = profile.buttonSets.where((element) => element.group == disable).toList();
+    final enableGroup = profile.buttonSets.where((element) => element.group == enable).toList();
+    for (final element in disableGroup) {
+      element.enabled = false;
+      profile.saveButtonSet(element);
+    }
+    for (final element in enableGroup) {
+      element.enabled = true;
+      profile.saveButtonSet(element);
+    }
+    return 0;
+  }
 }
 
 abstract class LuaAutomationBindings<T> {
@@ -203,6 +253,7 @@ abstract class LuaAutomationBindings<T> {
   List<T> getGroup(String group);
 
   String get entityName;
+  String get groupEntityName => '${entityName}Group';
 
   void register(LuaState ls) {
     ls.pushDartFunction(enableSingle);
@@ -210,9 +261,9 @@ abstract class LuaAutomationBindings<T> {
     ls.pushDartFunction(disableSingle);
     ls.setGlobal('Disable$entityName');
     ls.pushDartFunction(enableGroup);
-    ls.setGlobal('Enable${entityName}Group');
+    ls.setGlobal('Enable$groupEntityName');
     ls.pushDartFunction(disableGroup);
-    ls.setGlobal('Disable${entityName}Group');
+    ls.setGlobal('Disable$groupEntityName');
   }
 
   int enableSingle(LuaState ls) {

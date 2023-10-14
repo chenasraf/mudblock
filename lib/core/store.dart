@@ -345,6 +345,19 @@ class GameStore extends ChangeNotifier {
     selectInput();
   }
 
+  void setInputSelection(int start, int end) {
+    if (start < 0) {
+      start = input.text.length + start + 1;
+    }
+    if (end < 0) {
+      end = input.text.length + end + 1;
+    }
+    input.selection = TextSelection(
+      baseOffset: start,
+      extentOffset: end,
+    );
+  }
+
   static consumer({
     Widget? child,
     required Widget Function(
