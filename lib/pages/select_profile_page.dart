@@ -42,8 +42,7 @@ class SelectProfilePage extends StatelessWidget with GameStoreMixin {
                                     arguments: profile,
                                   );
                                   if (updated != null) {
-                                    await MUDProfile.save(
-                                        updated as MUDProfile);
+                                    await (updated as MUDProfile).save();
                                     store.loadProfiles();
                                   }
                                 },
@@ -66,3 +65,4 @@ class SelectProfilePage extends StatelessWidget with GameStoreMixin {
     );
   }
 }
+

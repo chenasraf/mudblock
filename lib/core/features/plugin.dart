@@ -7,16 +7,15 @@ import 'trigger.dart';
 import 'variable.dart';
 
 class PluginBase extends ChangeNotifier {
-  final String id;
+  final IStorage<Map<String, dynamic>> storage = JsonStorage();
 
   final List<Trigger> triggers = [];
   final List<Alias> aliases = [];
   final Map<String, Variable> variables = {};
   final List<GameButtonSetData> buttonSets = [];
 
-  PluginBase(this.id);
-
   Future<void> load() async {
+    await storage.init();
     await Future.wait([
       getAliases(),
       getTriggers(),
@@ -31,13 +30,11 @@ class PluginBase extends ChangeNotifier {
   List<Future<void>> additionalLoaders() => [];
 
   Future<List<Trigger>> loadTriggers() async {
-    debugPrint('MUDProfile.loadTriggers: $id');
-    final triggers = await ProfileStorage.listProfileFiles(id, 'triggers');
+    debugPrint('$this loadTriggers');
+    final triggers = await storage.readDirectory('triggers');
     final triggerFiles = <Map<String, dynamic>>[];
     for (final trigger in triggers) {
-      debugPrint('MUDProfile.loadTriggers: $id/triggers/$trigger');
-      final triggerFile =
-          await ProfileStorage.readProfileFile(id, 'triggers/$trigger');
+      final triggerFile = await storage.readFile(trigger);
       if (triggerFile != null) {
         triggerFiles.add(triggerFile);
       }
@@ -46,13 +43,11 @@ class PluginBase extends ChangeNotifier {
   }
 
   Future<List<Alias>> loadAliases() async {
-    debugPrint('MUDProfile.loadAliases: $id');
-    final aliases = await ProfileStorage.listProfileFiles(id, 'aliases');
+    debugPrint('$this loadAliases');
+    final aliases = await storage.readDirectory('aliases');
     final aliasFiles = <Map<String, dynamic>>[];
     for (final alias in aliases) {
-      debugPrint('MUDProfile.loadAliases: $id/aliases/$alias');
-      final aliasFile =
-          await ProfileStorage.readProfileFile(id, 'aliases/$alias');
+      final aliasFile = await storage.readFile(alias);
       if (aliasFile != null) {
         aliasFiles.add(aliasFile);
       }
@@ -61,8 +56,8 @@ class PluginBase extends ChangeNotifier {
   }
 
   Future<List<Variable>> loadVariables() async {
-    debugPrint('MUDProfile.loadVariables: $id');
-    final vars = await ProfileStorage.readProfileFile(id, 'vars');
+    debugPrint('$this loadVariables');
+    final vars = await storage.readFile('vars');
     if (vars == null) {
       return [];
     }
@@ -72,13 +67,11 @@ class PluginBase extends ChangeNotifier {
   }
 
   Future<List<GameButtonSetData>> loadButtonSets() async {
-    debugPrint('MUDProfile.loadButtonSets: $id');
-    final buttonSets = await ProfileStorage.listProfileFiles(id, 'button_sets');
+    debugPrint('$this loadButtonSets');
+    final buttonSets = await storage.readDirectory('button_sets');
     final buttonSetFiles = <Map<String, dynamic>>[];
     for (final buttonSet in buttonSets) {
-      debugPrint('MUDProfile.loadButtonSets: $id/buttonSets/$buttonSet');
-      final buttonSetFile =
-          await ProfileStorage.readProfileFile(id, 'button_sets/$buttonSet');
+      final buttonSetFile = await storage.readFile(buttonSet);
       if (buttonSetFile != null) {
         buttonSetFiles.add(buttonSetFile);
       }
@@ -87,7 +80,7 @@ class PluginBase extends ChangeNotifier {
   }
 
   Future<void> saveAlias(Alias alias) async {
-    debugPrint('MUDProfile.saveAlias: $id/aliases/${alias.id}');
+    debugPrint('$this saveAlias: $alias');
     notifyListeners();
     final idx = aliases.indexWhere((a) => a.id == alias.id);
     if (idx >= 0) {
@@ -95,22 +88,21 @@ class PluginBase extends ChangeNotifier {
     } else {
       aliases.add(alias);
     }
-    return ProfileStorage.writeProfileFile(
-        id, 'aliases/${alias.id}', alias.toJson());
+    return storage.writeFile('aliases/${alias.id}', alias.toJson());
   }
 
   Future<void> deleteAlias(Alias alias) async {
-    debugPrint('MUDProfile.deleteAlias: $id/aliases/${alias.id}');
+    debugPrint('$this deleteAlias: $alias');
     final idx = aliases.indexWhere((a) => a.id == alias.id);
     if (idx >= 0) {
       aliases.removeAt(idx);
     }
     notifyListeners();
-    return ProfileStorage.deleteProfileFile(id, 'aliases/${alias.id}');
+    return storage.deleteFile('aliases/${alias.id}');
   }
 
   Future<void> saveTrigger(Trigger trigger) async {
-    debugPrint('MUDProfile.saveTrigger: $id/triggers/${trigger.id}');
+    debugPrint('$this saveTrigger: $trigger');
     final idx = triggers.indexWhere((a) => a.id == trigger.id);
     if (idx >= 0) {
       triggers[idx] = trigger;
@@ -118,22 +110,21 @@ class PluginBase extends ChangeNotifier {
       triggers.add(trigger);
     }
     notifyListeners();
-    return ProfileStorage.writeProfileFile(
-        id, 'triggers/${trigger.id}', trigger.toJson());
+    return storage.writeFile('triggers/${trigger.id}', trigger.toJson());
   }
 
   Future<void> deleteTrigger(Trigger trigger) async {
-    debugPrint('MUDProfile.deleteTrigger: $id/triggers/${trigger.id}');
+    debugPrint('$this deleteTrigger: $trigger');
     final idx = triggers.indexWhere((a) => a.id == trigger.id);
     if (idx >= 0) {
       triggers.removeAt(idx);
     }
     notifyListeners();
-    return ProfileStorage.deleteProfileFile(id, 'triggers/${trigger.id}');
+    return storage.deleteFile('triggers/${trigger.id}');
   }
 
   Future<void> saveButtonSet(GameButtonSetData buttonSet) async {
-    debugPrint('MUDProfile.saveButtonSet: $id/button_sets/${buttonSet.id}');
+    debugPrint('$this saveButtonSet: $buttonSet');
     final idx = buttonSets.indexWhere((a) => a.id == buttonSet.id);
     if (idx >= 0) {
       buttonSets[idx] = buttonSet;
@@ -141,22 +132,21 @@ class PluginBase extends ChangeNotifier {
       buttonSets.add(buttonSet);
     }
     notifyListeners();
-    return ProfileStorage.writeProfileFile(
-        id, 'button_sets/${buttonSet.id}', buttonSet.toJson());
+    return storage.writeFile('button_sets/${buttonSet.id}', buttonSet.toJson());
   }
 
   Future<void> deleteButtonSet(GameButtonSetData buttonSet) async {
-    debugPrint('MUDProfile.deleteButtonSet: $id/button_sets/${buttonSet.id}');
+    debugPrint('$this deleteButtonSet: $buttonSet');
     final idx = buttonSets.indexWhere((a) => a.id == buttonSet.id);
     if (idx >= 0) {
       buttonSets.removeAt(idx);
     }
     notifyListeners();
-    return ProfileStorage.deleteProfileFile(id, 'button_sets/${buttonSet.id}');
+    return storage.deleteFile('button_sets/${buttonSet.id}');
   }
 
   Future<void> saveVariable(List<Variable> current, Variable update) async {
-    debugPrint('MUDProfile.saveVariable: $id/vars');
+    debugPrint('$this saveVariable: $update');
     final existing = current.indexWhere(
       (v) => v.name == update.name,
     );
@@ -166,15 +156,14 @@ class PluginBase extends ChangeNotifier {
       current.add(update);
     }
     notifyListeners();
-    return ProfileStorage.writeProfileFile(
-      id,
+    return storage.writeFile(
       'vars',
       {'vars': current.map((v) => v.toJson()).toList()},
     );
   }
 
   Future<void> deleteVariable(List<Variable> current, Variable update) async {
-    debugPrint('MUDProfile.deleteVariable: $id/vars');
+    debugPrint('$this deleteVariable: $update');
     final existing = current.indexWhere(
       (v) => v.name == update.name,
     );
@@ -182,8 +171,7 @@ class PluginBase extends ChangeNotifier {
       current.removeAt(existing);
     }
     notifyListeners();
-    return ProfileStorage.writeProfileFile(
-      id,
+    return storage.writeFile(
       'vars',
       {'vars': current.map((v) => v.toJson()).toList()},
     );
@@ -221,18 +209,22 @@ class PluginBase extends ChangeNotifier {
     notifyListeners();
     debugPrint('ButtonSets: ${buttonSets.length}');
   }
+
+  @override
+  String toString() {
+    return 'PluginBase()';
+  }
 }
 
 class Plugin extends PluginBase {
   final String profileId;
+  final String id;
+
+  Plugin(this.profileId, this.id) : _storage = PluginStorage(profileId, id);
 
   @override
-  String get id => _id;
+  IStorage<Map<String, dynamic>> get storage => _storage;
 
-  final String _id;
-
-  Plugin(this.profileId, String id)
-      : _id = id,
-        super('$profileId/$id');
+  final IStorage<Map<String, dynamic>> _storage;
 }
 

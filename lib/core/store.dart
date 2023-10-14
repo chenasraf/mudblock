@@ -36,6 +36,7 @@ class GameStore extends ChangeNotifier {
   late final List<MUDProfile> profiles = [];
   MUDProfile? _currentProfile;
   bool _clientReady = false;
+  final storage = ProfileStorage('');
 
   String get commandSeparator => currentProfile.settings.commandSeparator;
 
@@ -49,6 +50,8 @@ class GameStore extends ChangeNotifier {
 
   Future<GameStore> init() async {
     debugPrint('GameStore.init');
+    await storage.init();
+    debugPrint('storage.init $storage');
     fillStockProfiles();
     return this;
   }
@@ -366,11 +369,11 @@ class GameStore extends ChangeNotifier {
   }
 
   void loadProfiles() async {
-    final list = await ProfileStorage.listAllProfiles();
+    final list = await storage.readDirectory('.');
     profiles.clear();
     debugPrint('loading profiles: $list');
     for (final name in list) {
-      final profile = await ProfileStorage.readProfileFile(name, name);
+      final profile = await storage.readFile(name);
       profiles.add(MUDProfile.fromJson(profile!));
     }
     if (_currentProfile != null) {
@@ -380,20 +383,23 @@ class GameStore extends ChangeNotifier {
   }
 
   void fillStockProfiles() async {
-    final list = await ProfileStorage.listAllProfiles();
+    final list = await storage.readDirectory('.');
     debugPrint('existing profiles: $list');
     if (list.isEmpty) {
       debugPrint('filling stock profiles');
       for (final profile in profilePresets) {
-        await MUDProfile.save(profile);
+        await profile.save();
         profiles.add(profile);
       }
     } else {
       debugPrint('loading profiles: $list');
       for (final name in list) {
-        final profile = await ProfileStorage.readProfileFile(name, name);
+        final profile = await storage.readFile('$name/$name');
+        if (profile == null) {
+          continue;
+        }
         debugPrint('profile: $profile');
-        profiles.add(MUDProfile.fromJson(profile!));
+        profiles.add(MUDProfile.fromJson(profile));
       }
     }
     debugPrint('profiles: ${profiles.map((e) => [e.name, e.password])}');

@@ -6,15 +6,30 @@ import 'package:path/path.dart' as path;
 
 import 'platform_utils.dart';
 
-class FileStorage {
-  static late final String base;
+abstract class IStorage<T> {
+  Future<void> init();
+  Future<T?> readFile(String filename);
+  Future<void> writeFile(String filename, T data);
+  Future<void> deleteFile(String filename);
+  Future<List<String>> readDirectory(String directory);
+  Future<void> deleteDirectory(String directory);
+}
 
-  static Future<void> init() async {
-    base = await PlatformUtils.getStorageBasePath();
-    debugPrint('Storage base: $base');
+class FileStorage<T> implements IStorage<T> {
+  late String base;
+
+  final String _base;
+
+  FileStorage({String? base}) : _base = base ?? '';
+
+  @override
+  Future<void> init() async {
+    base = path.join(await PlatformUtils.getStorageBasePath(), _base);
+    debugPrint('init: $this');
   }
 
-  static Future<String?> readFile(String filename) async {
+  @override
+  Future<T?> readFile(String filename) async {
     debugPrint('Getting file: $filename');
     final file = File(path.join(base, filename));
     var exists = await file.exists();
@@ -22,120 +37,134 @@ class FileStorage {
       debugPrint('File does not exist: $filename');
       return null;
     }
-    return file.readAsString();
+    return file.readAsString() as Future<T>;
   }
 
-  static Future<void> writeFile(String filename, String data) async {
+  @override
+  Future<void> writeFile(String filename, T data) async {
     debugPrint(
         'Setting file: $filename, data: ${data.toString().length} bytes');
     final file = File(path.join(base, filename));
     await file.create(recursive: true);
-    await file.writeAsString(data);
+    if (T == String) {
+      await file.writeAsString(data as String);
+      return;
+    } else if (T == List<int>) {
+      await file.writeAsBytes(data as List<int>);
+      return;
+    }
+    throw Exception('Unsupported type: $T');
   }
 
-  static Future<void> deleteFile(String filename) async {
+  @override
+  Future<void> deleteFile(String filename) async {
     debugPrint('Deleting file: $filename');
     final file = File(path.join(base, filename));
     await file.delete();
   }
 
-  static Future<List<String>> listDirectoryFiles(
-    String collection,
+  @override
+  Future<List<String>> readDirectory(
+    String directory,
   ) async {
-    final dir = Directory(path.join(base, collection));
+    final dir = Directory(path.join(base, directory));
     var exists = await dir.exists();
     if (!exists) {
-      debugPrint('Directory does not exist: $collection');
+      debugPrint('Directory does not exist: $dir');
       return [];
     }
-    // TODO use absolute paths?
     final list = await dir.list().map((e) => path.basename(e.path)).toList();
-    debugPrint('Listing directory: $collection, $list');
+    debugPrint('Base: $base');
+    debugPrint('Listing directory: $dir, $list');
     return list;
   }
 
-  static Future<void> deleteDirectory(String collection) async {
-    debugPrint('Clearing collection: $collection');
-    final dir = Directory(path.join(base, collection));
+  @override
+  Future<void> deleteDirectory(String directory) async {
+    debugPrint('Clearing directory: $directory');
+    final dir = Directory(path.join(base, directory));
     await dir.delete(recursive: true);
   }
+
+  @override
+  String toString() => 'FileStorage(base: $base)';
 }
 
-class JsonStorage {
-  static const encoder = JsonEncoder.withIndent('  ');
-  static const decoder = JsonDecoder();
+class JsonStorage implements IStorage<Map<String, dynamic>> {
+  JsonStorage({String? base}) : _storage = FileStorage(base: base);
 
-  static Future<Map<String, dynamic>?> readFile(String filename) async {
-    final data = await FileStorage.readFile('$filename.json');
+  final FileStorage<String> _storage;
+
+  final encoder = const JsonEncoder.withIndent('  ');
+  final decoder = const JsonDecoder();
+
+  @override
+  Future<void> init() {
+    return _storage.init();
+  }
+
+  String get base => _storage.base;
+
+  @override
+  Future<Map<String, dynamic>?> readFile(String filename) async {
+    final data = await _storage.readFile('$filename.json');
     return data != null ? decoder.convert(data) : null;
   }
 
-  static Future<void> writeFile(
-      String filename, Map<String, dynamic> data) async {
+  @override
+  Future<void> writeFile(String filename, Map<String, dynamic> data) async {
     final output = encoder.convert(data);
-    await FileStorage.writeFile('$filename.json', output);
+    await _storage.writeFile('$filename.json', output);
   }
 
-  static Future<void> deleteFile(String filename) async {
-    await FileStorage.deleteFile('$filename.json');
+  @override
+  Future<void> deleteFile(String filename) async {
+    await _storage.deleteFile('$filename.json');
   }
 
-  static Future<List<Map<String, dynamic>?>> readDirectory(
-    String collection,
+  @override
+  Future<List<String>> readDirectory(
+    String directory,
   ) async {
-    final list = await FileStorage.listDirectoryFiles(collection);
-    return Future.wait(
-      list.map((f) => readFile('$collection/${path.withoutExtension(f)}')),
-    );
+    final list = await _storage.readDirectory(directory);
+    return list.map((f) => '$directory/${path.withoutExtension(f)}').toList();
   }
 
-  static Future<void> deleteDirectory(String collection) async {
-    await FileStorage.deleteDirectory(collection);
+  @override
+  Future<void> deleteDirectory(String directory) async {
+    await _storage.deleteDirectory(directory);
+  }
+
+  @override
+  String toString() {
+    return 'JsonStorage(base: $base)';
   }
 }
 
-class ProfileStorage {
-  static const encoder = JsonEncoder.withIndent('  ');
-  static const decoder = JsonDecoder();
+class ProfileStorage extends JsonStorage {
+  final String profileId;
 
-  static Future<Map<String, dynamic>?> readProfileFile(
-      String profile, String filename) async {
-    return JsonStorage.readFile('profiles/$profile/$filename');
+  ProfileStorage(this.profileId) : super(base: 'profiles/$profileId');
+  ProfileStorage._(this.profileId, String base)
+      : super(base: 'profiles/$profileId/$base');
+
+  @override
+  Future<void> init() async {
+    await super.init();
   }
 
-  static Future<void> writeProfileFile(
-      String profile, String filename, dynamic data) async {
-    await JsonStorage.writeFile('profiles/$profile/$filename', data);
-  }
+  @override
+  String toString() => 'ProfileStorage(profileId: $profileId, base: $base)';
+}
 
-  static Future<void> deleteProfile(String profile) async {
-    await JsonStorage.deleteDirectory('profiles/$profile');
-  }
+class PluginStorage extends ProfileStorage {
+  final String pluginId;
 
-  static Future<void> deleteProfileFile(String profile, String filename) async {
-    await JsonStorage.deleteFile('profiles/$profile/$filename');
-  }
+  PluginStorage(String profileId, this.pluginId)
+      : super._(profileId, 'plugins/$pluginId');
 
-  static Future<List<String>> listAllProfiles() async {
-    final list = await FileStorage.listDirectoryFiles('profiles');
-    return list
-        .where((f) =>
-            Directory(path.join(FileStorage.base, 'profiles', f)).existsSync())
-        .map((f) => path.withoutExtension(f))
-        .toList();
-  }
-
-  static Future<List<String>> listProfileFiles(
-    String profile, [
-    String? directory,
-  ]) async {
-    final dir = directory != null ? '$profile/$directory' : profile;
-    final list = await FileStorage.listDirectoryFiles('profiles/$dir');
-    return list.map((f) => path.withoutExtension(f)).toList();
-  }
-
-  static Future<void> deleteAllProfiles() async {
-    await JsonStorage.deleteDirectory('profiles');
-  }
+  @override
+  String toString() =>
+      'PluginStorage(profileId: $profileId, pluginId: $pluginId, base: $base)';
 }
 

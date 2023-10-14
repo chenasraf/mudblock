@@ -5,14 +5,12 @@ import 'package:window_manager/window_manager.dart';
 
 import 'core/platform_utils.dart';
 import 'core/routes.dart';
-import 'core/storage.dart';
 import 'core/storage/shared_prefs.dart';
 import 'core/store.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await getPrefs();
-  await FileStorage.init();
   await gameStore.init();
   if (PlatformUtils.isDesktop) {
     await windowManager.ensureInitialized();

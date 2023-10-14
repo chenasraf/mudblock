@@ -10,6 +10,8 @@ import 'plugin.dart';
 import 'settings.dart';
 
 class MUDProfile extends PluginBase {
+  final String id;
+
   String name;
   String host;
   int port;
@@ -21,8 +23,13 @@ class MUDProfile extends PluginBase {
   Settings settings = Settings.empty();
   KeyboardShortcuts keyboardShortcuts = KeyboardShortcuts.empty();
 
+  @override
+  IStorage<Map<String, dynamic>> get storage => _storage;
+
+  final IStorage<Map<String, dynamic>> _storage;
+
   MUDProfile({
-    required String id,
+    required this.id,
     required this.name,
     required this.host,
     required this.port,
@@ -30,7 +37,7 @@ class MUDProfile extends PluginBase {
     this.username = '',
     this.password = '',
     this.authMethod = AuthMethod.none,
-  }) : super(id);
+  }) : _storage = ProfileStorage(id);
 
   factory MUDProfile.empty() => MUDProfile(
         id: uuid(),
@@ -96,8 +103,7 @@ class MUDProfile extends PluginBase {
 
   Future<KeyboardShortcuts> loadKeyboardShortcuts() async {
     debugPrint('MUDProfile.loadKeyboardShortcuts: $id');
-    final shortcuts =
-        await ProfileStorage.readProfileFile(id, 'keyboard_shortcuts');
+    final shortcuts = await storage.readFile('keyboard_shortcuts');
     debugPrint('MUDProfile.loadKeyboardShortcuts: $shortcuts');
     if (shortcuts == null) {
       return KeyboardShortcuts.empty();
@@ -109,8 +115,7 @@ class MUDProfile extends PluginBase {
     debugPrint('MUDProfile.saveKeyboardShortcuts: $id');
     keyboardShortcuts = shortcuts;
     notifyListeners();
-    return ProfileStorage.writeProfileFile(
-        id, 'keyboard_shortcuts', shortcuts.toJson());
+    return storage.writeFile('keyboard_shortcuts', shortcuts.toJson());
   }
 
   Future<void> getKeyboardShortcuts() async {
@@ -122,7 +127,7 @@ class MUDProfile extends PluginBase {
 
   Future<Settings> loadSettings() async {
     debugPrint('MUDProfile.loadSettings');
-    final settings = await ProfileStorage.readProfileFile(id, 'settings');
+    final settings = await storage.readFile('settings');
     debugPrint('MUDProfile.loadSettings: $settings');
     if (settings == null) {
       return Settings.empty();
@@ -141,13 +146,12 @@ class MUDProfile extends PluginBase {
     debugPrint('MUDProfile.saveSettings');
     this.settings = settings;
     notifyListeners();
-    return ProfileStorage.writeProfileFile(id, 'settings', settings.toJson());
+    return storage.writeFile('settings', settings.toJson());
   }
 
-  static Future<void> save(MUDProfile profile) async {
-    debugPrint('MUDProfile.save: ${profile.id}');
-    return ProfileStorage.writeProfileFile(
-        profile.id, profile.id, (profile.toJson()));
+  Future<void> save() async {
+    debugPrint('MUDProfile.save: ${id}');
+    return storage.writeFile(id, toJson());
   }
 
   static final encKey = enc.Key.fromUtf8(pwdKey);
@@ -159,7 +163,6 @@ class MUDProfile extends PluginBase {
       return '';
     }
     final encrypted = encrypter.encrypt(password, iv: iv);
-    // debugPrint('MUDProfile.encrypt: $password -> ${encrypted.base64}');
     return '${encrypted.base64}:${iv.base64}';
   }
 
@@ -171,10 +174,8 @@ class MUDProfile extends PluginBase {
       final ivStr = password.substring(password.indexOf(':') + 1);
       final iv = enc.IV.fromBase64(ivStr);
       password = password.substring(0, password.indexOf(':'));
-      // debugPrint('MUDProfile.decrypt: $password');
       final encrypted = enc.Encrypted.fromBase64(password);
       final decrypted = encrypter.decrypt(encrypted, iv: iv);
-      // debugPrint('MUDProfile.decrypt: $decrypted');
       return decrypted;
     } catch (e, stack) {
       debugPrint('MUDProfile.decrypt: $e$lf$stack');
