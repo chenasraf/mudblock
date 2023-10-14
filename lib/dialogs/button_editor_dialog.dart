@@ -60,7 +60,7 @@ class _ButtonEditorDialogState extends State<ButtonEditorDialog> {
                             initialValue:
                                 data.getAction(interaction)?.content ?? '',
                             decoration: InputDecoration(
-                              label: Text(capitalize(interaction.name)),
+                              label: Text(interaction.name.capitalize()),
                             ),
                             onChanged: (value) {
                               setState(() {

@@ -29,7 +29,7 @@ class PluginBase extends ChangeNotifier {
 
   List<Future<void>> additionalLoaders() => [];
 
-  Future<List<Trigger>> loadTriggers() async {
+  Future<List<Trigger>> _loadTriggers() async {
     debugPrint('$this loadTriggers');
     final triggers = await storage.readDirectory('triggers');
     final triggerFiles = <Map<String, dynamic>>[];
@@ -42,7 +42,7 @@ class PluginBase extends ChangeNotifier {
     return triggerFiles.map((e) => Trigger.fromJson(e)).toList();
   }
 
-  Future<List<Alias>> loadAliases() async {
+  Future<List<Alias>> _loadAliases() async {
     debugPrint('$this loadAliases');
     final aliases = await storage.readDirectory('aliases');
     final aliasFiles = <Map<String, dynamic>>[];
@@ -145,41 +145,29 @@ class PluginBase extends ChangeNotifier {
     return storage.deleteFile('button_sets/${buttonSet.id}');
   }
 
-  Future<void> saveVariable(List<Variable> current, Variable update) async {
+  Future<void> saveVariable(Variable update) async {
     debugPrint('$this saveVariable: $update');
-    final existing = current.indexWhere(
-      (v) => v.name == update.name,
-    );
-    if (existing >= 0) {
-      current[existing] = update;
-    } else {
-      current.add(update);
-    }
+    variables[update.name] = update;
     notifyListeners();
     return storage.writeFile(
       'vars',
-      {'vars': current.map((v) => v.toJson()).toList()},
+      {'vars': variables.values.map((v) => v.toJson()).toList()},
     );
   }
 
-  Future<void> deleteVariable(List<Variable> current, Variable update) async {
+  Future<void> deleteVariable(Variable update) async {
     debugPrint('$this deleteVariable: $update');
-    final existing = current.indexWhere(
-      (v) => v.name == update.name,
-    );
-    if (existing >= 0) {
-      current.removeAt(existing);
-    }
+    variables.remove(update.name);
     notifyListeners();
     return storage.writeFile(
       'vars',
-      {'vars': current.map((v) => v.toJson()).toList()},
+      {'vars': variables.values.map((v) => v.toJson()).toList()},
     );
   }
 
   Future<void> getTriggers() async {
     debugPrint('loadTriggers');
-    final list = await loadTriggers();
+    final list = await _loadTriggers();
     triggers.clear();
     triggers.addAll(list);
     notifyListeners();
@@ -187,7 +175,7 @@ class PluginBase extends ChangeNotifier {
   }
 
   Future<void> getAliases() async {
-    final list = await loadAliases();
+    final list = await _loadAliases();
     aliases.clear();
     aliases.addAll(list);
     notifyListeners();

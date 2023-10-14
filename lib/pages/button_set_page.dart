@@ -27,6 +27,7 @@ class _GameButtonSetPageState extends State<GameButtonSetPage> {
   @override
   Widget build(BuildContext context) {
     final platformWindowName = PlatformUtils.isDesktop ? 'window' : 'screen';
+    final interaction = PlatformUtils.isDesktop ? 'Click' : 'Tap';
     return Scaffold(
       appBar: AppBar(
         title: const Text('Button Set'),
@@ -77,7 +78,7 @@ class _GameButtonSetPageState extends State<GameButtonSetPage> {
                             .map(
                               (e) => DropdownMenuEntry(
                                 value: e,
-                                label: capitalize(e.name),
+                                label: e.name.capitalize(),
                               ),
                             )
                             .toList(),
@@ -105,7 +106,7 @@ class _GameButtonSetPageState extends State<GameButtonSetPage> {
                             .map(
                               (e) => DropdownMenuEntry(
                                 value: e,
-                                label: capitalize(e.toString().split('.')[1]),
+                                label: (e.toString().split('.')[1]).capitalize(),
                               ),
                             )
                             .toList(),
@@ -116,12 +117,26 @@ class _GameButtonSetPageState extends State<GameButtonSetPage> {
                         },
                       ),
                       const SizedBox(height: 16),
+                      Text(
+                        'Buttons',
+                        style: Theme.of(context).textTheme.titleLarge!,
+                        textAlign: TextAlign.center,
+                      ),
+                      Text(
+                        '''
+                        $interaction a space (with +) to add buttons.
+                        $interaction a button to edit it, or add buttons next to it.
+                        '''.trimMultiline(),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
                       ButtonSetEditor(
                         key: Key(buttonSet.type.name),
                         data: buttonSet,
                         onUpdate: (data) {
                           setState(() {
-                            buttonSet = buttonSet.copyWith(buttons: data.buttons);
+                            buttonSet =
+                                buttonSet.copyWith(buttons: data.buttons);
                           });
                         },
                       ),

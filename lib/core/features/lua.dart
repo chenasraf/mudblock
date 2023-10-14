@@ -96,7 +96,6 @@ class LuaBindings {
     }
     profile.variables[name]!.value = value;
     profile.saveVariable(
-      profile.variables.values.toList(),
       profile.variables[name]!,
     );
     return 0;
@@ -125,14 +124,12 @@ class LuaAliasBindings extends LuaAutomationBindings<Alias> {
       i.enabled = state;
       return store.currentProfile.saveAlias(i);
     }));
-    return store.currentProfile.getAliases();
   }
 
   @override
   Future<void> saveSingle(Alias item, bool state) async {
     item.enabled = state;
     await store.currentProfile.saveAlias(item);
-    return store.currentProfile.getAliases();
   }
 }
 
@@ -158,14 +155,12 @@ class LuaTriggerBindings extends LuaAutomationBindings<Trigger> {
       i.enabled = state;
       return store.currentProfile.saveTrigger(i);
     }));
-    return store.currentProfile.getTriggers();
   }
 
   @override
   Future<void> saveSingle(Trigger item, bool state) async {
     item.enabled = state;
     await store.currentProfile.saveTrigger(item);
-    return store.currentProfile.getTriggers();
   }
 }
 
@@ -191,14 +186,12 @@ class LuaButtonSetBindings extends LuaAutomationBindings<GameButtonSetData> {
       i.enabled = state;
       return store.currentProfile.saveButtonSet(i);
     }));
-    return store.currentProfile.getTriggers();
   }
 
   @override
   Future<void> saveSingle(GameButtonSetData item, bool state) async {
     item.enabled = state;
     await store.currentProfile.saveButtonSet(item);
-    return store.currentProfile.getTriggers();
   }
 }
 

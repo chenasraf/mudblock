@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/features/alias.dart';
 import '../core/features/trigger.dart';
 import '../core/store.dart';
+import '../pages/about_page.dart';
 import '../pages/alias_list_page.dart';
 import '../pages/alias_page.dart';
 import '../pages/button_set_page.dart';
@@ -43,6 +44,7 @@ class Paths {
   static const shortcuts = '/shortcuts';
 
   static const settings = '/settings';
+  static const about = '/about';
 }
 
 final routes = <String, Widget Function(BuildContext)>{
@@ -89,7 +91,12 @@ final routes = <String, Widget Function(BuildContext)>{
 
   // variables
   Paths.variables: (context) => GameStore.consumer(
-        builder: (context, store, child) => const VariableListPage(),
+        builder: (context, store, child) => VariableListPage(
+          variables: store.currentProfile.variables.values.toList(),
+          onSave: (variable) async {
+            store.currentProfile.saveVariable(variable);
+          },
+        ),
       ),
   Paths.variable: (context) {
     final variable = ModalRoute.of(context)!.settings.arguments as Variable?;
@@ -142,6 +149,9 @@ final routes = <String, Widget Function(BuildContext)>{
       ),
     );
   },
+
+  // about
+  Paths.about: (context) => const AboutPage(),
 
   // home
   Paths.home: (context) => HomeScaffold(

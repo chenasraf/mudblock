@@ -5,7 +5,14 @@ import '../core/features/variable.dart';
 import '../core/routes.dart';
 
 class VariableListPage extends StatelessWidget with GameStoreMixin {
-  const VariableListPage({super.key});
+  const VariableListPage({
+    super.key,
+    required this.variables,
+    required this.onSave,
+  });
+
+  final List<Variable> variables;
+  final Future<void> Function(Variable variable) onSave;
 
   @override
   Widget build(BuildContext context) {
@@ -13,30 +20,23 @@ class VariableListPage extends StatelessWidget with GameStoreMixin {
       appBar: AppBar(
         title: const Text('Variables'),
       ),
-      // TODO extract this to props
-      body: GameStore.consumer(
-        builder: (context, store, child) {
-          debugPrint('Variable list rebuild');
-          final variables = store.currentProfile.variables.values;
-          return ListView.builder(
-            itemCount: variables.length,
-            itemBuilder: (context, item) {
-              final variable = variables.elementAt(item);
-              return ListTile(
-                key: Key(variable.name),
-                title: Text(variable.name),
-                subtitle: Text(variable.value),
-                onTap: () async {
-                  final updated = await Navigator.pushNamed(
-                    context,
-                    Paths.variable,
-                    arguments: variable,
-                  );
-                  if (updated != null) {
-                    await save(store, updated as Variable);
-                  }
-                },
+      body: ListView.builder(
+        itemCount: variables.length,
+        itemBuilder: (context, item) {
+          final variable = variables.elementAt(item);
+          return ListTile(
+            key: Key(variable.name),
+            title: Text(variable.name),
+            subtitle: Text(variable.value),
+            onTap: () async {
+              final updated = await Navigator.pushNamed(
+                context,
+                Paths.variable,
+                arguments: variable,
               );
+              if (updated != null) {
+                await onSave(updated as Variable);
+              }
             },
           );
         },
@@ -44,21 +44,13 @@ class VariableListPage extends StatelessWidget with GameStoreMixin {
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
         onPressed: () async {
-          final store = storeOf(context);
           final variable = await Navigator.pushNamed(context, Paths.variable);
           if (variable != null) {
-            save(store, variable as Variable);
+            onSave(variable as Variable);
           }
         },
       ),
     );
-  }
-
-  // TODO extract this to props
-  Future<void> save(GameStore store, Variable updated) async {
-    await store.currentProfile
-        .saveVariable(store.currentProfile.variables.values.toList(), updated);
-    await store.currentProfile.loadVariables();
   }
 }
 

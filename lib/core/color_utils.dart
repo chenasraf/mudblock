@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 import 'parser/parser.dart';
 
@@ -25,6 +25,30 @@ class ColorUtils {
       ];
     }
   }
+
+  static Color darken(Color color, double amount) {
+    assert(amount >= 0 && amount <= 1);
+
+    final hsl = HSLColor.fromColor(color);
+    final hslDark = hsl.withLightness((hsl.lightness - amount).clamp(0.0, 1.0));
+
+    return hslDark.toColor();
+  }
+
+  static Color lighten(Color color, double amount) {
+    assert(amount >= 0 && amount <= 1);
+
+    final hsl = HSLColor.fromColor(color);
+    final hslLight =
+        hsl.withLightness((hsl.lightness + amount).clamp(0.0, 1.0));
+
+    return hslLight.toColor();
+  }
+
+  static Brightness getBrightness(Color color) => ThemeData.estimateBrightnessForColor(color);
+
+  static bool isDark(Color color) => getBrightness(color) == Brightness.dark;
+  static bool isLight(Color color) => getBrightness(color) == Brightness.light;
 }
 
 class ColoredText extends ColorToken {
@@ -378,3 +402,4 @@ const xtermColorMap = {
   254: 0xFFE4E4E4,
   255: 0xFFEEEEEE,
 };
+

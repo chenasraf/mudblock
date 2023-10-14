@@ -47,6 +47,7 @@ class HomeScaffold extends StatelessWidget with GameStoreMixin {
                   return Text('v$version');
                 },
               ),
+              onTap: () => Navigator.pushNamed(context, Paths.about),
             ),
             const Divider(),
             GameStore.consumer(

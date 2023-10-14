@@ -47,6 +47,7 @@ dependencies:
   lua_dardo: ^0.0.5
   path_provider: ^2.1.1
   package_info_plus: ^4.1.0
+  url_launcher: ^6.1.14
   # permission_handler: ^11.0.0
 
 dev_dependencies:
@@ -79,6 +80,7 @@ flutter:
   #   - images/a_dot_ham.jpeg
   assets:
     - assets/images/logo/logo.png
+    - assets/images/logo/logo@4x.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

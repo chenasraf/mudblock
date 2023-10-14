@@ -32,19 +32,30 @@ class _ButtonSetEditorState extends State<ButtonSetEditor> {
     return _buildContainer(
       context,
       (context, index) {
+        final theme = Theme.of(context);
         final button = data.buttons[index];
         final size = button?.size ?? GameButtonData.defaultSize;
         final Widget child = button != null
             ? FakeGameButton(label: button.label)
-            : const Icon(Icons.add);
+            : const Icon(Icons.add, color: Colors.white);
         return Container(
-          height: size - data.spacing,
-          width: size - data.spacing,
-          color: Colors.grey,
+          height: size,
+          width: size,
+          decoration: BoxDecoration(
+            color: button == null
+                ? theme.dividerColor.withOpacity(0.2)
+                : theme.dividerColor.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: theme.dividerColor,
+              width: 1,
+              style: BorderStyle.solid,
+            ),
+          ),
+          // color: Colors.grey,
           child: GameButtonWrapper(
             size: size,
             isEmpty: button == null,
-            spacing: data.spacing,
             onAdd: () {
               showDialog(
                 context: context,
@@ -87,7 +98,10 @@ class _ButtonSetEditorState extends State<ButtonSetEditor> {
                 : data.type == GameButtonSetType.row
                     ? _rowMenuItems(index)
                     : _columnMenuItems(index),
-            child: child,
+            child: Padding(
+              padding: EdgeInsets.all(data.spacing / 2),
+              child: child,
+            ),
           ),
         );
       },
@@ -168,11 +182,11 @@ class _ButtonSetEditorState extends State<ButtonSetEditor> {
         value: 'add_row_below',
         label: 'Add row below',
         onSelected: () {
-          final rowIndices = data
-              .getRowIndices(
-                data.getRowFromIndex(index),
-              )
-              .reversed;
+          final rowIndices = data.getRowIndices(
+            data.getRowFromIndex(index),
+          );
+
+          debugPrint('rowIndices: $rowIndices');
 
           setState(() {
             for (final index in rowIndices) {
@@ -264,20 +278,32 @@ class _ButtonSetEditorState extends State<ButtonSetEditor> {
     BuildContext context,
     Widget Function(BuildContext context, int index) builder,
   ) {
-    final size = data.size;
+    final size = Size(
+      data.size.width + data.spacing * 6,
+      data.size.height + data.spacing * 10,
+    );
     return Center(
-      child: SizedBox(
+      child: Container(
         width: size.width,
         height: size.height,
-        child: GameButtonSet.buildContainer(
-          context: context,
-          type: data.type,
-          size: data.size,
-          count: data.buttons.length,
-          crossAxisCount: data.crossAxisCount,
-          spacing: data.spacing,
-          alignment: data.alignment,
-          builder: builder,
+        decoration: BoxDecoration(
+          color: Colors.black,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: GameButtonSet.buildContainer(
+              context: context,
+              type: data.type,
+              size: data.size,
+              count: data.buttons.length,
+              crossAxisCount: data.crossAxisCount,
+              spacing: data.spacing / 3,
+              alignment: data.alignment,
+              builder: builder,
+            ),
+          ),
         ),
       ),
     );
@@ -293,7 +319,6 @@ class GameButtonWrapper extends StatelessWidget {
     required this.onDelete,
     required this.onClear,
     required this.size,
-    required this.spacing,
     required this.isEmpty,
     this.emptySpaceControls = const [],
   });
@@ -304,7 +329,6 @@ class GameButtonWrapper extends StatelessWidget {
   final void Function() onClear;
   final void Function() onDelete;
   final double size;
-  final double spacing;
   final List<FakeGameButtonMenuItem> emptySpaceControls;
   final bool isEmpty;
 

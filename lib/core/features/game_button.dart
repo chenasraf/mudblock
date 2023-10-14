@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/src/gestures/events.dart';
+import '../color_utils.dart';
 import '../platform_utils.dart';
 import '../store.dart';
 
@@ -248,6 +250,8 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
   final parentAutomation = Automation.empty();
   Offset? _dragStart;
   Offset? _dragEnd;
+  bool isHovering = false;
+  bool isClicking = false;
 
   //
   GameButtonData get data => widget.data;
@@ -261,12 +265,37 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
   @override
   Widget build(BuildContext context) {
     final curLabel = _currentDirectionIcon(context) ?? data.label;
-    final child = Container(
+    // final tooltip = Tooltip(
+    //   message: [
+    //     GameButtonInteraction.press,
+    //     GameButtonInteraction.longPress,
+    //     GameButtonInteraction.dragUp,
+    //     GameButtonInteraction.dragDown,
+    //     GameButtonInteraction.dragLeft,
+    //     GameButtonInteraction.dragRight,
+    //   ]
+    //       .map((dir) {
+    //         final content = data.getAction(_direction)?.content;
+    //         if (content == null || content.isEmpty) {
+    //           return '';
+    //         }
+    //         final label = dir.name.capitalize();
+    //         return '$label: $content';
+    //       })
+    //       .where((s) => s.isNotEmpty)
+    //       .join('\n'),
+    // );
+    final child = AnimatedContainer(
+      duration: const Duration(milliseconds: 100),
       width: data.size,
       height: data.size,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        color: _color(context),
+        color: isClicking
+            ? _dragColor(context)
+            : isHovering
+                ? _hoverColor(context)
+                : _color(context),
       ),
       child: GameButtonLabel(data: curLabel),
     );
@@ -290,15 +319,22 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
     required Widget child,
   }) {
     if (PlatformUtils.isDesktop) {
-      return Listener(
-        onPointerDown: _onPointerDown,
-        onPointerMove: _onPointerMove,
-        onPointerUp: _onPointerUp,
-        child: child,
+      return MouseRegion(
+        onEnter: (_) => setState(() => isHovering = true),
+        onExit: (_) => setState(() => isHovering = false),
+        cursor: SystemMouseCursors.click,
+        child: Listener(
+          onPointerDown: _onPointerDown,
+          onPointerMove: _onPointerMove,
+          onPointerUp: _onPointerUp,
+          child: child,
+        ),
       );
     }
 
     return GestureDetector(
+      onTapDown: _onTapDown,
+      onTapUp: _onTapUp,
       onTap: _onPressed,
       onLongPress: _onLongPress,
       onVerticalDragStart: _onDragStart,
@@ -331,12 +367,43 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
       Theme.of(context).buttonTheme.colorScheme?.background ??
       Colors.grey;
 
+  Color _hoverColor(BuildContext context) {
+    final source = _color(context);
+    if (ColorUtils.isDark(source)) {
+      return ColorUtils.lighten(source, 0.05);
+    }
+    return ColorUtils.darken(source, 0.05);
+  }
+
+  Color _dragColor(BuildContext context) {
+    final source = _color(context);
+    if (ColorUtils.isDark(source)) {
+      return ColorUtils.lighten(source, 0.1);
+    }
+    return ColorUtils.darken(source, 0.1);
+  }
+
   void _onPressed() {
     _callCurrentDirection();
   }
 
   void _onLongPress() {
     _callAction(data.longPressAction);
+    setState(() {
+      isClicking = false;
+    });
+  }
+
+  void _onTapDown(TapDownDetails details) {
+    setState(() {
+      isClicking = true;
+    });
+  }
+
+  void _onTapUp(TapUpDetails details) {
+    setState(() {
+      isClicking = false;
+    });
   }
 
   void _onDragStart(DragStartDetails details) {
@@ -367,6 +434,7 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
   void _onPointerUp(PointerUpEvent event) {
     _callCurrentDirection();
     setState(() {
+      isClicking = false;
       _direction = GameButtonInteraction.press;
     });
   }
@@ -374,6 +442,7 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
   void _onPointerDown(PointerDownEvent event) {
     _dragStart = event.position;
     setState(() {
+      isClicking = true;
       _direction = GameButtonInteraction.press;
     });
   }
@@ -516,3 +585,4 @@ enum GameButtonInteraction {
   dragLeft,
   dragRight,
 }
+

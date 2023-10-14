@@ -23,15 +23,10 @@ class GameButtonSet extends StatelessWidget {
         child: Builder(
           builder: (context) {
             final containerSize = data.size;
-            return Container(
-              // decoration: BoxDecoration(
-              //   border: Border.all(color: Colors.white),
-              // ),
-              child: SizedBox(
-                width: containerSize.width,
-                height: containerSize.height,
-                child: _buildButtonContainer(context),
-              ),
+            return SizedBox(
+              width: containerSize.width,
+              height: containerSize.height,
+              child: _buildButtonContainer(context),
             );
           },
         ),
