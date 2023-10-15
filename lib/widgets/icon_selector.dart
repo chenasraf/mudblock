@@ -10,12 +10,14 @@ class IconSelector extends StatelessWidget {
     super.key,
     this.search = '',
     required this.onSelected,
+    this.selectedIcon,
     this.display = IconSelectorDisplay.grid,
   });
 
-  final ValueChanged<IconData> onSelected;
+  final void Function(IconData data, String name) onSelected;
   final String search;
   final IconSelectorDisplay display;
+  final IconData? selectedIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -56,21 +58,40 @@ class IconSelector extends StatelessWidget {
       leading: Icon(e.value),
       title: Text(e.key, overflow: TextOverflow.ellipsis),
       subtitle: Text(e.key),
-      onTap: () => onSelected(e.value),
+      selected: selectedIcon != null && selectedIcon == e.value,
+      onTap: () => onSelected(e.value, e.key),
     );
   }
 
   Widget _buildGridItem(BuildContext context, MapEntry<String, IconData> e) {
+    final radius = BorderRadius.circular(16);
     return InkWell(
-      onTap: () => onSelected(e.value),
-      child: Tooltip(
-        message: e.key,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(e.value),
-            Text(e.key, overflow: TextOverflow.ellipsis),
-          ],
+      onTap: () => onSelected(e.value, e.key),
+      borderRadius: radius,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: radius,
+          color: selectedIcon != null && selectedIcon == e.value
+              ? Theme.of(context).primaryColor.withOpacity(0.1)
+              : null,
+        ),
+        child: Tooltip(
+          message: e.key,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(e.value),
+                  Text(e.key,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 3,
+                      textAlign: TextAlign.center),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -82,6 +103,12 @@ class IconSelector extends StatelessWidget {
     //   // key = key.replaceAll('_sharp', '').replaceAll('_outline', '');
     //   return false;
     // }
-    return search.isEmpty || key.contains(search.toLowerCase());
+    return search.isEmpty ||
+        _cleanString(key).contains(_cleanString(search.toLowerCase()));
+  }
+
+  String _cleanString(String s) {
+    return s.replaceAll('_', '').replaceAll('-', '');
   }
 }
+

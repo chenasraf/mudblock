@@ -191,10 +191,12 @@ class GameButtonSetData {
     Alignment? alignment,
     double? spacing,
     String? group,
+    GameButtonLabelData? label,
   }) =>
       GameButtonSetData(
         id: id ?? this.id,
         enabled: enabled ?? this.enabled,
+        label: label?.label ?? this.label,
         name: name ?? this.name,
         type: type ?? this.type,
         buttons: buttons ?? [...this.buttons],
@@ -307,42 +309,69 @@ final movementPreset = GameButtonSetData(
     null,
     GameButtonData(
       id: uuid(),
-      label: GameButtonLabelData(icon: Icons.keyboard_arrow_up),
+      label: GameButtonLabelData(
+        icon: Icons.keyboard_arrow_up,
+        iconName: 'keyboard_arrow_up',
+      ),
       pressAction: MUDAction('north'),
     ),
     GameButtonData(
       id: uuid(),
-      label: GameButtonLabelData(icon: Icons.keyboard_double_arrow_up),
+      label: GameButtonLabelData(
+        icon: Icons.keyboard_double_arrow_up,
+        iconName: 'keyboard_double_arrow_up',
+      ),
       pressAction: MUDAction('up'),
     ),
     GameButtonData(
       id: uuid(),
-      label: GameButtonLabelData(icon: Icons.keyboard_arrow_left),
+      label: GameButtonLabelData(
+        icon: Icons.keyboard_arrow_left,
+        iconName: 'keyboard_arrow_left',
+      ),
       pressAction: MUDAction('west'),
     ),
     GameButtonData(
       id: uuid(),
-      label: GameButtonLabelData(icon: Icons.visibility_outlined),
-      labelUp: GameButtonLabelData(icon: Icons.exit_to_app),
-      labelDown: GameButtonLabelData(icon: Icons.exit_to_app),
+      label: GameButtonLabelData(
+        icon: Icons.visibility_outlined,
+        iconName: 'visibility_outlined',
+      ),
+      labelUp: GameButtonLabelData(
+        icon: Icons.exit_to_app,
+        iconName: 'exit_to_app',
+      ),
+      labelDown: GameButtonLabelData(
+        icon: Icons.exit_to_app,
+        iconName: 'exit_to_app',
+      ),
       pressAction: MUDAction('look'),
       dragUpAction: MUDAction('exits'),
       dragDownAction: MUDAction('exits'),
     ),
     GameButtonData(
       id: uuid(),
-      label: GameButtonLabelData(icon: Icons.keyboard_arrow_right),
+      label: GameButtonLabelData(
+        icon: Icons.keyboard_arrow_right,
+        iconName: 'keyboard_arrow_right',
+      ),
       pressAction: MUDAction('east'),
     ),
     null,
     GameButtonData(
       id: uuid(),
-      label: GameButtonLabelData(icon: Icons.keyboard_arrow_down),
+      label: GameButtonLabelData(
+        icon: Icons.keyboard_arrow_down,
+        iconName: 'keyboard_arrow_down',
+      ),
       pressAction: MUDAction('south'),
     ),
     GameButtonData(
       id: uuid(),
-      label: GameButtonLabelData(icon: Icons.keyboard_double_arrow_down),
+      label: GameButtonLabelData(
+        icon: Icons.keyboard_double_arrow_down,
+        iconName: 'keyboard_double_arrow_down',
+      ),
       pressAction: MUDAction('down'),
     ),
   ],

@@ -228,6 +228,11 @@ class GameButtonData {
         break;
     }
   }
+
+  @override
+  String toString() {
+    return 'GameButtonData(id: $id, label: $label)';
+  }
 }
 
 class GameButton extends StatefulWidget {
@@ -518,10 +523,14 @@ class GameButtonLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconTheme(
-      data: _iconTheme(context),
-      child: Icon(data.icon),
-    );
+    if (data.isText) {
+      return Center(child: Text(data.label!, textScaleFactor: 1.2));
+    } else {
+      return IconTheme(
+        data: _iconTheme(context),
+        child: Icon(data.icon),
+      );
+    }
   }
 
   IconThemeData _iconTheme(BuildContext context) =>
@@ -531,15 +540,21 @@ class GameButtonLabel extends StatelessWidget {
 class GameButtonLabelData {
   String? label;
   IconData? icon;
+  String? iconName;
   IconThemeData? iconTheme;
+
+  bool get isIcon => icon != null;
+  bool get isText => label != null;
 
   GameButtonLabelData({
     this.label,
     this.icon,
+    this.iconName,
     this.iconTheme,
-  }) : assert(label != null || icon != null);
+  })  : assert(label != null || icon != null),
+        assert(icon == null || iconName != null);
 
-  factory GameButtonLabelData.empty() => GameButtonLabelData(label: '?');
+  factory GameButtonLabelData.empty() => GameButtonLabelData(label: '');
 
   factory GameButtonLabelData.fromJson(Map<String, dynamic> json) {
     return GameButtonLabelData(
@@ -550,6 +565,7 @@ class GameButtonLabelData {
               fontFamily: json['iconFontFamily'] ?? 'MaterialIcons',
             )
           : null,
+      iconName: json['iconName'] ?? '',
       iconTheme: json['iconTheme'] != null
           ? _iconThemeDataFromJson(json['iconTheme'])
           : null,
@@ -560,6 +576,7 @@ class GameButtonLabelData {
     return {
       'label': label,
       'icon': icon?.codePoint,
+      'iconName': iconName,
       'iconFontFamily': icon?.fontFamily,
       'iconTheme': iconTheme != null ? _iconThemeDataToJson(iconTheme!) : null,
     };
@@ -581,13 +598,22 @@ class GameButtonLabelData {
   GameButtonLabelData copyWith({
     String? label,
     IconData? icon,
+    String? iconName,
     IconThemeData? iconTheme,
   }) {
+    label = icon != null ? null : label ?? this.label;
+    icon = label != null ? null : icon ?? this.icon;
     return GameButtonLabelData(
       label: label ?? this.label,
       icon: icon ?? this.icon,
+      iconName: iconName ?? this.iconName,
       iconTheme: iconTheme ?? this.iconTheme,
     );
+  }
+
+  @override
+  String toString() {
+    return 'GameButtonLabel(${isText ? 'label:' : 'icon:'} ${isText ? label! : iconName!})';
   }
 }
 

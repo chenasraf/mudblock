@@ -188,8 +188,6 @@ class _ButtonSetEditorState extends State<ButtonSetEditor> {
             data.getRowFromIndex(index),
           );
 
-          debugPrint('rowIndices: $rowIndices');
-
           setState(() {
             for (final index in rowIndices) {
               data.buttons.insert(
@@ -210,7 +208,6 @@ class _ButtonSetEditorState extends State<ButtonSetEditor> {
                 data.getColumnFromIndex(index),
               )
               .reversed;
-          debugPrint('btnIndices: $btnIndices');
           setState(() {
             for (final index in btnIndices) {
               data.buttons.insert(index, null);
@@ -229,7 +226,6 @@ class _ButtonSetEditorState extends State<ButtonSetEditor> {
                 data.getColumnFromIndex(index),
               )
               .reversed;
-          debugPrint('btnIndices: $btnIndices');
           setState(() {
             for (final index in btnIndices) {
               data.buttons.insert(index + 1, null);

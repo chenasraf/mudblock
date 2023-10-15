@@ -27,7 +27,9 @@ class MUDAction {
     debugPrint('MUDAction.invoke: ${this.content}, $matches');
     var content = this.content;
     for (var i = 0; i < matches.length; i++) {
-      content = content.replaceAll('%$i', matches[i]);
+      // escape %% in the pattern
+      final pattern = RegExp('(?<!%)%$i');
+      content = content.replaceAll(pattern, matches[i]);
     }
     content = doVariableReplacements(store, content);
     debugPrint('MUDAction.invoking: $content');

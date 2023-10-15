@@ -87,7 +87,7 @@ class _ButtonEditorDialogState extends State<ButtonEditorDialog> {
                                   GameButtonInteraction.longPress
                               ? null
                               : () async {
-                                  final icon = await showDialog(
+                                  final updated = await showDialog(
                                     context: context,
                                     builder: (context) =>
                                         GameButtonLabelEditorDialog(
@@ -95,11 +95,9 @@ class _ButtonEditorDialogState extends State<ButtonEditorDialog> {
                                           label ?? GameButtonLabelData.empty(),
                                     ),
                                   );
-                                  if (icon != null) {
-                                    final data = label?.copyWith(icon: icon) ??
-                                        GameButtonLabelData(icon: icon);
+                                  if (updated != null) {
                                     setState(() {
-                                      this.data.setLabel(interaction, data);
+                                      data.setLabel(interaction, updated);
                                     });
                                   }
                                 },
