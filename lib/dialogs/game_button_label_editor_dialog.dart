@@ -44,7 +44,7 @@ class _GameButtonLabelEditorDialogState
   Widget build(BuildContext context) {
     final actions = DialogUtils.saveButtons(
       context,
-      () => Navigator.pop(context, data),
+      onSave: () => Navigator.pop(context, data),
       dismissOnSave: false,
     );
     return Dialog(

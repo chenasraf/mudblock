@@ -7,6 +7,7 @@ import 'package:path/path.dart' as path;
 import 'platform_utils.dart';
 
 abstract class IStorage<T> {
+  bool get initialized;
   Future<void> init();
   Future<T?> readFile(String filename);
   Future<void> writeFile(String filename, T data);
@@ -20,11 +21,15 @@ class FileStorage<T> implements IStorage<T> {
 
   final String _base;
 
+  @override
+  bool initialized = false;
+
   FileStorage({String? base}) : _base = base ?? '';
 
   @override
   Future<void> init() async {
     base = path.join(await PlatformUtils.getStorageBasePath(), _base);
+    initialized = true;
     debugPrint('init: $this');
   }
 
@@ -94,6 +99,9 @@ class JsonStorage implements IStorage<Map<String, dynamic>> {
   JsonStorage({String? base}) : _storage = FileStorage(base: base);
 
   final FileStorage<String> _storage;
+
+  @override
+  bool get initialized => _storage.initialized;
 
   final encoder = const JsonEncoder.withIndent('  ');
   final decoder = const JsonDecoder();

@@ -18,6 +18,7 @@ class HomeScaffold extends StatelessWidget with GameStoreMixin {
 
   @override
   Widget build(BuildContext context) {
+    final interaction = PlatformUtils.isDesktop ? 'Click' : 'Tap';
     return Scaffold(
       appBar: AppBar(
         title: GameStore.consumer(
@@ -59,19 +60,23 @@ class HomeScaffold extends StatelessWidget with GameStoreMixin {
                     ? Text(
                         '${store.currentProfile.host}:${store.currentProfile.port}',
                       )
-                    : const Text('-'),
+                    : Text('$interaction to connect'),
                 leading: const CircleAvatar(child: Icon(Icons.cable)),
-                onTap: () async {
-                  final updated = await Navigator.pushNamed(
-                    context,
-                    Paths.profile,
-                    arguments: store.currentProfile,
-                  );
-                  if (updated != null) {
-                    await (updated as MUDProfile).save();
-                    store.loadProfiles();
-                  }
-                },
+                onTap: store.connected
+                    ? () async {
+                        final updated = await Navigator.pushNamed(
+                          context,
+                          Paths.profile,
+                          arguments: store.currentProfile,
+                        );
+                        if (updated != null) {
+                          await (updated as MUDProfile).save();
+                          store.loadProfiles();
+                        }
+                      }
+                    : () {
+                        store.selectProfileAndConnect(context);
+                      },
               ),
             ),
             ListTile(
@@ -106,15 +111,22 @@ class HomeScaffold extends StatelessWidget with GameStoreMixin {
               leading: const Icon(Icons.settings),
               onTap: () => Navigator.pushNamed(context, Paths.settings),
             ),
-            ListTile(
-              title: const Text('Disconnect'),
-              leading: const Icon(Icons.exit_to_app),
-              onTap: () async {
-                Navigator.of(context).pop();
-                await gameStore.disconnect();
-                if (context.mounted) {
-                  gameStore.showConnectionDialog(context);
+            GameStore.consumer(
+              builder: (context, store, child) {
+                if (store.connected) {
+                  ListTile(
+                    title: const Text('Disconnect'),
+                    leading: const Icon(Icons.exit_to_app),
+                    onTap: () async {
+                      Navigator.of(context).pop();
+                      await gameStore.disconnect();
+                      if (context.mounted) {
+                        gameStore.selectProfileAndConnect(context);
+                      }
+                    },
+                  );
                 }
+                return Container();
               },
             ),
           ],

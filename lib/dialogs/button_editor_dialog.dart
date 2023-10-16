@@ -32,7 +32,7 @@ class _ButtonEditorDialogState extends State<ButtonEditorDialog> {
   @override
   Widget build(BuildContext context) {
     const interactions = GameButtonInteraction.values;
-    final actions = DialogUtils.saveButtons(context, () {
+    final actions = DialogUtils.saveButtons(context, onSave: () {
       widget.onSave(data);
     });
 

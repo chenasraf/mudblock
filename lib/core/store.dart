@@ -16,6 +16,7 @@ import 'features/action.dart';
 import 'features/alias.dart';
 import 'features/keyboard_shortcuts.dart';
 import 'features/profile.dart';
+import 'routes.dart';
 
 const maxLines = 2000;
 
@@ -56,16 +57,20 @@ class GameStore extends ChangeNotifier {
     return this;
   }
 
-  void showConnectionDialog(BuildContext context) async {
-    final profile = await showDialog<MUDProfile?>(
-      context: context,
-      builder: (context) => const SelectProfilePage(),
+  void selectProfileAndConnect(BuildContext context) async {
+    // final profile = await showDialog<MUDProfile?>(
+    //   context: context,
+    //   builder: (context) => const SelectProfilePage(),
+    // );
+    final profile = await Navigator.pushNamed(
+      context,
+      Paths.selectProfile,
     );
     if (profile == null) {
       return;
     }
     _currentProfile?.removeListener(onProfileUpdate);
-    _currentProfile = profile;
+    _currentProfile = profile as MUDProfile;
     currentProfile.addListener(onProfileUpdate);
 
     await _clientRef?.disconnect();
@@ -383,14 +388,15 @@ class GameStore extends ChangeNotifier {
 
   void loadProfiles() async {
     final list = await storage.readDirectory('.');
-    profiles.clear();
     debugPrint('loading profiles: $list');
+    profiles.clear();
     for (final name in list) {
-      final profile = await storage.readFile(name);
-      profiles.add(MUDProfile.fromJson(profile!));
-    }
-    if (_currentProfile != null) {
-      _currentProfile = profiles.firstWhere((e) => e.id == currentProfile.id);
+      final profile = await storage.readFile('$name/$name');
+      if (profile == null) {
+        continue;
+      }
+      debugPrint('profile: $profile');
+      profiles.add(MUDProfile.fromJson(profile));
     }
     notifyListeners();
   }
@@ -405,15 +411,7 @@ class GameStore extends ChangeNotifier {
         profiles.add(profile);
       }
     } else {
-      debugPrint('loading profiles: $list');
-      for (final name in list) {
-        final profile = await storage.readFile('$name/$name');
-        if (profile == null) {
-          continue;
-        }
-        debugPrint('profile: $profile');
-        profiles.add(MUDProfile.fromJson(profile));
-      }
+      loadProfiles();
     }
     debugPrint('profiles: ${profiles.map((e) => [e.name, e.password])}');
     notifyListeners();

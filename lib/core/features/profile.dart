@@ -150,8 +150,19 @@ class MUDProfile extends PluginBase {
   }
 
   Future<void> save() async {
-    debugPrint('MUDProfile.save: ${id}');
+    debugPrint('MUDProfile.save: $id');
+    if (!storage.initialized) {
+      await storage.init();
+    }
     return storage.writeFile(id, toJson());
+  }
+
+  Future<void> delete() async {
+    debugPrint('MUDProfile.delete: $id');
+    if (!storage.initialized) {
+      await storage.init();
+    }
+    return storage.deleteFile(id);
   }
 
   static final encKey = enc.Key.fromUtf8(pwdKey);

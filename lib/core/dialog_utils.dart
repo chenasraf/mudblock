@@ -1,12 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import 'widget_utils.dart';
+
 class DialogUtils {
-  static DialogButtonSet saveButtons(
-    BuildContext context,
-    Function() onSave, {
+  static DialogButtons saveButtons(
+    BuildContext context, {
+    required FutureOr<void> Function() onSave,
     bool dismissOnSave = true,
   }) {
-    return DialogButtonSet(
+    return DialogButtons.confirm(
       confirm: ElevatedButton(
         child: const Text('Save'),
         onPressed: () {
@@ -24,22 +28,43 @@ class DialogUtils {
       ),
     );
   }
+
+  static DialogButtons addButton(
+    BuildContext context, {
+    required FutureOr<void> Function() onAdd,
+  }) {
+    return DialogButtons.single(
+      child: ElevatedButton(
+        child: const Text('Add'),
+        onPressed: () {
+          onAdd();
+          Navigator.of(context).pop();
+        },
+      ),
+    );
+  }
 }
 
-class DialogButtonSet {
-  final Widget confirm;
-  final Widget dismiss;
+class DialogButtons {
+  final List<Widget> children;
+  final double spacing;
 
-  DialogButtonSet({required this.confirm, required this.dismiss});
+  DialogButtons({required this.children, this.spacing = 8});
+
+  DialogButtons.single({required Widget child})
+      : children = [child],
+        spacing = 0;
+
+  DialogButtons.confirm(
+      {required Widget confirm, required Widget dismiss, this.spacing = 8})
+      : children = [dismiss, confirm];
 
   Widget row() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        dismiss,
-        const SizedBox(width: 8),
-        confirm,
-      ],
+      children: spacing > 0
+          ? WidgetUtils.join(children, SizedBox(width: spacing))
+          : children,
     );
   }
 }

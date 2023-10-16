@@ -1,12 +1,12 @@
 import 'features/profile.dart';
 
 final profilePresets = [
-  MUDProfile(
-    id: 'local',
-    name: 'Local',
-    host: 'localhost',
-    port: 4000,
-  ),
+  // MUDProfile(
+  //   id: 'local',
+  //   name: 'Local',
+  //   host: 'localhost',
+  //   port: 4000,
+  // ),
   MUDProfile(
     id: 'smud',
     name: 'SimpleMUD',

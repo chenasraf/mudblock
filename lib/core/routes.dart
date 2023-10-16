@@ -27,6 +27,7 @@ class Paths {
 
   static const profiles = '/profiles';
   static const profile = '/profile';
+  static const selectProfile = '/select-profile';
 
   static const aliases = '/aliases';
   static const alias = '/alias';
@@ -54,6 +55,7 @@ final routes = <String, Widget Function(BuildContext)>{
     final profile = ModalRoute.of(context)!.settings.arguments as MUDProfile?;
     return ProfilePage(profile: profile);
   },
+  Paths.selectProfile: (context) => const SelectProfilePage(),
 
   // aliases
   Paths.aliases: (context) => GameStore.consumer(
