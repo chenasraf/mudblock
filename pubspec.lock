@@ -100,11 +100,10 @@ packages:
   ctelnet:
     dependency: "direct main"
     description:
-      name: ctelnet
-      sha256: "06cba141577de338adc9436ad733f33668224b0cfcf046f8edd58fcde09aeed2"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.1.4"
+      path: "../ctelnet"
+      relative: true
+    source: path
+    version: "0.1.5"
   cupertino_icons:
     dependency: "direct main"
     description:

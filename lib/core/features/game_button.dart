@@ -396,6 +396,7 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
     _callAction(data.longPressAction);
     setState(() {
       isClicking = false;
+      isHovering = false;
     });
   }
 
@@ -408,6 +409,7 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
   void _onTapUp(TapUpDetails details) {
     setState(() {
       isClicking = false;
+      isHovering = false;
     });
   }
 
@@ -433,6 +435,8 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
     _callCurrentDirection();
     setState(() {
       _direction = GameButtonInteraction.press;
+      isHovering = false;
+      isClicking = false;
     });
   }
 
@@ -461,6 +465,7 @@ class _GameButtonState extends State<GameButton> with GameStoreStateMixin {
 
     setState(() {
       isClicking = false;
+      isHovering = false;
       _direction = GameButtonInteraction.press;
       _startDragTime = null;
     });

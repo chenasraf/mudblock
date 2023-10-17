@@ -47,7 +47,7 @@ class GameStore extends ChangeNotifier {
       RegExp("(?<!$commandSeparator)$commandSeparator(?!$commandSeparator)");
 
   MUDProfile get currentProfile => _currentProfile!;
-  List<Alias> get aliases => currentProfile.aliases;
+  List<Alias> get aliases => builtInAliases + (_currentProfile?.aliases ?? []);
   List<Trigger> get triggers => currentProfile.triggers;
 
   get connected => _clientReady && _client.connected;
@@ -93,7 +93,7 @@ class GameStore extends ChangeNotifier {
       onError: onError,
     );
     await currentProfile.load();
-    echoSystem('Connecting...');
+    echoSystem('Profile loaded. Connecting...');
     _client.connect();
     notifyListeners();
   }
@@ -114,12 +114,6 @@ class GameStore extends ChangeNotifier {
     }
   }
 
-  void requestMCCP() {
-    debugPrint('requestMCCP');
-    _client.doo(86);
-    sendBytes([Symbols.iac, Symbols.doo, 86]);
-  }
-
   Future<void> disconnect() {
     return _client.disconnect();
   }
@@ -129,7 +123,7 @@ class GameStore extends ChangeNotifier {
   }
 
   void onRawData(List<int> bytes) {
-    debugPrint('onRawData');
+    debugPrint('Received Raw Data');
     try {
       final data = Message(bytes);
       handleSpecialMessages(data);
@@ -148,14 +142,16 @@ class GameStore extends ChangeNotifier {
   }
 
   void onData(Message data) {
-    debugPrint('onData');
     try {
       if (currentProfile.mccpEnabled && isCompressed) {
         _rawStreamController.add(data.bytes);
         return;
       }
-      debugPrint('onData: ${data.text}');
+      debugPrint('Received data');
       handleSpecialMessages(data);
+      if (isCompressed) {
+        return;
+      }
       if (data.text.isEmpty) {
         return;
       }
@@ -170,56 +166,83 @@ class GameStore extends ChangeNotifier {
   }
 
   void handleSpecialMessages(Message data) {
+    final terminalSub = data.subnegotiation(24);
     if (data.isCommand) {
-      debugPrint('Received command: ${data.bytes}');
+      debugPrint('Received command: ${data.commands}');
     }
+    final bytes = <int>[];
     if (data.doo(24)) {
-      debugPrint('Received terminal type WILL request');
-      sendBytes([Symbols.iac, Symbols.will, 24, Symbols.iac, Symbols.se]);
-    } else if (data.sb(24) && data.bytes[3] == 1) {
+      debugPrint('Received terminal type DO request');
+      debugPrint('Sending terminal type WILL response');
+      bytes.addAll([Symbols.iac, Symbols.will, 24]);
+    }
+    if (terminalSub != null &&
+        terminalSub.isNotEmpty &&
+        terminalSub.single == 1) {
+      // } else if (terminalSub.isNotEmpty && terminalSub[0] == 1) {
       debugPrint('Received terminal type SEND request');
-      final bytes = [
+      final tt = const AsciiEncoder().convert('Mublock');
+      final ttBytes = [
         Symbols.iac,
         Symbols.sb,
         24,
         0,
-        ...const AsciiEncoder().convert('Mublock'),
+        ...tt,
         Symbols.iac,
         Symbols.se
       ];
-      debugPrint('Sending terminal type: $bytes');
-      sendBytes(bytes);
-    } else if (!currentProfile.mccpEnabled) {
-      return;
+      bytes.addAll(ttBytes);
+      debugPrint('Sending terminal type response: $ttBytes');
     }
+
     // MCCP
-    else {
-      if (isCompressed) {
-        if (data.se()) {
-          disableMCCP();
-        }
-      } else {
+    if (currentProfile.mccpEnabled) {
+      if (!isCompressed) {
         if (data.sb(86)) {
-          enableMCCP();
+          debugPrint('Received compression start');
+          if (bytes.isNotEmpty) {
+            sendBytes(bytes);
+          }
+          enableCompression();
+          // _rawStreamController.add(data.bytes);
+          debugPrint(
+              'bytes after mccp: ${data.bytes.sublist(data.bytes.indexOf(86) + 3)}');
+          _rawStreamController
+              .add(data.bytes.sublist(data.bytes.indexOf(86) + 3));
+          echoSystem('Compression started');
+          debugPrint("Done handling command (early)");
+          return;
         } else if (data.will(86)) {
-          requestMCCP();
-          echo('Compression requested');
+          debugPrint('Received compression request');
+          bytes.addAll([Symbols.iac, Symbols.doo, 86]);
+          debugPrint('Sending compression request');
         }
+      } else { // isCompressed
+        // if (data.se()) {
+        //   final seIndex = data.bytes.indexOf(Symbols.se);
+        //   if (data.bytes[seIndex - 1] == Symbols.iac) {
+        //     debugPrint('Received compression end');
+        //     disableCompression();
+        //   }
+        // }
       }
     }
+    sendBytes(bytes);
+    debugPrint("Done handling command");
+    // }
   }
 
-  void disableMCCP() {
-    echo('Compression disabled');
+  void disableCompression() {
     isCompressed = false;
     _decodedSub.cancel();
+    echoSystem('Compression disabled');
   }
 
-  void enableMCCP() {
+  void enableCompression() {
     isCompressed = true;
     _decodedStream = _decoder.decoder.bind(_rawStreamController.stream);
     _decodedSub = _decodedStream.listen(onRawData);
-    echo('Compression enabled');
+    echoSystem('Compression enabled');
   }
 
   void onError(Object error) {
@@ -462,8 +485,7 @@ class GameStore extends ChangeNotifier {
 }
 
 mixin GameStoreMixin {
-  GameStore storeOf(BuildContext context) =>
-      GameStore.of(context);
+  GameStore storeOf(BuildContext context) => GameStore.of(context);
 }
 
 mixin GameStoreStateMixin<T extends StatefulWidget> on State<T> {

@@ -169,6 +169,20 @@ class HomePageState extends State<HomePage>
   }
 
   @override
+  void onWindowMove() {
+    EasyDebounce.debounce(
+      'windowMove',
+      const Duration(milliseconds: 500),
+      () async {
+        final position = await windowManager.getPosition();
+        debugPrint("Window moved to $position");
+        prefs.setInt('windowX', position.dx.toInt());
+        prefs.setInt('windowY', position.dy.toInt());
+      },
+    );
+  }
+
+  @override
   void onWindowResize() async {
     EasyDebounce.debounce(
       'windowResize',
