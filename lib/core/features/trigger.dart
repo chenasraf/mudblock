@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../color_utils.dart';
+import '../store.dart';
 import '../string_utils.dart';
 import 'action.dart';
 import 'automation.dart';
@@ -49,6 +51,27 @@ class Trigger extends Automation {
         group: json['group'] ?? '',
       );
 
+  static TriggerProcessResult processLine(
+      GameStore store, List<Trigger> triggers, String line) {
+    bool showLine = true;
+    final str = ColorUtils.stripColor(line);
+    for (final trigger in triggers) {
+      if (!trigger.isAvailable) {
+        continue;
+      }
+      if (trigger.matches(str)) {
+        trigger.invokeEffect(store, str);
+        if (trigger.isRemovedFromBuffer) {
+          showLine = false;
+        }
+        if (trigger.autoDisable) {
+          trigger.tempDisabled = true;
+        }
+      }
+    }
+    return TriggerProcessResult(lineRemoved: !showLine);
+  }
+
   @override
   Trigger copyWith({
     String? id,
@@ -77,3 +100,10 @@ class Trigger extends Automation {
         group: group ?? this.group,
       );
 }
+
+class TriggerProcessResult {
+  bool lineRemoved;
+
+  TriggerProcessResult({this.lineRemoved = false});
+}
+

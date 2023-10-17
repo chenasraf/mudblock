@@ -6,45 +6,58 @@ import '../store.dart';
 class KeyboardIntent extends Intent {
   const KeyboardIntent(this.key);
 
-  final NumpadKey key;
+  final LogicalKeyboardKey key;
 }
 
 class KeyboardAction extends ContextAction<KeyboardIntent> with GameStoreMixin {
   @override
   void invoke(covariant KeyboardIntent intent, [BuildContext? context]) {
-    if (context == null) return;
+    if (context == null) {
+      return;
+    }
     final store = storeOf(context);
-    store.onShortcut(intent.key, context);
+    if (store.currentProfile.keyboardShortcuts.get(intent.key).isNotEmpty) {
+      store.onShortcut(intent.key, context);
+    } else {
+      store.selectInput();
+      store.setInput(
+        store.input.text + intent.key.keyLabel.replaceAll('Numpad ', ''),
+      );
+    }
   }
 
   @override
   bool isEnabled(KeyboardIntent intent, [BuildContext? context]) {
-    if (context == null) return false;
+    if (context == null) {
+      return false;
+    }
     final store = storeOf(context);
-    if (store.currentProfile.keyboardShortcuts.get(intent.key).isEmpty) return false;
+    if (store.currentProfile.keyboardShortcuts.get(intent.key).isEmpty) {
+      return false;
+    }
     return super.isEnabled(intent, context);
   }
 }
 
-enum NumpadKey {
-  numpad0,
-  numpad1,
-  numpad2,
-  numpad3,
-  numpad4,
-  numpad5,
-  numpad6,
-  numpad7,
-  numpad8,
-  numpad9,
-  numpadEnter,
-  numpadDecimal,
-  numpadAdd,
-  numpadSubtract,
-  numpadMultiply,
-  numpadDivide,
-  numpadEqual,
-}
+const numpadKeys = [
+  LogicalKeyboardKey.numpad0,
+  LogicalKeyboardKey.numpad1,
+  LogicalKeyboardKey.numpad2,
+  LogicalKeyboardKey.numpad3,
+  LogicalKeyboardKey.numpad4,
+  LogicalKeyboardKey.numpad5,
+  LogicalKeyboardKey.numpad6,
+  LogicalKeyboardKey.numpad7,
+  LogicalKeyboardKey.numpad8,
+  LogicalKeyboardKey.numpad9,
+  LogicalKeyboardKey.numpadEnter,
+  LogicalKeyboardKey.numpadDecimal,
+  LogicalKeyboardKey.numpadAdd,
+  LogicalKeyboardKey.numpadSubtract,
+  LogicalKeyboardKey.numpadMultiply,
+  LogicalKeyboardKey.numpadDivide,
+  LogicalKeyboardKey.numpadEqual,
+];
 
 class KeyboardShortcuts {
   String numpad0;
@@ -105,25 +118,25 @@ class KeyboardShortcuts {
         numpadEqual: '',
       );
 
-  String get(NumpadKey key) =>
+  String get(LogicalKeyboardKey key) =>
       {
-        NumpadKey.numpad0: numpad0,
-        NumpadKey.numpad1: numpad1,
-        NumpadKey.numpad2: numpad2,
-        NumpadKey.numpad3: numpad3,
-        NumpadKey.numpad4: numpad4,
-        NumpadKey.numpad5: numpad5,
-        NumpadKey.numpad6: numpad6,
-        NumpadKey.numpad7: numpad7,
-        NumpadKey.numpad8: numpad8,
-        NumpadKey.numpad9: numpad9,
-        NumpadKey.numpadEnter: numpadEnter,
-        NumpadKey.numpadDecimal: numpadDecimal,
-        NumpadKey.numpadAdd: numpadAdd,
-        NumpadKey.numpadSubtract: numpadSubtract,
-        NumpadKey.numpadMultiply: numpadMultiply,
-        NumpadKey.numpadDivide: numpadDivide,
-        NumpadKey.numpadEqual: numpadEqual,
+        LogicalKeyboardKey.numpad0: numpad0,
+        LogicalKeyboardKey.numpad1: numpad1,
+        LogicalKeyboardKey.numpad2: numpad2,
+        LogicalKeyboardKey.numpad3: numpad3,
+        LogicalKeyboardKey.numpad4: numpad4,
+        LogicalKeyboardKey.numpad5: numpad5,
+        LogicalKeyboardKey.numpad6: numpad6,
+        LogicalKeyboardKey.numpad7: numpad7,
+        LogicalKeyboardKey.numpad8: numpad8,
+        LogicalKeyboardKey.numpad9: numpad9,
+        LogicalKeyboardKey.numpadEnter: numpadEnter,
+        LogicalKeyboardKey.numpadDecimal: numpadDecimal,
+        LogicalKeyboardKey.numpadAdd: numpadAdd,
+        LogicalKeyboardKey.numpadSubtract: numpadSubtract,
+        LogicalKeyboardKey.numpadMultiply: numpadMultiply,
+        LogicalKeyboardKey.numpadDivide: numpadDivide,
+        LogicalKeyboardKey.numpadEqual: numpadEqual,
       }[key] ??
       '';
 
@@ -210,79 +223,80 @@ class KeyboardShortcuts {
         numpadEqual: numpadEqual ?? this.numpadEqual,
       );
 
-  KeyboardShortcuts copyWithMap(Map<NumpadKey, String> map) => copyWith(
-        numpad0: map[NumpadKey.numpad0],
-        numpad1: map[NumpadKey.numpad1],
-        numpad2: map[NumpadKey.numpad2],
-        numpad3: map[NumpadKey.numpad3],
-        numpad4: map[NumpadKey.numpad4],
-        numpad5: map[NumpadKey.numpad5],
-        numpad6: map[NumpadKey.numpad6],
-        numpad7: map[NumpadKey.numpad7],
-        numpad8: map[NumpadKey.numpad8],
-        numpad9: map[NumpadKey.numpad9],
-        numpadEnter: map[NumpadKey.numpadEnter],
-        numpadDecimal: map[NumpadKey.numpadDecimal],
-        numpadAdd: map[NumpadKey.numpadAdd],
-        numpadSubtract: map[NumpadKey.numpadSubtract],
-        numpadMultiply: map[NumpadKey.numpadMultiply],
-        numpadDivide: map[NumpadKey.numpadDivide],
-        numpadEqual: map[NumpadKey.numpadEqual],
+  KeyboardShortcuts copyWithMap(Map<LogicalKeyboardKey, String> map) =>
+      copyWith(
+        numpad0: map[LogicalKeyboardKey.numpad0],
+        numpad1: map[LogicalKeyboardKey.numpad1],
+        numpad2: map[LogicalKeyboardKey.numpad2],
+        numpad3: map[LogicalKeyboardKey.numpad3],
+        numpad4: map[LogicalKeyboardKey.numpad4],
+        numpad5: map[LogicalKeyboardKey.numpad5],
+        numpad6: map[LogicalKeyboardKey.numpad6],
+        numpad7: map[LogicalKeyboardKey.numpad7],
+        numpad8: map[LogicalKeyboardKey.numpad8],
+        numpad9: map[LogicalKeyboardKey.numpad9],
+        numpadEnter: map[LogicalKeyboardKey.numpadEnter],
+        numpadDecimal: map[LogicalKeyboardKey.numpadDecimal],
+        numpadAdd: map[LogicalKeyboardKey.numpadAdd],
+        numpadSubtract: map[LogicalKeyboardKey.numpadSubtract],
+        numpadMultiply: map[LogicalKeyboardKey.numpadMultiply],
+        numpadDivide: map[LogicalKeyboardKey.numpadDivide],
+        numpadEqual: map[LogicalKeyboardKey.numpadEqual],
       );
 }
 
 const numpadKeysIntentMap = <ShortcutActivator, Intent>{
   SingleActivator(LogicalKeyboardKey.numpad0):
-      KeyboardIntent(NumpadKey.numpad0),
+      KeyboardIntent(LogicalKeyboardKey.numpad0),
   SingleActivator(LogicalKeyboardKey.numpad1):
-      KeyboardIntent(NumpadKey.numpad1),
+      KeyboardIntent(LogicalKeyboardKey.numpad1),
   SingleActivator(LogicalKeyboardKey.numpad2):
-      KeyboardIntent(NumpadKey.numpad2),
+      KeyboardIntent(LogicalKeyboardKey.numpad2),
   SingleActivator(LogicalKeyboardKey.numpad3):
-      KeyboardIntent(NumpadKey.numpad3),
+      KeyboardIntent(LogicalKeyboardKey.numpad3),
   SingleActivator(LogicalKeyboardKey.numpad4):
-      KeyboardIntent(NumpadKey.numpad4),
+      KeyboardIntent(LogicalKeyboardKey.numpad4),
   SingleActivator(LogicalKeyboardKey.numpad5):
-      KeyboardIntent(NumpadKey.numpad5),
+      KeyboardIntent(LogicalKeyboardKey.numpad5),
   SingleActivator(LogicalKeyboardKey.numpad6):
-      KeyboardIntent(NumpadKey.numpad6),
+      KeyboardIntent(LogicalKeyboardKey.numpad6),
   SingleActivator(LogicalKeyboardKey.numpad7):
-      KeyboardIntent(NumpadKey.numpad7),
+      KeyboardIntent(LogicalKeyboardKey.numpad7),
   SingleActivator(LogicalKeyboardKey.numpad8):
-      KeyboardIntent(NumpadKey.numpad8),
+      KeyboardIntent(LogicalKeyboardKey.numpad8),
   SingleActivator(LogicalKeyboardKey.numpad9):
-      KeyboardIntent(NumpadKey.numpad9),
+      KeyboardIntent(LogicalKeyboardKey.numpad9),
   SingleActivator(LogicalKeyboardKey.numpadDivide):
-      KeyboardIntent(NumpadKey.numpadDivide),
+      KeyboardIntent(LogicalKeyboardKey.numpadDivide),
   SingleActivator(LogicalKeyboardKey.numpadMultiply):
-      KeyboardIntent(NumpadKey.numpadMultiply),
+      KeyboardIntent(LogicalKeyboardKey.numpadMultiply),
   SingleActivator(LogicalKeyboardKey.numpadSubtract):
-      KeyboardIntent(NumpadKey.numpadSubtract),
+      KeyboardIntent(LogicalKeyboardKey.numpadSubtract),
   SingleActivator(LogicalKeyboardKey.numpadAdd):
-      KeyboardIntent(NumpadKey.numpadAdd),
+      KeyboardIntent(LogicalKeyboardKey.numpadAdd),
   SingleActivator(LogicalKeyboardKey.numpadDecimal):
-      KeyboardIntent(NumpadKey.numpadDecimal),
+      KeyboardIntent(LogicalKeyboardKey.numpadDecimal),
   SingleActivator(LogicalKeyboardKey.numpadEnter):
-      KeyboardIntent(NumpadKey.numpadEnter),
+      KeyboardIntent(LogicalKeyboardKey.numpadEnter),
 };
 
 final numpadKeyLabels = {
-  NumpadKey.numpad0: '0',
-  NumpadKey.numpad1: '1',
-  NumpadKey.numpad2: '2',
-  NumpadKey.numpad3: '3',
-  NumpadKey.numpad4: '4',
-  NumpadKey.numpad5: '5',
-  NumpadKey.numpad6: '6',
-  NumpadKey.numpad7: '7',
-  NumpadKey.numpad8: '8',
-  NumpadKey.numpad9: '9',
-  NumpadKey.numpadEnter: 'Enter',
-  NumpadKey.numpadDecimal: '.',
-  NumpadKey.numpadAdd: '+',
-  NumpadKey.numpadSubtract: '-',
-  NumpadKey.numpadMultiply: '*',
-  NumpadKey.numpadDivide: '/',
-  NumpadKey.numpadEqual: '=',
+  LogicalKeyboardKey.numpad0: '0',
+  LogicalKeyboardKey.numpad1: '1',
+  LogicalKeyboardKey.numpad2: '2',
+  LogicalKeyboardKey.numpad3: '3',
+  LogicalKeyboardKey.numpad4: '4',
+  LogicalKeyboardKey.numpad5: '5',
+  LogicalKeyboardKey.numpad6: '6',
+  LogicalKeyboardKey.numpad7: '7',
+  LogicalKeyboardKey.numpad8: '8',
+  LogicalKeyboardKey.numpad9: '9',
+  LogicalKeyboardKey.numpadEnter: 'Enter',
+  LogicalKeyboardKey.numpadDecimal: '.',
+  LogicalKeyboardKey.numpadAdd: '+',
+  LogicalKeyboardKey.numpadSubtract: '-',
+  LogicalKeyboardKey.numpadMultiply: '*',
+  LogicalKeyboardKey.numpadDivide: '/',
+  LogicalKeyboardKey.numpadEqual: '=',
 };
 

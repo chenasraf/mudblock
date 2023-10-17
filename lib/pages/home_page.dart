@@ -25,7 +25,7 @@ class HomePageState extends State<HomePage>
   void initState() {
     super.initState();
     windowManager.addListener(this);
-    Future.delayed(Duration.zero, () => store.selectProfileAndConnect(context));
+    Future.delayed(Duration.zero, () => store.appStart(context));
   }
 
   @override
@@ -38,7 +38,7 @@ class HomePageState extends State<HomePage>
   Widget build(BuildContext context) {
     const consoleStyle = TextStyle(
       color: Colors.white,
-      fontFamily: 'Menlo',
+      fontFamily: 'Fira Code',
       fontSize: 16,
       height: 1,
     );
@@ -71,46 +71,49 @@ class HomePageState extends State<HomePage>
                         child: Stack(
                           children: [
                             GestureDetector(
+                              behavior: HitTestBehavior.translucent,
                               onTap: store.selectInput,
                               child: SingleChildScrollView(
                                 controller: store.scrollController,
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
-                                  child: SelectableText.rich(
-                                    TextSpan(
-                                      children: [
-                                        for (final line in lines) ...[
-                                          for (final segment
-                                              in ColorUtils.split(line))
-                                            TextSpan(
-                                              text: segment.text,
-                                              style: consoleStyle.copyWith(
-                                                color: Color(
-                                                    segment.themedFgColor),
-                                                backgroundColor: Color(
-                                                    segment.themedBgColor),
-                                                fontWeight: segment.bold
-                                                    ? FontWeight.w800
-                                                    : null,
-                                                fontStyle: segment.italic
-                                                    ? FontStyle.italic
-                                                    : null,
-                                                decoration: segment.underline
-                                                    ? TextDecoration.underline
-                                                    : null,
+                                  child: Focus(
+                                    child: SelectableText.rich(
+                                      TextSpan(
+                                        children: [
+                                          for (final line in lines) ...[
+                                            for (final segment
+                                                in ColorUtils.split(line))
+                                              TextSpan(
+                                                text: segment.text,
+                                                style: consoleStyle.copyWith(
+                                                  color: Color(
+                                                      segment.themedFgColor),
+                                                  backgroundColor: Color(
+                                                      segment.themedBgColor),
+                                                  fontWeight: segment.bold
+                                                      ? FontWeight.w900
+                                                      : FontWeight.w400,
+                                                  fontStyle: segment.italic
+                                                      ? FontStyle.italic
+                                                      : null,
+                                                  decoration: segment.underline
+                                                      ? TextDecoration.underline
+                                                      : null,
+                                                ),
                                               ),
+                                            const TextSpan(
+                                              text: newline,
+                                              style:
+                                                  consoleStyle, // .copyWith(fontSize: 1),
                                             ),
-                                          const TextSpan(
-                                            text: newline,
-                                            style:
-                                                consoleStyle, // .copyWith(fontSize: 1),
-                                          ),
+                                          ],
                                         ],
-                                      ],
+                                      ),
+                                      enableInteractiveSelection: true,
+                                      selectionWidthStyle: BoxWidthStyle.tight,
+                                      selectionHeightStyle: BoxHeightStyle.max,
                                     ),
-                                    enableInteractiveSelection: true,
-                                    selectionWidthStyle: BoxWidthStyle.tight,
-                                    selectionHeightStyle: BoxHeightStyle.max,
                                   ),
                                 ),
                               ),
@@ -136,7 +139,7 @@ class HomePageState extends State<HomePage>
                   autofocus: true,
                   focusNode: store.inputFocus,
                   controller: store.input,
-                  onSubmitted: store.submitInput,
+                  onSubmitted: store.submitAsInput,
                   onTap: store.selectInput,
                   style: consoleStyle.copyWith(color: Colors.black),
                   decoration: InputDecoration(

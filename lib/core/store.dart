@@ -1,21 +1,22 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
 import 'package:ctelnet/ctelnet.dart';
 import 'package:flutter/material.dart';
-import 'package:mudblock/core/features/settings.dart';
-import 'package:mudblock/core/profile_presets.dart';
-import 'package:mudblock/core/storage.dart';
-import 'package:mudblock/pages/select_profile_page.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-import 'color_utils.dart';
+import '../core/features/settings.dart';
+import '../core/profile_presets.dart';
+import '../core/storage.dart';
+import '../core/string_utils.dart';
 import 'consts.dart';
 import 'features/action.dart';
 import 'features/alias.dart';
-import 'features/keyboard_shortcuts.dart';
 import 'features/profile.dart';
+import 'features/trigger.dart';
 import 'routes.dart';
 
 const maxLines = 2000;
@@ -46,6 +47,8 @@ class GameStore extends ChangeNotifier {
       RegExp("(?<!$commandSeparator)$commandSeparator(?!$commandSeparator)");
 
   MUDProfile get currentProfile => _currentProfile!;
+  List<Alias> get aliases => currentProfile.aliases;
+  List<Trigger> get triggers => currentProfile.triggers;
 
   get connected => _clientReady && _client.connected;
 
@@ -57,11 +60,17 @@ class GameStore extends ChangeNotifier {
     return this;
   }
 
+  void appStart(BuildContext context) async {
+    echoSystem('''
+    Welcome to MudBlock!
+    To get started, tap the hamburger menu at the top right corner and
+    select a profile.
+    '''
+        .trimMultiline());
+    // For more help, type "mudhelp"
+  }
+
   void selectProfileAndConnect(BuildContext context) async {
-    // final profile = await showDialog<MUDProfile?>(
-    //   context: context,
-    //   builder: (context) => const SelectProfilePage(),
-    // );
     final profile = await Navigator.pushNamed(
       context,
       Paths.selectProfile,
@@ -87,44 +96,6 @@ class GameStore extends ChangeNotifier {
     echoSystem('Connecting...');
     _client.connect();
     notifyListeners();
-  }
-
-  bool processTriggers(String line) {
-    bool showLine = true;
-    final str = ColorUtils.stripColor(line);
-    for (final trigger in currentProfile.triggers) {
-      if (!trigger.isAvailable) {
-        continue;
-      }
-      if (trigger.matches(str)) {
-        trigger.invokeEffect(this, str);
-        if (trigger.isRemovedFromBuffer) {
-          showLine = false;
-        }
-        if (trigger.autoDisable) {
-          trigger.tempDisabled = true;
-        }
-      }
-    }
-    return showLine;
-  }
-
-  bool processAliases(String line) {
-    bool sendLine = true;
-    final str = line;
-    for (final alias in [...builtInAliases, ...currentProfile.aliases]) {
-      if (!alias.isAvailable) {
-        continue;
-      }
-      if (alias.matches(str)) {
-        alias.invokeEffect(this, str);
-        sendLine = false;
-      }
-      if (alias.autoDisable) {
-        alias.tempDisabled = true;
-      }
-    }
-    return sendLine;
   }
 
   Future<void> _onConnect() async {
@@ -158,9 +129,13 @@ class GameStore extends ChangeNotifier {
   }
 
   void onRawData(List<int> bytes) {
+    debugPrint('onRawData');
     try {
       final data = Message(bytes);
-      handleMCCPHandshake(data);
+      handleSpecialMessages(data);
+      if (data.text.isEmpty) {
+        return;
+      }
       for (final line in data.text.split(incomingMsgSplitPattern)) {
         onLine(line);
       }
@@ -173,15 +148,17 @@ class GameStore extends ChangeNotifier {
   }
 
   void onData(Message data) {
+    debugPrint('onData');
     try {
       if (currentProfile.mccpEnabled && isCompressed) {
         _rawStreamController.add(data.bytes);
         return;
       }
-      if (currentProfile.mccpEnabled) {
-        handleMCCPHandshake(data);
+      debugPrint('onData: ${data.text}');
+      handleSpecialMessages(data);
+      if (data.text.isEmpty) {
+        return;
       }
-
       for (final line in data.text.split(incomingMsgSplitPattern)) {
         onLine(line);
       }
@@ -192,18 +169,42 @@ class GameStore extends ChangeNotifier {
     }
   }
 
-  void handleMCCPHandshake(Message data) {
-    if (isCompressed) {
-      if (data.se()) {
-        disableMCCP();
-      }
-    } else {
-      if (data.sb(86)) {
-        enableMCCP();
-      }
-      if (data.will(86)) {
-        requestMCCP();
-        echo('Compression requested');
+  void handleSpecialMessages(Message data) {
+    if (data.isCommand) {
+      debugPrint('Received command: ${data.bytes}');
+    }
+    if (data.doo(24)) {
+      debugPrint('Received terminal type WILL request');
+      sendBytes([Symbols.iac, Symbols.will, 24, Symbols.iac, Symbols.se]);
+    } else if (data.sb(24) && data.bytes[3] == 1) {
+      debugPrint('Received terminal type SEND request');
+      final bytes = [
+        Symbols.iac,
+        Symbols.sb,
+        24,
+        0,
+        ...const AsciiEncoder().convert('Mublock'),
+        Symbols.iac,
+        Symbols.se
+      ];
+      debugPrint('Sending terminal type: $bytes');
+      sendBytes(bytes);
+    } else if (!currentProfile.mccpEnabled) {
+      return;
+    }
+    // MCCP
+    else {
+      if (isCompressed) {
+        if (data.se()) {
+          disableMCCP();
+        }
+      } else {
+        if (data.sb(86)) {
+          enableMCCP();
+        } else if (data.will(86)) {
+          requestMCCP();
+          echo('Compression requested');
+        }
       }
     }
   }
@@ -226,8 +227,8 @@ class GameStore extends ChangeNotifier {
   }
 
   void onLine(String line) {
-    final showLine = processTriggers(line);
-    if (showLine) {
+    final result = Trigger.processLine(this, triggers, line);
+    if (!result.lineRemoved) {
       echo(line);
     }
   }
@@ -237,7 +238,7 @@ class GameStore extends ChangeNotifier {
 
   /// echo - echo to screen, DOES NOT split by msgSplitPattern, is not send to server
   void echo(String line) {
-    if (currentProfile.settings.showTimestamps) {
+    if (_currentProfile != null && currentProfile.settings.showTimestamps) {
       line = '[${DateTime.now().toIso8601String()}] $line';
     }
     _lines.add(line);
@@ -262,13 +263,13 @@ class GameStore extends ChangeNotifier {
 
   /// sendBytes - raw send bytes - DOES NOT split by outgoingMsgSplitPattern, no processing
   void sendBytes(List<int> bytes) {
-    var output = bytes;
-    _client.sendBytes(output);
+    debugPrint('Sending bytes: $bytes');
+    _client.sendBytes(bytes);
   }
 
   /// sendString - send string - DOES NOT split by outgoingMsgSplitPattern, no processing
   void sendString(String line) {
-    debugPrint('sending string: $line');
+    debugPrint('Sending string: $line');
     _client.send(line + newline);
   }
 
@@ -276,11 +277,10 @@ class GameStore extends ChangeNotifier {
   void send(String text) {
     for (var line in _splitCsp(text)) {
       if (isCompressed) {
-        debugPrint(
-            'sending bytes${isCompressed ? ' (compressed)' : ''}: $line');
+        debugPrint('Sending compressed bytes: $line');
         sendBytes(line.codeUnits + newline.codeUnits);
       } else {
-        debugPrint('sending string: $line');
+        debugPrint('Sending string: $line');
         sendString(line);
       }
     }
@@ -291,8 +291,8 @@ class GameStore extends ChangeNotifier {
     for (var line in _splitCsp(text)) {
       line = MUDAction.doVariableReplacements(this, line);
       debugPrint('processing aliases for: $line');
-      var sendLine = processAliases(line);
-      if (sendLine) {
+      var result = Alias.processLine(this, aliases, line);
+      if (!result.lineRemoved) {
         sendString(line);
       }
     }
@@ -307,7 +307,7 @@ class GameStore extends ChangeNotifier {
   }
 
   /// submitInput - echo input, process aliases and triggers, then send, scroll to end, select input
-  void submitInput(String text) {
+  void submitAsInput(String text) {
     if (!_clientReady || !_client.connected) {
       return;
     }
@@ -417,10 +417,10 @@ class GameStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  void onShortcut(NumpadKey key, BuildContext context) {
+  void onShortcut(LogicalKeyboardKey key, BuildContext context) {
     final action = currentProfile.keyboardShortcuts.get(key);
     if (action.isNotEmpty) {
-      submitInput(action);
+      submitAsInput(action);
       selectInput();
     }
   }
@@ -455,11 +455,15 @@ class GameStore extends ChangeNotifier {
   void onProfileUpdate() {
     notifyListeners();
   }
+
+  static GameStore of(BuildContext context) {
+    return Provider.of<GameStore>(context, listen: false);
+  }
 }
 
 mixin GameStoreMixin {
   GameStore storeOf(BuildContext context) =>
-      Provider.of<GameStore>(context, listen: false);
+      GameStore.of(context);
 }
 
 mixin GameStoreStateMixin<T extends StatefulWidget> on State<T> {

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../color_utils.dart';
+import '../store.dart';
 import '../string_utils.dart';
 import 'action.dart';
 import 'automation.dart';
@@ -35,6 +37,27 @@ class Alias extends Automation {
         action: MUDAction.empty(),
         group: '',
       );
+
+  static AliasProcessResult processLine(
+      GameStore store, List<Alias> triggers, String line) {
+    bool showLine = true;
+    final str = ColorUtils.stripColor(line);
+    for (final trigger in triggers) {
+      if (!trigger.isAvailable) {
+        continue;
+      }
+      if (trigger.matches(str)) {
+        trigger.invokeEffect(store, str);
+        if (trigger.isRemovedFromBuffer) {
+          showLine = false;
+        }
+        if (trigger.autoDisable) {
+          trigger.tempDisabled = true;
+        }
+      }
+    }
+    return AliasProcessResult(lineRemoved: !showLine);
+  }
 
   factory Alias.fromJson(Map<String, dynamic> json) => Alias(
         id: json['id'],
@@ -77,6 +100,12 @@ class Alias extends Automation {
         action: action ?? this.action,
         group: group ?? this.group,
       );
+}
+
+class AliasProcessResult {
+  bool lineRemoved;
+
+  AliasProcessResult({this.lineRemoved = false});
 }
 
 String _key(String str) => 'builtin-alias-$str';

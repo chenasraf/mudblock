@@ -32,27 +32,27 @@ class HomeScaffold extends StatelessWidget with GameStoreMixin {
         builder: builder,
       ),
       endDrawer: Drawer(
-        child: ListView(
-          children: [
-            ListTile(
-              leading: const Image(
-                image: AssetImage('assets/images/logo/logo.png'),
-                width: 32,
-                height: 32,
+        child: GameStore.consumer(
+          builder: (context, store, child) => ListView(
+            children: [
+              ListTile(
+                leading: const Image(
+                  image: AssetImage('assets/images/logo/logo.png'),
+                  width: 32,
+                  height: 32,
+                ),
+                title: const Text('Mudblock'),
+                subtitle: FutureBuilder<String>(
+                  future: PackageInfo.fromPlatform().then((pkg) => pkg.version),
+                  builder: (context, data) {
+                    final version = data.data ?? '...';
+                    return Text('v$version');
+                  },
+                ),
+                onTap: () => Navigator.pushNamed(context, Paths.about),
               ),
-              title: const Text('Mudblock'),
-              subtitle: FutureBuilder<String>(
-                future: PackageInfo.fromPlatform().then((pkg) => pkg.version),
-                builder: (context, data) {
-                  final version = data.data ?? '...';
-                  return Text('v$version');
-                },
-              ),
-              onTap: () => Navigator.pushNamed(context, Paths.about),
-            ),
-            const Divider(),
-            GameStore.consumer(
-              builder: (context, store, child) => ListTile(
+              const Divider(),
+              ListTile(
                 title: store.connected
                     ? Text(store.currentProfile.name)
                     : const Text('Not connected'),
@@ -78,58 +78,53 @@ class HomeScaffold extends StatelessWidget with GameStoreMixin {
                         store.selectProfileAndConnect(context);
                       },
               ),
-            ),
-            ListTile(
-              title: const Text('Button Sets'),
-              leading: const Icon(GameButtonSetData.iconData),
-              onTap: () => Navigator.pushNamed(context, Paths.buttons),
-            ),
-            ListTile(
-              title: const Text('Aliases'),
-              leading: const Icon(Alias.iconData),
-              onTap: () => Navigator.pushNamed(context, Paths.aliases),
-            ),
-            ListTile(
-              title: const Text('Triggers'),
-              leading: const Icon(Trigger.iconData),
-              onTap: () => Navigator.pushNamed(context, Paths.triggers),
-            ),
-            ListTile(
-              title: const Text('Variables'),
-              leading: const Icon(Variable.iconData),
-              onTap: () => Navigator.pushNamed(context, Paths.variables),
-            ),
-            if (PlatformUtils.isDesktop)
-              ListTile(
-                title: const Text('Keyboard Shortcuts'),
-                leading: const Icon(Icons.keyboard),
-                onTap: () => Navigator.pushNamed(context, Paths.shortcuts),
-              ),
-            const Divider(),
-            ListTile(
-              title: const Text('Settings'),
-              leading: const Icon(Icons.settings),
-              onTap: () => Navigator.pushNamed(context, Paths.settings),
-            ),
-            GameStore.consumer(
-              builder: (context, store, child) {
-                if (store.connected) {
+              if (store.connected) ...[
+                ListTile(
+                  title: const Text('Button Sets'),
+                  leading: const Icon(GameButtonSetData.iconData),
+                  onTap: () => Navigator.pushNamed(context, Paths.buttons),
+                ),
+                ListTile(
+                  title: const Text('Aliases'),
+                  leading: const Icon(Alias.iconData),
+                  onTap: () => Navigator.pushNamed(context, Paths.aliases),
+                ),
+                ListTile(
+                  title: const Text('Triggers'),
+                  leading: const Icon(Trigger.iconData),
+                  onTap: () => Navigator.pushNamed(context, Paths.triggers),
+                ),
+                ListTile(
+                  title: const Text('Variables'),
+                  leading: const Icon(Variable.iconData),
+                  onTap: () => Navigator.pushNamed(context, Paths.variables),
+                ),
+                if (PlatformUtils.isDesktop)
                   ListTile(
-                    title: const Text('Disconnect'),
-                    leading: const Icon(Icons.exit_to_app),
-                    onTap: () async {
-                      Navigator.of(context).pop();
-                      await gameStore.disconnect();
-                      if (context.mounted) {
-                        gameStore.selectProfileAndConnect(context);
-                      }
-                    },
-                  );
-                }
-                return Container();
-              },
-            ),
-          ],
+                    title: const Text('Keyboard Shortcuts'),
+                    leading: const Icon(Icons.keyboard),
+                    onTap: () => Navigator.pushNamed(context, Paths.shortcuts),
+                  ),
+                const Divider(),
+                ListTile(
+                  title: const Text('Settings'),
+                  leading: const Icon(Icons.settings),
+                  onTap: () => Navigator.pushNamed(context, Paths.settings),
+                ),
+                ListTile(
+                  title: const Text('Disconnect'),
+                  leading: const Icon(Icons.exit_to_app),
+                  onTap: () async {
+                    Navigator.of(context).pop();
+                    await gameStore.disconnect();
+                    if (context.mounted) {
+                      gameStore.selectProfileAndConnect(context);
+                    }
+                  },
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );

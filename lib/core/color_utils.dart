@@ -16,6 +16,10 @@ class ColorUtils {
         result.add(ColoredText.fromToken(token));
       }
 
+      if (line.contains('Test')) {
+        debugPrint('split: $result');
+      }
+
       return result;
     } catch (e, stack) {
       debugPrint('Error at line: $line');
@@ -45,7 +49,8 @@ class ColorUtils {
     return hslLight.toColor();
   }
 
-  static Brightness getBrightness(Color color) => ThemeData.estimateBrightnessForColor(color);
+  static Brightness getBrightness(Color color) =>
+      ThemeData.estimateBrightnessForColor(color);
 
   static bool isDark(Color color) => getBrightness(color) == Brightness.dark;
   static bool isLight(Color color) => getBrightness(color) == Brightness.light;
@@ -89,34 +94,34 @@ const ansiFgColorMap = {
   // color: black
   30: 0xFF000000,
   // color: red
-  31: 0xFF800000,
+  31: 0xFFCD0000,
   // color: green
-  32: 0xFF008000,
+  32: 0xFF00CD00,
   // color: yellow
-  33: 0xFF808000,
+  33: 0xFFCDCD00,
   // color: blue
-  34: 0xFF000080,
+  34: 0xFF0000EE,
   // color: magenta
-  35: 0xFF800080,
+  35: 0xFFCD00CD,
   // color: cyan
-  36: 0xFF008080,
-  // color: light gray
-  37: 0xFFC0C0C0,
-  // color: bright black
-  90: 0xFF808080,
-  // color: light red
-  91: 0xFFFF0000,
-  // color: light green
-  92: 0xFF00FF00,
-  // color: light yellow
-  93: 0xFFFFFF00,
-  // color: light blue
-  94: 0xFF0000FF,
-  // color: light magenta
-  95: 0xFFFF00FF,
-  // color: light cyan
-  96: 0xFF00FFFF,
+  36: 0xFF00CDCD,
   // color: white
+  37: 0xFFE5E5E5,
+  // color: bright black
+  90: 0xFF7F7F7F,
+  // color: bright red
+  91: 0xFFFF0000,
+  // color: bright green
+  92: 0xFF00FF00,
+  // color: bright yellow
+  93: 0xFFFFFF00,
+  // color: bright blue
+  94: 0xFF5C5CFF,
+  // color: bright magenta
+  95: 0xFFFF00FF,
+  // color: bright cyan
+  96: 0xFF00FFFF,
+  // color: bright white
   97: 0xFFFFFFFF,
 };
 
@@ -138,10 +143,6 @@ const ansiBgColorMap = {
   106: 0xFF00FFFF,
   107: 0xFFFFFFFF,
 };
-
-const bold = 1;
-const italic = 3;
-const underline = 4;
 
 /// map of xterm 256 colors to flutter color ints
 const xtermColorMap = {

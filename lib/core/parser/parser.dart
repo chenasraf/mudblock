@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 import 'interfaces.dart';
 import 'reader.dart';
 import '../consts.dart' as consts;
@@ -49,6 +51,17 @@ class ColorToken {
           text == other.text &&
           fgColor == other.fgColor &&
           bgColor == other.bgColor;
+
+  void setStyle(int code) {
+  // debugPrint('setStyle: $code');
+    if (code == consts.boldByte) {
+      bold = true;
+    } else if (code == consts.italicByte) {
+      italic = true;
+    } else if (code == consts.underlineByte) {
+      underline = true;
+    }
+  }
 }
 
 class ColorParser implements IReader {
@@ -85,29 +98,57 @@ class ColorParser implements IReader {
             final color = consumeUntil('m');
             reader.read();
             final colors = color.split(';');
-            if (colors.length == 1) {
-              final code = int.tryParse(colors[0]) ?? 0;
-              if (code == consts.boldByte) {
-                token.bold = true;
-              } else if (code == consts.italicByte) {
-                token.italic = true;
-              } else if (code == consts.underlineByte) {
-                token.underline = true;
-              } else {
-                token.fgColor = int.tryParse(colors[0]) ?? 0;
-              }
-            } else if (colors.length == 2) {
-              token.bgColor = int.tryParse(colors[0]) ?? 1;
-              token.fgColor = int.tryParse(colors[1]) ?? 0;
-            } else if (colors.length == 3) {
-              if (colors[0] == '38' && colors[1] == '5') {
+            final first = int.tryParse(colors[0]) ?? 0;
+            final second =
+                colors.length > 1 ? int.tryParse(colors[1]) ?? 0 : 0;
+            final third =
+                colors.length > 2 ? int.tryParse(colors[2]) ?? 0 : 0;
+            int fg;
+            int bg;
+            if (first < 30) {
+              token.setStyle(first);
+              fg = second;
+              bg = third;
+            } else {
+              if (first == 38 && second == 5) {
                 token.xterm256 = true;
-                token.fgColor = int.tryParse(colors[2]) ?? 0;
+                fg = third;
+                bg = 0;
               } else {
-                token.bgColor = int.tryParse(colors[0]) ?? 1;
-                token.fgColor = int.tryParse(colors[1]) ?? 0;
+                fg = first;
+                bg = second;
               }
             }
+            token.fgColor = fg;
+            token.bgColor = bg;
+            // if (colors.length == 1) {
+            //   final code = int.tryParse(colors[0]) ?? 0;
+            //   if (code == consts.boldByte) {
+            //     token.bold = true;
+            //   } else if (code == consts.italicByte) {
+            //     token.italic = true;
+            //   } else if (code == consts.underlineByte) {
+            //     token.underline = true;
+            //   } else {
+            //     token.fgColor = int.tryParse(colors[0]) ?? 0;
+            //   }
+            // } else if (colors.length == 2) {
+            //   final code = int.tryParse(colors[0]) ?? 0;
+            //   if (code < 30) {
+            //     token.fgColor = int.tryParse(colors[1]) ?? 0;
+            //   } else {
+            //     token.fgColor = int.tryParse(colors[1]) ?? 0;
+            //     token.bgColor = int.tryParse(colors[0]) ?? 1;
+            //   }
+            // } else if (colors.length == 3) {
+            //   if (colors[0] == '38' && colors[1] == '5') {
+            //     token.xterm256 = true;
+            //     token.fgColor = int.tryParse(colors[2]) ?? 0;
+            //   } else {
+            //     token.bgColor = int.tryParse(colors[0]) ?? 1;
+            //     token.fgColor = int.tryParse(colors[1]) ?? 0;
+            //   }
+            // }
             token.text = consumeUntil(consts.esc);
             return token;
           }
@@ -183,3 +224,4 @@ class ColorParser implements IReader {
   @override
   setPosition(int position) => index = position;
 }
+

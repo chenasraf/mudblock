@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../core/features/keyboard_shortcuts.dart';
 
-
 class KeyboardShortcutsPage extends StatefulWidget {
-  const KeyboardShortcutsPage({super.key, required this.shortcuts, required this.onSave});
+  const KeyboardShortcutsPage(
+      {super.key, required this.shortcuts, required this.onSave});
 
   final KeyboardShortcuts shortcuts;
   final void Function(KeyboardShortcuts) onSave;
@@ -17,23 +18,23 @@ class _KeyboardShortcutsPageState extends State<KeyboardShortcutsPage> {
   late KeyboardShortcuts shortucts;
 
   final _controllers = {
-    NumpadKey.numpad0: TextEditingController(),
-    NumpadKey.numpad1: TextEditingController(),
-    NumpadKey.numpad2: TextEditingController(),
-    NumpadKey.numpad3: TextEditingController(),
-    NumpadKey.numpad4: TextEditingController(),
-    NumpadKey.numpad5: TextEditingController(),
-    NumpadKey.numpad6: TextEditingController(),
-    NumpadKey.numpad7: TextEditingController(),
-    NumpadKey.numpad8: TextEditingController(),
-    NumpadKey.numpad9: TextEditingController(),
-    NumpadKey.numpadEnter: TextEditingController(),
-    NumpadKey.numpadDecimal: TextEditingController(),
-    NumpadKey.numpadAdd: TextEditingController(),
-    NumpadKey.numpadSubtract: TextEditingController(),
-    NumpadKey.numpadMultiply: TextEditingController(),
-    NumpadKey.numpadDivide: TextEditingController(),
-    NumpadKey.numpadEqual: TextEditingController(),
+    LogicalKeyboardKey.numpad0: TextEditingController(),
+    LogicalKeyboardKey.numpad1: TextEditingController(),
+    LogicalKeyboardKey.numpad2: TextEditingController(),
+    LogicalKeyboardKey.numpad3: TextEditingController(),
+    LogicalKeyboardKey.numpad4: TextEditingController(),
+    LogicalKeyboardKey.numpad5: TextEditingController(),
+    LogicalKeyboardKey.numpad6: TextEditingController(),
+    LogicalKeyboardKey.numpad7: TextEditingController(),
+    LogicalKeyboardKey.numpad8: TextEditingController(),
+    LogicalKeyboardKey.numpad9: TextEditingController(),
+    LogicalKeyboardKey.numpadEnter: TextEditingController(),
+    LogicalKeyboardKey.numpadDecimal: TextEditingController(),
+    LogicalKeyboardKey.numpadAdd: TextEditingController(),
+    LogicalKeyboardKey.numpadSubtract: TextEditingController(),
+    LogicalKeyboardKey.numpadMultiply: TextEditingController(),
+    LogicalKeyboardKey.numpadDivide: TextEditingController(),
+    LogicalKeyboardKey.numpadEqual: TextEditingController(),
   };
 
   @override
@@ -52,35 +53,35 @@ class _KeyboardShortcutsPageState extends State<KeyboardShortcutsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final ordered = <List<NumpadKey?>>[
+    final ordered = <List<LogicalKeyboardKey?>>[
       [
         null,
         null,
-        NumpadKey.numpadDivide,
-        NumpadKey.numpadMultiply,
+        LogicalKeyboardKey.numpadDivide,
+        LogicalKeyboardKey.numpadMultiply,
       ],
       [
-        NumpadKey.numpad7,
-        NumpadKey.numpad8,
-        NumpadKey.numpad9,
-        NumpadKey.numpadSubtract
+        LogicalKeyboardKey.numpad7,
+        LogicalKeyboardKey.numpad8,
+        LogicalKeyboardKey.numpad9,
+        LogicalKeyboardKey.numpadSubtract
       ],
       [
-        NumpadKey.numpad4,
-        NumpadKey.numpad5,
-        NumpadKey.numpad6,
-        NumpadKey.numpadAdd
+        LogicalKeyboardKey.numpad4,
+        LogicalKeyboardKey.numpad5,
+        LogicalKeyboardKey.numpad6,
+        LogicalKeyboardKey.numpadAdd
       ],
       [
-        NumpadKey.numpad1,
-        NumpadKey.numpad2,
-        NumpadKey.numpad3,
-        NumpadKey.numpadEqual
+        LogicalKeyboardKey.numpad1,
+        LogicalKeyboardKey.numpad2,
+        LogicalKeyboardKey.numpad3,
+        LogicalKeyboardKey.numpadEqual
       ],
       [
-        NumpadKey.numpad0,
+        LogicalKeyboardKey.numpad0,
         null,
-        NumpadKey.numpadDecimal,
+        LogicalKeyboardKey.numpadDecimal,
         null,
       ],
     ];
@@ -113,8 +114,8 @@ class _KeyboardShortcutsPageState extends State<KeyboardShortcutsPage> {
                                       controller: _controllers[key],
                                       decoration: InputDecoration(
                                         border: const OutlineInputBorder(),
-                                        labelText:
-                                            numpadKeyLabels[key] ?? key.name,
+                                        labelText: numpadKeyLabels[key] ??
+                                            key.keyLabel,
                                         floatingLabelBehavior:
                                             FloatingLabelBehavior.always,
                                       ),
