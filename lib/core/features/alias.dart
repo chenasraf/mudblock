@@ -40,23 +40,26 @@ class Alias extends Automation {
 
   static AliasProcessResult processLine(
       GameStore store, List<Alias> triggers, String line) {
-    bool showLine = true;
+    final res = AliasProcessResult();
     final str = ColorUtils.stripColor(line);
     for (final trigger in triggers) {
       if (!trigger.isAvailable) {
         continue;
       }
       if (trigger.matches(str)) {
+        res.processed = true;
         trigger.invokeEffect(store, str);
-        if (trigger.isRemovedFromBuffer) {
-          showLine = false;
+        if (trigger.isRemovedFromBuffer ||
+            [MUDActionTarget.script, MUDActionTarget.input]
+                .contains(trigger.action.target)) {
+          res.lineRemoved = true;
         }
         if (trigger.autoDisable) {
           trigger.tempDisabled = true;
         }
       }
     }
-    return AliasProcessResult(lineRemoved: !showLine);
+    return res;
   }
 
   factory Alias.fromJson(Map<String, dynamic> json) => Alias(
@@ -104,8 +107,9 @@ class Alias extends Automation {
 
 class AliasProcessResult {
   bool lineRemoved;
+  bool processed;
 
-  AliasProcessResult({this.lineRemoved = false});
+  AliasProcessResult({ this.lineRemoved = false,  this.processed = false});
 }
 
 String _key(String str) => 'builtin-alias-$str';

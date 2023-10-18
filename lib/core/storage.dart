@@ -135,7 +135,7 @@ class JsonStorage implements IStorage<Map<String, dynamic>> {
     String directory,
   ) async {
     final list = await _storage.readDirectory(directory);
-    return list.map((f) => '$directory/${path.withoutExtension(f)}').toList();
+    return list.map((f) => path.withoutExtension(f)).toList();
   }
 
   @override

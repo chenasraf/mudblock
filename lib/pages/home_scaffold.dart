@@ -71,7 +71,7 @@ class HomeScaffold extends StatelessWidget with GameStoreMixin {
                         );
                         if (updated != null) {
                           await (updated as MUDProfile).save();
-                          store.loadProfiles();
+                          store.loadSavedProfiles();
                         }
                       }
                     : () {

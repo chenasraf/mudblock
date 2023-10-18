@@ -283,14 +283,18 @@ class GameButtonSetData {
   }
 
   List<int> getRowIndices(int row) =>
-      List<int>.generate(colCount, (index) => row * colCount + index);
+      List<int>.generate(colCount, (index) => row * colCount + index,
+          growable: false);
 
   List<int> getColumnIndices(int col) =>
-      List<int>.generate(rowCount, (index) => index * colCount + col);
+      List<int>.generate(rowCount, (index) => index * colCount + col,
+          growable: false);
 
   int getColumnFromIndex(int index) => index % colCount;
 
   int getRowFromIndex(int index) => index ~/ colCount;
+
+  int getIndexFromRowCol(int row, int col) => row * colCount + col;
 }
 
 enum GameButtonSetType {
@@ -337,17 +341,17 @@ final movementPreset = GameButtonSetData(
         icon: Icons.visibility_outlined,
         iconName: 'visibility_outlined',
       ),
-      labelUp: GameButtonLabelData(
-        icon: Icons.exit_to_app,
-        iconName: 'exit_to_app',
-      ),
-      labelDown: GameButtonLabelData(
-        icon: Icons.exit_to_app,
-        iconName: 'exit_to_app',
-      ),
+      // labelUp: GameButtonLabelData(
+      //   icon: Icons.exit_to_app,
+      //   iconName: 'exit_to_app',
+      // ),
+      // labelDown: GameButtonLabelData(
+      //   icon: Icons.exit_to_app,
+      //   iconName: 'exit_to_app',
+      // ),
       pressAction: MUDAction('look'),
-      dragUpAction: MUDAction('exits'),
-      dragDownAction: MUDAction('exits'),
+      // dragUpAction: MUDAction('exits'),
+      // dragDownAction: MUDAction('exits'),
     ),
     GameButtonData(
       id: uuid(),

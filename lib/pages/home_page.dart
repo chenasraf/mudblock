@@ -102,11 +102,11 @@ class HomePageState extends State<HomePage>
                                                       : null,
                                                 ),
                                               ),
-                                            const TextSpan(
-                                              text: newline,
-                                              style:
-                                                  consoleStyle, // .copyWith(fontSize: 1),
-                                            ),
+                                            // const TextSpan(
+                                            //   text: newline,
+                                            //   style:
+                                            //       consoleStyle, // .copyWith(fontSize: 1),
+                                            // ),
                                           ],
                                         ],
                                       ),

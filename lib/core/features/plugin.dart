@@ -34,7 +34,7 @@ class PluginBase extends ChangeNotifier {
     final triggers = await storage.readDirectory('triggers');
     final triggerFiles = <Map<String, dynamic>>[];
     for (final trigger in triggers) {
-      final triggerFile = await storage.readFile(trigger);
+      final triggerFile = await storage.readFile('triggers/$trigger');
       if (triggerFile != null) {
         triggerFiles.add(triggerFile);
       }
@@ -47,7 +47,7 @@ class PluginBase extends ChangeNotifier {
     final aliases = await storage.readDirectory('aliases');
     final aliasFiles = <Map<String, dynamic>>[];
     for (final alias in aliases) {
-      final aliasFile = await storage.readFile(alias);
+      final aliasFile = await storage.readFile('aliases/$alias');
       if (aliasFile != null) {
         aliasFiles.add(aliasFile);
       }
@@ -71,7 +71,7 @@ class PluginBase extends ChangeNotifier {
     final buttonSets = await storage.readDirectory('button_sets');
     final buttonSetFiles = <Map<String, dynamic>>[];
     for (final buttonSet in buttonSets) {
-      final buttonSetFile = await storage.readFile(buttonSet);
+      final buttonSetFile = await storage.readFile('button_sets/$buttonSet');
       if (buttonSetFile != null) {
         buttonSetFiles.add(buttonSetFile);
       }

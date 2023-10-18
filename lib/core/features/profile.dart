@@ -1,7 +1,6 @@
 import 'package:encrypt/encrypt.dart' as enc;
 import 'package:flutter/foundation.dart';
 
-import '../consts.dart';
 import '../secrets.dart';
 import '../storage.dart';
 import '../string_utils.dart';
@@ -189,7 +188,7 @@ class MUDProfile extends PluginBase {
       final decrypted = encrypter.decrypt(encrypted, iv: iv);
       return decrypted;
     } catch (e, stack) {
-      debugPrint('MUDProfile.decrypt: $e$lf$stack');
+      debugPrint('MUDProfile.decrypt: $e\n$stack');
       return password;
     }
   }

@@ -68,6 +68,7 @@ class MUDAction {
         store.setInput(content);
         break;
     }
+    debugPrint('MUDAction.invoke: done');
   }
 
   factory MUDAction.empty() => MUDAction('');
@@ -77,7 +78,7 @@ class MUDAction {
         // TODO generalize getting enum from string
         target: MUDActionTarget.values.firstWhere(
           (e) => e.name == json['target'],
-          orElse: () => MUDActionTarget.world,
+          orElse: () => MUDActionTarget.execute,
         ),
       );
 

@@ -6,6 +6,7 @@ import 'dart:math';
 import 'package:ctelnet/ctelnet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:path/path.dart' as path;
 import 'package:provider/provider.dart';
 
 import '../core/features/settings.dart';
@@ -56,7 +57,7 @@ class GameStore extends ChangeNotifier {
     debugPrint('GameStore.init');
     await storage.init();
     debugPrint('storage.init $storage');
-    fillStockProfiles();
+    loadAllProfiles();
     return this;
   }
 
@@ -123,16 +124,14 @@ class GameStore extends ChangeNotifier {
   }
 
   void onRawData(List<int> bytes) {
-    debugPrint('Received Raw Data');
+    debugPrint('Received Raw Data: ${bytes.length}');
     try {
       final data = Message(bytes);
       handleSpecialMessages(data);
       if (data.text.isEmpty) {
         return;
       }
-      for (final line in data.text.split(incomingMsgSplitPattern)) {
-        onLine(line);
-      }
+      processLines(data.text);
     } catch (e, stack) {
       debugPrint('error: $e$newline$stack');
       echoError('Error: $e');
@@ -147,7 +146,7 @@ class GameStore extends ChangeNotifier {
         _rawStreamController.add(data.bytes);
         return;
       }
-      debugPrint('Received data');
+      debugPrint('Received data: ${data.bytes.length}');
       handleSpecialMessages(data);
       if (isCompressed) {
         return;
@@ -155,9 +154,7 @@ class GameStore extends ChangeNotifier {
       if (data.text.isEmpty) {
         return;
       }
-      for (final line in data.text.split(incomingMsgSplitPattern)) {
-        onLine(line);
-      }
+      processLines(data.text);
     } catch (e, stack) {
       debugPrint('error: $e$newline$stack');
       echo(data.text);
@@ -165,59 +162,59 @@ class GameStore extends ChangeNotifier {
     }
   }
 
+  void processLines(String text) {
+    final lines = text.split(incomingMsgSplitPattern);
+    for (final (i, line) in lines.indexed) {
+      onLine(line, newLine: i != lines.length - 1);
+    }
+  }
+
   void handleSpecialMessages(Message data) {
-    final terminalSub = data.subnegotiation(24);
+    final terminalSub = data.subnegotiation(Symbols.terminalType);
     if (data.isCommand) {
       debugPrint('Received command: ${data.commands}');
     }
-    final bytes = <int>[];
-    if (data.doo(24)) {
+    final builder = MessageBuilder();
+    if (data.doo(Symbols.terminalType)) {
       debugPrint('Received terminal type DO request');
       debugPrint('Sending terminal type WILL response');
-      bytes.addAll([Symbols.iac, Symbols.will, 24]);
+      builder.addWill(Symbols.terminalType);
     }
     if (terminalSub != null &&
         terminalSub.isNotEmpty &&
         terminalSub.single == 1) {
-      // } else if (terminalSub.isNotEmpty && terminalSub[0] == 1) {
       debugPrint('Received terminal type SEND request');
       final tt = const AsciiEncoder().convert('Mublock');
-      final ttBytes = [
-        Symbols.iac,
-        Symbols.sb,
-        24,
-        0,
-        ...tt,
-        Symbols.iac,
-        Symbols.se
-      ];
-      bytes.addAll(ttBytes);
+      final ttBytes = [0, ...tt];
+      builder.addSubnegotiation(Symbols.terminalType, ttBytes);
       debugPrint('Sending terminal type response: $ttBytes');
     }
 
     // MCCP
     if (currentProfile.mccpEnabled) {
       if (!isCompressed) {
-        if (data.sb(86)) {
+        if (data.sb(Symbols.compression2)) {
           debugPrint('Received compression start');
-          if (bytes.isNotEmpty) {
-            sendBytes(bytes);
+          if (builder.isNotEmpty) {
+            builder.send(_client);
           }
           enableCompression();
-          // _rawStreamController.add(data.bytes);
-          debugPrint(
-              'bytes after mccp: ${data.bytes.sublist(data.bytes.indexOf(86) + 3)}');
-          _rawStreamController
-              .add(data.bytes.sublist(data.bytes.indexOf(86) + 3));
+          // send the rest of the data to the compression stream
+          if (data.bytes.indexOf(Symbols.compression2) + 3 <
+              data.bytes.length) {
+            _rawStreamController.add(data.bytes
+                .sublist(data.bytes.indexOf(Symbols.compression2) + 3));
+          }
           echoSystem('Compression started');
           debugPrint("Done handling command (early)");
           return;
-        } else if (data.will(86)) {
+        } else if (data.will(Symbols.compression2)) {
           debugPrint('Received compression request');
-          bytes.addAll([Symbols.iac, Symbols.doo, 86]);
+          builder.addDoo(Symbols.compression2);
           debugPrint('Sending compression request');
         }
-      } else { // isCompressed
+      } else {
+        // isCompressed
         // if (data.se()) {
         //   final seIndex = data.bytes.indexOf(Symbols.se);
         //   if (data.bytes[seIndex - 1] == Symbols.iac) {
@@ -227,9 +224,10 @@ class GameStore extends ChangeNotifier {
         // }
       }
     }
-    sendBytes(bytes);
-    debugPrint("Done handling command");
-    // }
+    if (builder.isNotEmpty) {
+      builder.send(_client);
+      debugPrint("Done handling command");
+    }
   }
 
   void disableCompression() {
@@ -249,10 +247,10 @@ class GameStore extends ChangeNotifier {
     echo('Error: $error');
   }
 
-  void onLine(String line) {
+  void onLine(String line, {bool newLine = false}) {
     final result = Trigger.processLine(this, triggers, line);
     if (!result.lineRemoved) {
-      echo(line);
+      echo(line, newLine: newLine);
     }
   }
 
@@ -260,11 +258,11 @@ class GameStore extends ChangeNotifier {
       _lines.sublist(max(0, _lines.length - maxLines), _lines.length);
 
   /// echo - echo to screen, DOES NOT split by msgSplitPattern, is not send to server
-  void echo(String line) {
+  void echo(String line, {bool newLine = true}) {
     if (_currentProfile != null && currentProfile.settings.showTimestamps) {
       line = '[${DateTime.now().toIso8601String()}] $line';
     }
-    _lines.add(line);
+    _lines.add('$line${newLine ? '\n' : ''}');
     notifyListeners();
     scrollToEnd();
   }
@@ -315,7 +313,10 @@ class GameStore extends ChangeNotifier {
       line = MUDAction.doVariableReplacements(this, line);
       debugPrint('processing aliases for: $line');
       var result = Alias.processLine(this, aliases, line);
-      if (!result.lineRemoved) {
+      if (!result.lineRemoved && currentProfile.settings.echoCommands) {
+        echoOwn(line);
+      }
+      if (!result.processed) {
         sendString(line);
       }
     }
@@ -324,8 +325,12 @@ class GameStore extends ChangeNotifier {
   List<String> _splitCsp(String line) {
     return line
         .split(outgoingMsgSplitPattern)
-        .map((l) => l.replaceAll(
-            '$commandSeparator$commandSeparator', commandSeparator))
+        .map(
+          (l) => l.replaceAll(
+            '$commandSeparator$commandSeparator',
+            commandSeparator,
+          ),
+        )
         .toList();
   }
 
@@ -333,9 +338,6 @@ class GameStore extends ChangeNotifier {
   void submitAsInput(String text) {
     if (!_clientReady || !_client.connected) {
       return;
-    }
-    if (currentProfile.settings.echoCommands) {
-      echoOwn(text);
     }
     execute(text);
     scrollToEnd();
@@ -409,35 +411,37 @@ class GameStore extends ChangeNotifier {
     );
   }
 
-  void loadProfiles() async {
+  void loadSavedProfiles() async {
     final list = await storage.readDirectory('.');
-    debugPrint('loading profiles: $list');
+    debugPrint('Loading profiles: $list');
     profiles.clear();
     for (final name in list) {
-      final profile = await storage.readFile('$name/$name');
+      if (path.basename(name).startsWith('.')) {
+        continue;
+      }
+      final profile = await storage.readFile('./$name/$name');
       if (profile == null) {
         continue;
       }
-      debugPrint('profile: $profile');
+      debugPrint('Adding profile: $profile');
       profiles.add(MUDProfile.fromJson(profile));
     }
+    debugPrint('Profiles Loaded: ${profiles.map((e) => e.name)}');
     notifyListeners();
   }
 
-  void fillStockProfiles() async {
+  void loadAllProfiles() async {
     final list = await storage.readDirectory('.');
-    debugPrint('existing profiles: $list');
+    debugPrint('Existing profiles: $list');
     if (list.isEmpty) {
-      debugPrint('filling stock profiles');
+      final futures = <Future>[];
+      debugPrint('Filling stock profiles');
       for (final profile in profilePresets) {
-        await profile.save();
-        profiles.add(profile);
+        futures.add(profile.save());
       }
-    } else {
-      loadProfiles();
+      await Future.wait(futures);
     }
-    debugPrint('profiles: ${profiles.map((e) => [e.name, e.password])}');
-    notifyListeners();
+    loadSavedProfiles();
   }
 
   void onShortcut(LogicalKeyboardKey key, BuildContext context) {

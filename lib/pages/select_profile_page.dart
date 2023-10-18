@@ -45,11 +45,11 @@ class SelectProfilePage extends StatelessWidget with GameStoreMixin {
                           );
                           if (updated != null) {
                             await (updated as MUDProfile).save();
-                            store.loadProfiles();
+                            store.loadSavedProfiles();
                           }
                         } else if (value == 'delete') {
                           await profile.delete();
-                          store.loadProfiles();
+                          store.loadSavedProfiles();
                         }
                       },
                     ),
@@ -72,7 +72,7 @@ class SelectProfilePage extends StatelessWidget with GameStoreMixin {
           );
           if (profile != null) {
             await (profile as MUDProfile).save();
-            store.loadProfiles();
+            store.loadSavedProfiles();
           }
         },
       ),
