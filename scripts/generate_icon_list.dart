@@ -29,6 +29,12 @@ void main() async {
         final name = parts[3];
         final code = parts[5].split('(')[1].split(',')[0];
         final font = parts[7].split("'")[1];
+        if (name.endsWith('_outlined') ||
+            name.endsWith('_rounded') ||
+            name.endsWith('_sharp') ||
+            name.endsWith('_two_tone')) {
+          continue;
+        }
         icons[name] = {code, font};
         print('Found icon: $name ($code, $font)');
       }
@@ -68,3 +74,4 @@ ${iconListLines.join('\n')}
 
   print('Done');
 }
+
