@@ -129,7 +129,7 @@ final routes = <String, Widget Function(BuildContext)>{
   Paths.shortcuts: (context) {
     return GameStore.consumer(
       builder: (context, store, child) => KeyboardShortcutsPage(
-        shortcuts: store.currentProfile.keyboardShortcuts,
+        map: store.currentProfile.keyboardShortcuts,
         onSave: (shortcuts) {
           store.currentProfile.saveKeyboardShortcuts(shortcuts);
         },

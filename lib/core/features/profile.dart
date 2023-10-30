@@ -20,7 +20,7 @@ class MUDProfile extends PluginBase {
   AuthMethod authMethod;
 
   Settings settings = Settings.empty();
-  KeyboardShortcuts keyboardShortcuts = KeyboardShortcuts.empty();
+  KeyboardShortcutMap keyboardShortcuts = KeyboardShortcutMap.empty();
 
   @override
   IStorage<Map<String, dynamic>> get storage => _storage;
@@ -100,17 +100,17 @@ class MUDProfile extends PluginBase {
         getSettings(),
       ];
 
-  Future<KeyboardShortcuts> loadKeyboardShortcuts() async {
+  Future<KeyboardShortcutMap> loadKeyboardShortcuts() async {
     debugPrint('MUDProfile.loadKeyboardShortcuts: $id');
     final shortcuts = await storage.readFile('keyboard_shortcuts');
     debugPrint('MUDProfile.loadKeyboardShortcuts: $shortcuts');
     if (shortcuts == null) {
-      return KeyboardShortcuts.empty();
+      return KeyboardShortcutMap.empty();
     }
-    return KeyboardShortcuts.fromJson(shortcuts);
+    return KeyboardShortcutMap.fromJson(shortcuts);
   }
 
-  Future<void> saveKeyboardShortcuts(KeyboardShortcuts shortcuts) async {
+  Future<void> saveKeyboardShortcuts(KeyboardShortcutMap shortcuts) async {
     debugPrint('MUDProfile.saveKeyboardShortcuts: $id');
     keyboardShortcuts = shortcuts;
     notifyListeners();

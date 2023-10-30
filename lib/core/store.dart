@@ -243,7 +243,7 @@ class GameStore extends ChangeNotifier {
     echoSystem('Compression enabled');
   }
 
-  void onError(Object error) {
+  void onError(dynamic error) {
     echo('Error: $error');
   }
 
@@ -444,8 +444,9 @@ class GameStore extends ChangeNotifier {
     loadSavedProfiles();
   }
 
-  void onShortcut(LogicalKeyboardKey key, BuildContext context) {
-    final action = currentProfile.keyboardShortcuts.get(key);
+  void onShortcut(BuildContext context, LogicalKeyboardKey key,
+      [LogicalKeyboardKey? modifier]) {
+    final action = currentProfile.keyboardShortcuts.getAction(modifier, key);
     if (action.isNotEmpty) {
       submitAsInput(action);
       selectInput();
