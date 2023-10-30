@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:mudblock/core/background_service.dart';
+import 'package:window_manager/window_manager.dart';
 
 import 'core/platform_utils.dart';
 import 'core/routes.dart';
@@ -10,6 +12,7 @@ import 'core/window_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  initBackgroundService();
   await getPrefs();
   await gameStore.init();
   await windowInit();
@@ -18,6 +21,9 @@ void main() async {
 
 class MudblockApp extends StatelessWidget {
   const MudblockApp({super.key});
+
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
 
   // This widget is the root of your application.
   @override
@@ -43,6 +49,7 @@ class MudblockApp extends StatelessWidget {
     return MaterialApp(
       title: 'Mudblock',
       theme: darkTheme,
+      navigatorKey: navigatorKey,
       builder: (context, child) {
         return GameStore.provider(
           child: Container(

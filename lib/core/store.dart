@@ -3,21 +3,25 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:ctelnet/ctelnet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as path;
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
 import '../core/features/settings.dart';
 import '../core/profile_presets.dart';
 import '../core/storage.dart';
+import 'background_service.dart';
 import 'consts.dart';
 import 'features/action.dart';
 import 'features/alias.dart';
 import 'features/builtin_command.dart';
 import 'features/profile.dart';
 import 'features/trigger.dart';
+import 'platform_utils.dart';
 import 'routes.dart';
 
 const maxLines = 2000;
@@ -70,10 +74,7 @@ class GameStore extends ChangeNotifier {
   }
 
   void selectProfileAndConnect(BuildContext context) async {
-    final profile = await Navigator.pushNamed(
-      context,
-      Paths.selectProfile,
-    );
+    final profile = await Navigator.pushNamed(context, Paths.selectProfile);
     if (profile == null) {
       return;
     }
@@ -97,6 +98,8 @@ class GameStore extends ChangeNotifier {
       echoError('Failed to connect');
       return;
     }
+    await startBackgroundService();
+    showGameNotification();
     _subscription = stream.listen(onData);
     notifyListeners();
   }
@@ -108,11 +111,15 @@ class GameStore extends ChangeNotifier {
         currentProfile.username.isNotEmpty &&
         currentProfile.password.isNotEmpty) {
       debugPrint('Sending username and password');
-      if (currentProfile.authMethod == AuthMethod.diku) {
-        await Future.delayed(const Duration(milliseconds: 100));
-        send(currentProfile.username);
-        await Future.delayed(const Duration(milliseconds: 100));
-        send(currentProfile.password);
+      switch (currentProfile.authMethod) {
+        case AuthMethod.diku:
+          await Future.delayed(const Duration(milliseconds: 100));
+          send(currentProfile.username);
+          await Future.delayed(const Duration(milliseconds: 100));
+          send(currentProfile.password);
+          break;
+        case AuthMethod.none:
+          break;
       }
     }
   }
@@ -127,7 +134,7 @@ class GameStore extends ChangeNotifier {
   }
 
   void onRawData(List<int> bytes) {
-    debugPrint('Received Raw Data: ${bytes.length}');
+    debugPrint('Received Raw Data: ${bytes.length} bytes');
     try {
       final data = Message(bytes);
       handleSpecialMessages(data);
@@ -149,7 +156,7 @@ class GameStore extends ChangeNotifier {
         _rawStreamController.add(data.bytes);
         return;
       }
-      debugPrint('Received data: ${data.bytes.length}');
+      debugPrint('Received data: ${data.bytes.length} bytes');
       handleSpecialMessages(data);
       if (isCompressed) {
         return;
@@ -210,8 +217,7 @@ class GameStore extends ChangeNotifier {
         terminalSub.isNotEmpty &&
         terminalSub.single == 1) {
       debugPrint('Received terminal type SEND request');
-      final tt = const AsciiEncoder().convert('Mublock');
-      final ttBytes = [0, ...tt];
+      List<int> ttBytes = _clientNamesAsBytes();
       builder.addSubnegotiation(Symbols.terminalType, ttBytes);
       debugPrint('Sending terminal type response: $ttBytes');
     }
@@ -254,6 +260,12 @@ class GameStore extends ChangeNotifier {
       builder.send(_client);
       debugPrint("Done handling command");
     }
+  }
+
+  List<int> _clientNamesAsBytes() {
+    final tt = const AsciiEncoder().convert('Mublock');
+    final ttBytes = [0, ...tt];
+    return ttBytes;
   }
 
   void disableCompression() {
@@ -529,6 +541,77 @@ class GameStore extends ChangeNotifier {
 
   void onProfileUpdate() {
     notifyListeners();
+  }
+
+  void showGameNotification() async {
+    if (!PlatformUtils.isMobile) {
+      return;
+    }
+
+    if (!(await backgroundService.isRunning())) {
+      debugPrint('Background service not running');
+      return;
+    }
+    final notifAllowed = await requestNotificationPermissions();
+    final alarmAllowed = await requestSchedulePermissions();
+    if (!notifAllowed || !alarmAllowed) {
+      return;
+    }
+    final content = NotificationContent(
+      id: notificationId,
+      channelKey: notificationChannelId,
+      groupKey: notificationGroupId,
+      category: NotificationCategory.Status,
+      // notificationLayout: NotificationLayout.BigText,
+      title: 'Mudblock - Connected to ${currentProfile.name}',
+      body:
+          '${currentProfile.host}:${currentProfile.port} - Game is running in the background. Tap to open',
+      locked: true,
+      // criticalAlert: true,
+      // payload: {
+      //   'profile': jsonEncode(currentProfile.toJson()),
+      //   'locked': 'true',
+      // },
+      displayOnForeground: true,
+      displayOnBackground: true,
+      // autoDismissible: false,
+    );
+    debugPrint(
+        'Showing notification: ${const JsonEncoder.withIndent('  ').convert(content.toMap())}');
+    notifs.createNotification(content: content);
+  }
+
+  startBackgroundService() async {
+    if (!PlatformUtils.isMobile) {
+      return;
+    }
+    await backgroundService.startService();
+  }
+
+  Future<bool> requestNotificationPermissions() async {
+    if (!PlatformUtils.isMobile) {
+      return false;
+    }
+
+    var isAllowed = await AwesomeNotifications().isNotificationAllowed();
+    debugPrint('Notification allowed? $isAllowed');
+    if (!isAllowed) {
+      // This is just a basic example. For real apps, you must show some
+      // friendly dialog box before call the request method.
+      // This is very important to not harm the user experience
+      isAllowed =
+          await AwesomeNotifications().requestPermissionToSendNotifications();
+      debugPrint('Notification allowed (after asking)? $isAllowed');
+    }
+    return isAllowed;
+  }
+
+  Future<bool> requestSchedulePermissions() async {
+    if (!PlatformUtils.isMobile) {
+      return false;
+    }
+    final permission = await Permission.scheduleExactAlarm.request();
+    return permission.isGranted;
   }
 
   static GameStore of(BuildContext context) {

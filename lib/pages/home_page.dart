@@ -1,15 +1,17 @@
 import 'dart:ui';
 
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
-import 'package:mudblock/core/color_utils.dart';
-import 'package:mudblock/core/storage/shared_prefs.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
-import '../core/consts.dart';
+import '../core/color_utils.dart';
 import '../core/features/game_button_set.dart';
 import '../core/features/keyboard_shortcuts.dart';
+import '../core/notification_controller.dart';
+import '../core/platform_utils.dart';
+import '../core/storage/shared_prefs.dart';
 import '../core/store.dart';
 
 class HomePage extends StatefulWidget {
@@ -26,6 +28,23 @@ class HomePageState extends State<HomePage>
     super.initState();
     windowManager.addListener(this);
     Future.delayed(Duration.zero, () => store.appStart(context));
+
+    _initNotifications();
+  }
+
+  void _initNotifications() {
+    if (!PlatformUtils.isMobile) {
+      return;
+    }
+    AwesomeNotifications().setListeners(
+      onActionReceivedMethod: NotificationController.onActionReceivedMethod,
+      onNotificationCreatedMethod:
+          NotificationController.onNotificationCreatedMethod,
+      onNotificationDisplayedMethod:
+          NotificationController.onNotificationDisplayedMethod,
+      onDismissActionReceivedMethod:
+          NotificationController.onDismissActionReceivedMethod,
+    );
   }
 
   @override
