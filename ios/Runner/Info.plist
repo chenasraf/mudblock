@@ -44,6 +44,10 @@
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
+  <true/>
+  <key>BGTaskSchedulerPermittedIdentifiers</key>
+  <array>
+    <string>dev.flutter.background.refresh</string>
+  </array>
 </dict>
 </plist>
