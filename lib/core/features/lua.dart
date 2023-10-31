@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:lua_dardo/lua.dart';
 
 import '../store.dart';
+import 'action.dart';
 import 'alias.dart';
 import 'game_button_set.dart';
 import 'trigger.dart';
@@ -17,21 +18,7 @@ class LuaInterpreter {
   }
 
   void _loadMUDLibs() {
-    final bindings = LuaBindings(store);
-    state.pushDartFunction(bindings.send);
-    state.setGlobal("Send");
-    state.pushDartFunction(bindings.gsub);
-    state.setGlobal("string.gsub");
-    state.pushDartFunction(bindings.gsub);
-    state.setGlobal("Replace");
-    state.pushDartFunction(bindings.getVariable);
-    state.setGlobal("GetVariable");
-    state.pushDartFunction(bindings.setVariable);
-    state.setGlobal("SetVariable");
-    state.pushDartFunction(bindings.setInput);
-    state.setGlobal("SetInput");
-    state.pushDartFunction(bindings.setInputSelection);
-    state.setGlobal("SetInputSelection");
+    LuaBindings(store).register(state);
     LuaAliasBindings(store).register(state);
     LuaTriggerBindings(store).register(state);
     LuaButtonSetBindings(store).register(state);
@@ -54,6 +41,25 @@ class LuaBindings {
   final GameStore store;
 
   LuaBindings(this.store);
+
+  void register(LuaState state) {
+    state.pushDartFunction(send);
+    state.setGlobal("Send");
+    state.pushDartFunction(gsub);
+    state.setGlobal("string.gsub");
+    state.pushDartFunction(gsub);
+    state.setGlobal("Replace");
+    state.pushDartFunction(getVariable);
+    state.setGlobal("GetVariable");
+    state.pushDartFunction(setVariable);
+    state.setGlobal("SetVariable");
+    state.pushDartFunction(setInput);
+    state.setGlobal("SetInput");
+    state.pushDartFunction(setInputSelection);
+    state.setGlobal("SetInputSelection");
+    state.pushDartFunction(doAfterSpecial);
+    state.setGlobal("DoAfterSpecial");
+  }
 
   int send(LuaState ls) {
     final cmd = ls.checkString(1) ?? '';
@@ -119,6 +125,40 @@ class LuaBindings {
     store.setInputSelection(start, end);
     return 0;
   }
+
+  int doAfterSpecial(LuaState ls) {
+    // seconds, sendText, sendTo
+    final seconds = ls.checkNumber(1)!;
+    final sendText = ls.checkString(2)!;
+    final sendTo = ls.checkNumber(3)!;
+    ls.pop(3);
+
+    debugPrint("lua.doAfterSpecial $seconds, $sendText, $sendTo");
+    final sendToMap = <int, MUDActionTarget>{
+      0: MUDActionTarget.world,
+      1: MUDActionTarget.input,
+      2: MUDActionTarget.output,
+      3: MUDActionTarget.none, // TODO status line
+      4: MUDActionTarget.none, // TODO notepad
+      5: MUDActionTarget.none, // TODO notepad (append)
+      6: MUDActionTarget.none, // TODO log file
+      7: MUDActionTarget.none, // TODO notepad (replace)
+      8: MUDActionTarget.none, // TODO command queue
+      9: MUDActionTarget.none, // TODO set variable
+      10: MUDActionTarget.execute,
+      11: MUDActionTarget.none, // TODO speedwalk
+      12: MUDActionTarget.script,
+      13: MUDActionTarget.immediate,
+      14: MUDActionTarget.script, // TODO script (after lines omitted?)
+    };
+    final target = sendToMap[sendTo] ?? MUDActionTarget.none;
+    final action = MUDAction(sendText, target: target);
+    final delay = Duration(milliseconds: (seconds * 1000).toInt());
+    Future.delayed(delay, () {
+      action.invoke(store, []);
+    });
+    return 0;
+  }
 }
 
 class LuaAliasBindings extends LuaAutomationBindings<Alias> {
@@ -130,8 +170,9 @@ class LuaAliasBindings extends LuaAutomationBindings<Alias> {
   final entityName = 'Alias';
 
   @override
-  List<Alias> getGroup(String group) =>
-      store.currentProfile.aliases.where((alias) => alias.group == group).toList();
+  List<Alias> getGroup(String group) => store.currentProfile.aliases
+      .where((alias) => alias.group == group)
+      .toList();
 
   @override
   Alias getSingle(String label) =>
@@ -161,8 +202,9 @@ class LuaTriggerBindings extends LuaAutomationBindings<Trigger> {
   final entityName = 'Trigger';
 
   @override
-  List<Trigger> getGroup(String group) =>
-      store.currentProfile.triggers.where((alias) => alias.group == group).toList();
+  List<Trigger> getGroup(String group) => store.currentProfile.triggers
+      .where((alias) => alias.group == group)
+      .toList();
 
   @override
   Trigger getSingle(String label) =>
@@ -190,10 +232,10 @@ class LuaButtonSetBindings extends LuaAutomationBindings<GameButtonSetData> {
 
   @override
   void register(LuaState ls) {
-      super.register(ls);
-      ls.pushDartFunction(swapButtonSetGroup);
-      ls.setGlobal('Swap$groupEntityName');
-    }
+    super.register(ls);
+    ls.pushDartFunction(swapButtonSetGroup);
+    ls.setGlobal('Swap$groupEntityName');
+  }
 
   @override
   final entityName = 'ButtonSet';
@@ -203,11 +245,13 @@ class LuaButtonSetBindings extends LuaAutomationBindings<GameButtonSetData> {
 
   @override
   List<GameButtonSetData> getGroup(String group) =>
-      store.currentProfile.buttonSets.where((alias) => alias.group == group).toList();
+      store.currentProfile.buttonSets
+          .where((alias) => alias.group == group)
+          .toList();
 
   @override
-  GameButtonSetData getSingle(String label) =>
-      store.currentProfile.buttonSets.firstWhere((alias) => alias.label == label);
+  GameButtonSetData getSingle(String label) => store.currentProfile.buttonSets
+      .firstWhere((alias) => alias.label == label);
 
   @override
   Future<void> saveGroup(List<GameButtonSetData> items, bool state) async {
@@ -229,8 +273,11 @@ class LuaButtonSetBindings extends LuaAutomationBindings<GameButtonSetData> {
     ls.pop(2);
     debugPrint("lua.SwapButtonGroup $disable, $enable");
     final profile = store.currentProfile;
-    final disableGroup = profile.buttonSets.where((element) => element.group == disable).toList();
-    final enableGroup = profile.buttonSets.where((element) => element.group == enable).toList();
+    final disableGroup = profile.buttonSets
+        .where((element) => element.group == disable)
+        .toList();
+    final enableGroup =
+        profile.buttonSets.where((element) => element.group == enable).toList();
     for (final element in disableGroup) {
       element.enabled = false;
       profile.saveButtonSet(element);
