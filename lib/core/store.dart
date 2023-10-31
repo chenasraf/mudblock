@@ -128,7 +128,7 @@ class GameStore extends ChangeNotifier {
       if (data.text.isEmpty) {
         return;
       }
-      processLines(data.text);
+      processIncoming(data.text);
     } catch (e, stack) {
       debugPrint('error: $e$newline$stack');
       echoError('Error: $e');
@@ -151,7 +151,7 @@ class GameStore extends ChangeNotifier {
       if (data.text.isEmpty) {
         return;
       }
-      processLines(data.text);
+      processIncoming(data.text);
     } catch (e, stack) {
       debugPrint('error: $e$newline$stack');
       echo(data.text);
@@ -159,13 +159,29 @@ class GameStore extends ChangeNotifier {
     }
   }
 
-  void processLines(String text, {int? color}) {
+  void processIncoming(String text, {int? color}) {
     final lines = text.split(incomingMsgSplitPattern);
+    // ignore: unused_local_variable
     for (var (i, line) in lines.indexed) {
       if (color != null && !line.startsWith('$esc[')) {
         line = '$esc[${color}m$line';
       }
-      onLine(
+      onIncomingLine(
+        line,
+        // newLine: i != lines.length - 1);
+        newLine: true,
+      );
+    }
+  }
+
+  void processOutgoing(String text, {int? color}) {
+    final lines = text.split(incomingMsgSplitPattern);
+    // ignore: unused_local_variable
+    for (var (i, line) in lines.indexed) {
+      if (color != null && !line.startsWith('$esc[')) {
+        line = '$esc[${color}m$line';
+      }
+      onOutgoingLine(
         line,
         // newLine: i != lines.length - 1);
         newLine: true,
@@ -251,7 +267,15 @@ class GameStore extends ChangeNotifier {
     echo('Error: $error');
   }
 
-  void onLine(String line, {bool newLine = false}) {
+  void onOutgoingLine(String line, {bool newLine = false}) {
+    final result = Alias.processLine(this, aliases, line);
+    debugPrint('Processed line: $line');
+    if (!result.lineRemoved) {
+      echo(line, newLine: newLine);
+    }
+  }
+
+  void onIncomingLine(String line, {bool newLine = false}) {
     final result = Trigger.processLine(this, triggers, line);
     debugPrint('Processed line: $line');
     if (!result.lineRemoved) {
@@ -274,12 +298,12 @@ class GameStore extends ChangeNotifier {
 
   /// echoOwn - same as echo, but with predefined color
   void echoOwn(String line) {
-    processLines(line, color: 93);
+    processIncoming(line, color: 93);
   }
 
   /// echoSystem - same as echo, but with predefined color
   void echoSystem(String line) {
-    processLines(line, color: 96);
+    processIncoming(line, color: 96);
   }
 
   /// echoError - same as echo, but with predefined color
@@ -302,6 +326,7 @@ class GameStore extends ChangeNotifier {
       return;
     }
     debugPrint('Sending string: $line');
+    debugPrint(StackTrace.current.toString());
     _client.send(line + newline);
   }
 

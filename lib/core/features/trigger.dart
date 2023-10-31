@@ -60,6 +60,7 @@ class Trigger extends Automation {
         continue;
       }
       if (trigger.matches(str)) {
+      debugPrint('Invoking trigger ${trigger.pattern} on line: $line');
         trigger.invokeEffect(store, str);
         if (trigger.isRemovedFromBuffer) {
         debugPrint('TriggerProcessResult: lineRemoved = true');
@@ -114,25 +115,25 @@ final builtInTriggers = <Trigger>[
   Trigger(
     id: _key('mudhelpflag-start'),
     pattern: '{_mudblockhelp}',
-    action: MUDAction.empty(),
+    action: NativeMUDAction.empty(),
     isRemovedFromBuffer: true,
   ),
   Trigger(
     id: _key('mudhelpflag-end'),
     pattern: '{/_mudblockhelp}',
-    action: MUDAction.empty(),
+    action: NativeMUDAction.empty(),
     isRemovedFromBuffer: true,
   ),
   Trigger(
     id: _key('mudmotdflag-start'),
     pattern: '{_mudblockmotd}',
-    action: MUDAction.empty(),
+    action: NativeMUDAction.empty(),
     isRemovedFromBuffer: true,
   ),
   Trigger(
     id: _key('mudmotdflag-end'),
     pattern: '{/_mudblockmotd}',
-    action: MUDAction.empty(),
+    action: NativeMUDAction.empty(),
     isRemovedFromBuffer: true,
   ),
 ];

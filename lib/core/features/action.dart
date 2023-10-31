@@ -130,15 +130,19 @@ class NativeMUDAction extends MUDAction {
   NativeMUDAction(this.customInvoke)
       : super('-- native code --', target: MUDActionTarget.script);
 
-  factory NativeMUDAction.echoSystem(String content) => NativeMUDAction((store, matches) {
+  factory NativeMUDAction.echoSystem(String content) =>
+      NativeMUDAction((store, matches) {
         store.echoSystem(content);
       });
-  factory NativeMUDAction.echo(String content) => NativeMUDAction((store, matches) {
+  factory NativeMUDAction.echo(String content) =>
+      NativeMUDAction((store, matches) {
         store.echo(content);
       });
+  factory NativeMUDAction.empty() => NativeMUDAction((store, matches) {
+        // do nothing
+      });
 
-  final void Function(GameStore store, List<String> matches)
-      customInvoke;
+  final void Function(GameStore store, List<String> matches) customInvoke;
 
   @override
   void invoke(GameStore store, List<String> matches) {
