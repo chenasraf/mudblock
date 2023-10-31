@@ -13,17 +13,20 @@ enum MUDActionTarget {
   output,
   immediate,
   none,
+  variable,
 }
 
 class MUDAction {
   String content;
   Automation? parent;
   MUDActionTarget target;
+  List<String> args;
 
   MUDAction(
     this.content, {
     this.target = MUDActionTarget.execute,
     this.parent,
+    this.args = const [],
   });
 
   void invoke(GameStore store, List<String> matches) {
@@ -77,6 +80,10 @@ class MUDAction {
       case MUDActionTarget.immediate:
         debugPrint('ActionSendTo.immediate: $content');
         store.send(content);
+        break;
+      case MUDActionTarget.variable:
+        debugPrint('ActionSendTo.variable: $content');
+        store.saveVariable(args.single, content);
         break;
       case MUDActionTarget.none:
         debugPrint('ActionSendTo.none: $content');

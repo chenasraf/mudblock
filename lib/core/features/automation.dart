@@ -19,6 +19,7 @@ class Automation {
   /// This is used to temporarily disable an automation after using it once when it has autoDisable set to true.
   bool tempDisabled = false;
   MUDAction action;
+  String get displayName => label.isNotEmpty ? label : pattern;
 
   Automation({
     this.enabled = true,

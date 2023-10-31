@@ -192,6 +192,7 @@ class MUDProfile extends PluginBase {
       return password;
     }
   }
+
 }
 
 enum AuthMethod {

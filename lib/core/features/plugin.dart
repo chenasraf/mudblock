@@ -145,8 +145,9 @@ class PluginBase extends ChangeNotifier {
     return storage.deleteFile('button_sets/${buttonSet.id}');
   }
 
-  Future<void> saveVariable(Variable update) async {
-    debugPrint('$this saveVariable: $update');
+  Future<void> saveVariable(String name, String value) async {
+    debugPrint('$this saveVariable: $name, $value');
+    final update = Variable(name, value);
     variables[update.name] = update;
     notifyListeners();
     return storage.writeFile(

@@ -12,7 +12,6 @@ import 'package:provider/provider.dart';
 import '../core/features/settings.dart';
 import '../core/profile_presets.dart';
 import '../core/storage.dart';
-import '../core/string_utils.dart';
 import 'consts.dart';
 import 'features/action.dart';
 import 'features/alias.dart';
@@ -166,7 +165,11 @@ class GameStore extends ChangeNotifier {
       if (color != null && !line.startsWith('$esc[')) {
         line = '$esc[${color}m$line';
       }
-      onLine(line, newLine: i != lines.length - 1);
+      onLine(
+        line,
+        // newLine: i != lines.length - 1);
+        newLine: true,
+      );
     }
   }
 
@@ -250,6 +253,7 @@ class GameStore extends ChangeNotifier {
 
   void onLine(String line, {bool newLine = false}) {
     final result = Trigger.processLine(this, triggers, line);
+    debugPrint('Processed line: $line');
     if (!result.lineRemoved) {
       echo(line, newLine: newLine);
     }
@@ -498,6 +502,10 @@ class GameStore extends ChangeNotifier {
 
   static GameStore of(BuildContext context) {
     return Provider.of<GameStore>(context, listen: false);
+  }
+
+  void saveVariable(String name, String value) {
+    currentProfile.saveVariable(name, value);
   }
 }
 

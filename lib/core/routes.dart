@@ -110,7 +110,7 @@ final routes = <String, Widget Function(BuildContext)>{
         builder: (context, store, child) => VariableListPage(
           variables: store.currentProfile.variables.values.toList(),
           onSave: (variable) async {
-            store.currentProfile.saveVariable(variable);
+            store.currentProfile.saveVariable(variable.name, variable.value);
           },
         ),
       ),

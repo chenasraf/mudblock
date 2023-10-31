@@ -39,23 +39,23 @@ class Alias extends Automation {
       );
 
   static AliasProcessResult processLine(
-      GameStore store, List<Alias> triggers, String line) {
+      GameStore store, List<Alias> aliases, String line) {
     final res = AliasProcessResult();
     final str = ColorUtils.stripColor(line);
-    for (final trigger in triggers) {
-      if (!trigger.isAvailable) {
+    for (final alias in aliases) {
+      if (!alias.isAvailable) {
         continue;
       }
-      if (trigger.matches(str)) {
+      if (alias.matches(str)) {
         res.processed = true;
-        trigger.invokeEffect(store, str);
-        if (trigger.isRemovedFromBuffer ||
+        alias.invokeEffect(store, str);
+        if (alias.isRemovedFromBuffer ||
             [MUDActionTarget.script, MUDActionTarget.input]
-                .contains(trigger.action.target)) {
+                .contains(alias.action.target)) {
           res.lineRemoved = true;
         }
-        if (trigger.autoDisable) {
-          trigger.tempDisabled = true;
+        if (alias.autoDisable) {
+          alias.tempDisabled = true;
         }
       }
     }

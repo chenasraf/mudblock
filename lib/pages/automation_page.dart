@@ -26,10 +26,13 @@ class AutomationPage<T extends Automation> extends StatefulWidget {
 class _AutomationPageState<T extends Automation>
     extends State<AutomationPage<T>> {
   late final T automation;
+  final variableTargetController = TextEditingController();
 
   @override
   void initState() {
     automation = widget.create(widget.automation);
+    variableTargetController.text =
+        automation.action.args.isNotEmpty ? automation.action.args.single : '';
     super.initState();
   }
 
@@ -139,14 +142,12 @@ class _AutomationPageState<T extends Automation>
                         initialSelection: automation.action.target,
                         onSelected: (value) {
                           if (value is MUDActionTarget) {
-                            automation.action.target = value;
+                            setState(() {
+                              automation.action.target = value;
+                            });
                           }
                         },
                         dropdownMenuEntries: const [
-                          DropdownMenuEntry(
-                            value: MUDActionTarget.world,
-                            label: 'World',
-                          ),
                           DropdownMenuEntry(
                             value: MUDActionTarget.execute,
                             label: 'Execute',
@@ -154,6 +155,14 @@ class _AutomationPageState<T extends Automation>
                           DropdownMenuEntry(
                             value: MUDActionTarget.script,
                             label: 'Script',
+                          ),
+                          DropdownMenuEntry(
+                            value: MUDActionTarget.variable,
+                            label: 'Variable',
+                          ),
+                          DropdownMenuEntry(
+                            value: MUDActionTarget.world,
+                            label: 'World',
                           ),
                           DropdownMenuEntry(
                             value: MUDActionTarget.input,
@@ -169,6 +178,18 @@ class _AutomationPageState<T extends Automation>
                           ),
                         ],
                       ),
+                      if (automation.action.target == MUDActionTarget.variable)
+                        TextField(
+                          controller: variableTargetController,
+                          decoration: const InputDecoration(
+                            labelText: 'Variable name',
+                            floatingLabelBehavior: FloatingLabelBehavior.always,
+                            helperText: 'The name of the variable to set',
+                          ),
+                          onChanged: (value) {
+                            automation.action.args = [value];
+                          },
+                        ),
                       CheckboxListTile(
                         title: const Text('Case Sensitive'),
                         subtitle: const Text(

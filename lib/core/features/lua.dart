@@ -6,7 +6,6 @@ import 'action.dart';
 import 'alias.dart';
 import 'game_button_set.dart';
 import 'trigger.dart';
-import 'variable.dart';
 
 class LuaInterpreter {
   LuaState state = LuaState.newState();
@@ -99,13 +98,7 @@ class LuaBindings {
     ls.pop(2);
     debugPrint("lua.setVariable $name, $value");
     final profile = store.currentProfile;
-    if (profile.variables[name] == null) {
-      profile.variables[name] = Variable(name, value);
-    }
-    profile.variables[name]!.value = value;
-    profile.saveVariable(
-      profile.variables[name]!,
-    );
+    profile.saveVariable(name, value);
     return 0;
   }
 
