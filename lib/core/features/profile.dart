@@ -161,7 +161,7 @@ class MUDProfile extends PluginBase {
     if (!storage.initialized) {
       await storage.init();
     }
-    return storage.deleteFile(id);
+    return storage.deleteDirectory('.');
   }
 
   static final encKey = enc.Key.fromUtf8(pwdKey);

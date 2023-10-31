@@ -87,7 +87,7 @@ class FileStorage<T> implements IStorage<T> {
   @override
   Future<void> deleteDirectory(String directory) async {
     debugPrint('Clearing directory: $directory');
-    final dir = Directory(path.join(base, directory));
+    final dir = Directory(directory == '.' ? base : path.join(base, directory));
     await dir.delete(recursive: true);
   }
 
