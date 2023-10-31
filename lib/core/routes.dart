@@ -71,7 +71,14 @@ final routes = <String, Widget Function(BuildContext)>{
       ),
   Paths.alias: (context) {
     final alias = ModalRoute.of(context)!.settings.arguments as Alias?;
-    return AliasPage(alias: alias);
+    return GameStore.consumer(
+      builder: (context, store, child) => AliasPage(
+        alias: alias,
+        onSave: (alias) async {
+          store.currentProfile.saveAlias(alias);
+        },
+      ),
+    );
   },
 
   // triggers
@@ -88,7 +95,14 @@ final routes = <String, Widget Function(BuildContext)>{
       ),
   Paths.trigger: (context) {
     final trigger = ModalRoute.of(context)!.settings.arguments as Trigger?;
-    return TriggerPage(trigger: trigger);
+    return GameStore.consumer(
+      builder: (context, store, child) => TriggerPage(
+        trigger: trigger,
+        onSave: (trigger) async {
+          store.currentProfile.saveTrigger(trigger);
+        },
+      ),
+    );
   },
 
   // variables

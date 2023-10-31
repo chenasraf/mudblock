@@ -107,6 +107,11 @@ class HomeScaffold extends StatelessWidget with GameStoreMixin {
                   ),
                 const Divider(),
                 ListTile(
+                  title: const Text('Profiles'),
+                  leading: const Icon(Icons.cable),
+                  onTap: () => Navigator.pushNamed(context, Paths.profiles),
+                ),
+                ListTile(
                   title: const Text('Settings'),
                   leading: const Icon(Icons.settings),
                   onTap: () => Navigator.pushNamed(context, Paths.settings),

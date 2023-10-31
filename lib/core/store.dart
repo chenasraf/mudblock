@@ -16,6 +16,7 @@ import '../core/string_utils.dart';
 import 'consts.dart';
 import 'features/action.dart';
 import 'features/alias.dart';
+import 'features/builtin_command.dart';
 import 'features/profile.dart';
 import 'features/trigger.dart';
 import 'routes.dart';
@@ -45,11 +46,14 @@ class GameStore extends ChangeNotifier {
 
   /// accepts csp but NOT double csp
   RegExp get outgoingMsgSplitPattern =>
-      RegExp("(?<!$commandSeparator)$commandSeparator(?!$commandSeparator)");
+      _outgoingMsgSplitPattern(commandSeparator);
+  RegExp _outgoingMsgSplitPattern(String csp) =>
+      RegExp("(?<!$csp)$csp(?!$csp)");
 
   MUDProfile get currentProfile => _currentProfile!;
   List<Alias> get aliases => builtInAliases + (_currentProfile?.aliases ?? []);
-  List<Trigger> get triggers => currentProfile.triggers;
+  List<Trigger> get triggers =>
+      builtInTriggers + (_currentProfile?.triggers ?? []);
 
   get connected => _clientReady && _client.connected;
 
@@ -62,13 +66,7 @@ class GameStore extends ChangeNotifier {
   }
 
   void appStart(BuildContext context) async {
-    echoSystem('''
-    Welcome to MudBlock!
-    To get started, tap the hamburger menu at the top right corner and
-    select a profile.
-    '''
-        .trimMultiline());
-    // For more help, type "mudhelp"
+    echoSystem(BuiltinCommand.motd());
   }
 
   void selectProfileAndConnect(BuildContext context) async {
@@ -162,9 +160,12 @@ class GameStore extends ChangeNotifier {
     }
   }
 
-  void processLines(String text) {
+  void processLines(String text, {int? color}) {
     final lines = text.split(incomingMsgSplitPattern);
-    for (final (i, line) in lines.indexed) {
+    for (var (i, line) in lines.indexed) {
+      if (color != null && !line.startsWith('$esc[')) {
+        line = '$esc[${color}m$line';
+      }
       onLine(line, newLine: i != lines.length - 1);
     }
   }
@@ -269,12 +270,12 @@ class GameStore extends ChangeNotifier {
 
   /// echoOwn - same as echo, but with predefined color
   void echoOwn(String line) {
-    echo('$esc[93m$line');
+    processLines(line, color: 93);
   }
 
   /// echoSystem - same as echo, but with predefined color
   void echoSystem(String line) {
-    echo('$esc[96m$line');
+    processLines(line, color: 96);
   }
 
   /// echoError - same as echo, but with predefined color
@@ -284,18 +285,27 @@ class GameStore extends ChangeNotifier {
 
   /// sendBytes - raw send bytes - DOES NOT split by outgoingMsgSplitPattern, no processing
   void sendBytes(List<int> bytes) {
+    if (!_clientReady || !_client.connected) {
+      return;
+    }
     debugPrint('Sending bytes: $bytes');
     _client.sendBytes(bytes);
   }
 
   /// sendString - send string - DOES NOT split by outgoingMsgSplitPattern, no processing
   void sendString(String line) {
+    if (!_clientReady || !_client.connected) {
+      return;
+    }
     debugPrint('Sending string: $line');
     _client.send(line + newline);
   }
 
   /// send - raw send string - no processing, DOES split by outgoingMsgSplitPattern
   void send(String text) {
+    if (!_clientReady || !_client.connected) {
+      return;
+    }
     for (var line in _splitCsp(text)) {
       if (isCompressed) {
         debugPrint('Sending compressed bytes: $line');
@@ -313,7 +323,8 @@ class GameStore extends ChangeNotifier {
       line = MUDAction.doVariableReplacements(this, line);
       debugPrint('processing aliases for: $line');
       var result = Alias.processLine(this, aliases, line);
-      if (!result.lineRemoved && currentProfile.settings.echoCommands) {
+      if (!result.lineRemoved &&
+          (_currentProfile == null || currentProfile.settings.echoCommands)) {
         echoOwn(line);
       }
       if (!result.processed) {
@@ -323,22 +334,23 @@ class GameStore extends ChangeNotifier {
   }
 
   List<String> _splitCsp(String line) {
+    final pattern = _currentProfile != null
+        ? outgoingMsgSplitPattern
+        : _outgoingMsgSplitPattern(';');
+    final csp = _currentProfile != null
+        ? currentProfile.settings.commandSeparator
+        : ';';
     return line
-        .split(outgoingMsgSplitPattern)
-        .map(
-          (l) => l.replaceAll(
-            '$commandSeparator$commandSeparator',
-            commandSeparator,
-          ),
-        )
+        .split(pattern)
+        .map((l) => l.replaceAll('$csp$csp', csp))
         .toList();
   }
 
   /// submitInput - echo input, process aliases and triggers, then send, scroll to end, select input
   void submitAsInput(String text) {
-    if (!_clientReady || !_client.connected) {
-      return;
-    }
+    // if (!_clientReady || !_client.connected) {
+    //   return;
+    // }
     execute(text);
     scrollToEnd();
     selectInput();

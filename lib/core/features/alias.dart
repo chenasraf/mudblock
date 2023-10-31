@@ -109,7 +109,7 @@ class AliasProcessResult {
   bool lineRemoved;
   bool processed;
 
-  AliasProcessResult({ this.lineRemoved = false,  this.processed = false});
+  AliasProcessResult({this.lineRemoved = false, this.processed = false});
 }
 
 String _key(String str) => 'builtin-alias-$str';
@@ -129,11 +129,12 @@ final builtInAliases = <Alias>[
   Alias(
     id: _key('help'),
     pattern: 'mudhelp',
-    action: NativeMUDAction(
-      (store, matches) {
-        store.echo(BuiltinCommand.help());
-      },
-    ),
+    action: NativeMUDAction.echoSystem(BuiltinCommand.help()),
+  ),
+  Alias(
+    id: _key('motd'),
+    pattern: 'mudmotd',
+    action: NativeMUDAction.echoSystem(BuiltinCommand.motd()),
   ),
 ];
 

@@ -34,16 +34,16 @@ class HomePageState extends State<HomePage>
     super.dispose();
   }
 
+  final consoleStyle = const TextStyle(
+    color: Colors.white,
+    fontFamily: 'Fira Code',
+    fontSize: 16,
+    height: 1,
+  );
+  TextStyle get inputStyle => consoleStyle.copyWith(color: Colors.grey);
+
   @override
   Widget build(BuildContext context) {
-    const consoleStyle = TextStyle(
-      color: Colors.white,
-      fontFamily: 'Fira Code',
-      fontSize: 16,
-      height: 1,
-    );
-    final inputStyle = consoleStyle.copyWith(color: Colors.grey);
-
     return Shortcuts(
       shortcuts: numpadKeysIntentMap,
       child: Actions(
@@ -78,42 +78,7 @@ class HomePageState extends State<HomePage>
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: Focus(
-                                    child: SelectableText.rich(
-                                      TextSpan(
-                                        children: [
-                                          for (final line in lines) ...[
-                                            for (final segment
-                                                in ColorUtils.split(line))
-                                              TextSpan(
-                                                text: segment.text,
-                                                style: consoleStyle.copyWith(
-                                                  color: Color(
-                                                      segment.themedFgColor),
-                                                  backgroundColor: Color(
-                                                      segment.themedBgColor),
-                                                  fontWeight: segment.bold
-                                                      ? FontWeight.w900
-                                                      : FontWeight.w400,
-                                                  fontStyle: segment.italic
-                                                      ? FontStyle.italic
-                                                      : null,
-                                                  decoration: segment.underline
-                                                      ? TextDecoration.underline
-                                                      : null,
-                                                ),
-                                              ),
-                                            // const TextSpan(
-                                            //   text: newline,
-                                            //   style:
-                                            //       consoleStyle, // .copyWith(fontSize: 1),
-                                            // ),
-                                          ],
-                                        ],
-                                      ),
-                                      enableInteractiveSelection: true,
-                                      selectionWidthStyle: BoxWidthStyle.tight,
-                                      selectionHeightStyle: BoxHeightStyle.max,
-                                    ),
+                                    child: _buildGameOutput(lines),
                                   ),
                                 ),
                               ),
@@ -153,6 +118,37 @@ class HomePageState extends State<HomePage>
           ),
         ),
       ),
+    );
+  }
+
+  SelectableText _buildGameOutput(List<String> lines) {
+    return SelectableText.rich(
+      TextSpan(
+        children: [
+          for (final line in lines) ...[
+            for (final segment in ColorUtils.split(line))
+              TextSpan(
+                text: segment.text,
+                style: consoleStyle.copyWith(
+                  color: Color(segment.themedFgColor),
+                  backgroundColor: Color(segment.themedBgColor),
+                  fontWeight: segment.bold ? FontWeight.w900 : FontWeight.w400,
+                  fontStyle: segment.italic ? FontStyle.italic : null,
+                  decoration:
+                      segment.underline ? TextDecoration.underline : null,
+                ),
+              ),
+            // const TextSpan(
+            //   text: newline,
+            //   style:
+            //       consoleStyle, // .copyWith(fontSize: 1),
+            // ),
+          ],
+        ],
+      ),
+      enableInteractiveSelection: true,
+      selectionWidthStyle: BoxWidthStyle.tight,
+      selectionHeightStyle: BoxHeightStyle.max,
     );
   }
 

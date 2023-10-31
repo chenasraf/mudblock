@@ -10,6 +10,9 @@ enum MUDActionTarget {
   execute,
   script,
   input,
+  output,
+  immediate,
+  none,
 }
 
 class MUDAction {
@@ -67,6 +70,17 @@ class MUDAction {
         store.input.text = content;
         store.setInput(content);
         break;
+      case MUDActionTarget.output:
+        debugPrint('ActionSendTo.output: $content');
+        store.echoOwn(content);
+        break;
+      case MUDActionTarget.immediate:
+        debugPrint('ActionSendTo.immediate: $content');
+        store.send(content);
+        break;
+      case MUDActionTarget.none:
+        debugPrint('ActionSendTo.none: $content');
+        break;
     }
     debugPrint('MUDAction.invoke: done');
   }
@@ -89,6 +103,9 @@ class MUDAction {
 
   static String doVariableReplacements(GameStore store, String content) {
     debugPrint('MUDAction._doSpecialReplacements: $content');
+    if (!store.connected) {
+      return content;
+    }
     content = content
         .replaceAll('%PASSWORD', store.currentProfile.password)
         .replaceAll('%USERNAME', store.currentProfile.username);
@@ -105,6 +122,13 @@ class MUDAction {
 class NativeMUDAction extends MUDAction {
   NativeMUDAction(this.customInvoke)
       : super('-- native code --', target: MUDActionTarget.script);
+
+  factory NativeMUDAction.echoSystem(String content) => NativeMUDAction((store, matches) {
+        store.echoSystem(content);
+      });
+  factory NativeMUDAction.echo(String content) => NativeMUDAction((store, matches) {
+        store.echo(content);
+      });
 
   final void Function(GameStore store, List<String> matches)
       customInvoke;

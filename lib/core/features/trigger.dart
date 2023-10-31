@@ -62,6 +62,7 @@ class Trigger extends Automation {
       if (trigger.matches(str)) {
         trigger.invokeEffect(store, str);
         if (trigger.isRemovedFromBuffer) {
+        debugPrint('TriggerProcessResult: lineRemoved = true');
           showLine = false;
         }
         if (trigger.autoDisable) {
@@ -106,4 +107,33 @@ class TriggerProcessResult {
 
   TriggerProcessResult({this.lineRemoved = false});
 }
+
+String _key(String str) => 'builtin-trigger-$str';
+
+final builtInTriggers = <Trigger>[
+  Trigger(
+    id: _key('mudhelpflag-start'),
+    pattern: '{_mudblockhelp}',
+    action: MUDAction.empty(),
+    isRemovedFromBuffer: true,
+  ),
+  Trigger(
+    id: _key('mudhelpflag-end'),
+    pattern: '{/_mudblockhelp}',
+    action: MUDAction.empty(),
+    isRemovedFromBuffer: true,
+  ),
+  Trigger(
+    id: _key('mudmotdflag-start'),
+    pattern: '{_mudblockmotd}',
+    action: MUDAction.empty(),
+    isRemovedFromBuffer: true,
+  ),
+  Trigger(
+    id: _key('mudmotdflag-end'),
+    pattern: '{/_mudblockmotd}',
+    action: MUDAction.empty(),
+    isRemovedFromBuffer: true,
+  ),
+];
 
