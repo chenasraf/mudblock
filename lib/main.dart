@@ -13,18 +13,20 @@ void main() async {
   await getPrefs();
   await gameStore.init();
   await windowInit();
-  runApp(const MyApp());
+  runApp(const MudblockApp());
 }
 
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MudblockApp extends StatelessWidget {
+  const MudblockApp({super.key});
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     final theme = ThemeData(
-      colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: Colors.blueGrey,
+        brightness: Brightness.dark,
+      ),
       useMaterial3: true,
     );
     return MaterialApp(

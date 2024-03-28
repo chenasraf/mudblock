@@ -326,7 +326,7 @@ class GameStore extends ChangeNotifier {
       return;
     }
     debugPrint('Sending string: $line');
-    debugPrint(StackTrace.current.toString());
+    // debugPrint(StackTrace.current.toString());
     _client.send(line + newline);
   }
 

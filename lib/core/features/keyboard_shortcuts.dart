@@ -64,6 +64,7 @@ const numpadKeys = [
   LogicalKeyboardKey.numpadEqual,
 ];
 
+/// A map of modifier keys and their respective keyboard mappings
 class KeyboardShortcutMap {
   KeyboardShortcutMap(this.map);
   final Map<LogicalKeyboardKey?, KeyboardShortcut> map;
