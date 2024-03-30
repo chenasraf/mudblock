@@ -22,20 +22,31 @@ class MudblockApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    final theme = ThemeData(
+    const baseColor = Colors.blueGrey;
+
+    final darkTheme = ThemeData(
       colorScheme: ColorScheme.fromSeed(
-        seedColor: Colors.blueGrey,
+        seedColor: baseColor,
         brightness: Brightness.dark,
       ),
       useMaterial3: true,
     );
+    // ignore: unused_local_variable
+    final lightTheme = ThemeData(
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: baseColor,
+        brightness: Brightness.light,
+      ),
+      useMaterial3: true,
+    );
+
     return MaterialApp(
       title: 'Mudblock',
-      theme: theme,
+      theme: darkTheme,
       builder: (context, child) {
         return GameStore.provider(
           child: Container(
-            color: theme.colorScheme.background,
+            color: darkTheme.colorScheme.background,
             child: Padding(
               padding: PlatformUtils.isDesktop
                   ? EdgeInsets.only(top: Platform.isMacOS ? 28.0 : 32.0)

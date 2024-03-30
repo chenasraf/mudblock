@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import 'parser/parser.dart';
+import 'package:ctelnet/ctelnet.dart';
 
 class ColorUtils {
   static stripColor(String text) {
@@ -14,10 +13,6 @@ class ColorUtils {
 
       for (final token in tokens) {
         result.add(ColoredText.fromToken(token));
-      }
-
-      if (line.contains('Test')) {
-        debugPrint('split: $result');
       }
 
       return result;

@@ -36,6 +36,7 @@ class GameStore extends ChangeNotifier {
   final StreamController<List<int>> _rawStreamController = StreamController();
   late Stream<List<int>> _decodedStream;
   late StreamSubscription<List<int>> _decodedSub;
+  late StreamSubscription<Message> _subscription;
   late final List<MUDProfile> profiles = [];
   MUDProfile? _currentProfile;
   bool _clientReady = false;
@@ -87,12 +88,16 @@ class GameStore extends ChangeNotifier {
       port: currentProfile.port,
       onConnect: _onConnect,
       onDisconnect: onDisconnect,
-      onData: onData,
       onError: onError,
     );
     await currentProfile.load();
     echoSystem('Profile loaded. Connecting...');
-    _client.connect();
+    final stream = await _client.connect();
+    if (stream == null) {
+      echoError('Failed to connect');
+      return;
+    }
+    _subscription = stream.listen(onData);
     notifyListeners();
   }
 
@@ -117,6 +122,7 @@ class GameStore extends ChangeNotifier {
   }
 
   void onDisconnect() {
+    _subscription.cancel();
     echoSystem('Disconnected');
   }
 
