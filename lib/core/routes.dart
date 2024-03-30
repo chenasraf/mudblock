@@ -155,12 +155,26 @@ final routes = <String, Widget Function(BuildContext)>{
   Paths.settings: (context) {
     return GameStore.consumer(
       builder: (context, store, child) => SettingsPage(
-        settings: store.currentProfile.settings,
-        onSave: (settings) async {
+        settings: store.connected ? store.currentProfile.settings : null,
+        globalSettings: store.globalSettings,
+        onSave: (settings, globalSettings) async {
           Navigator.pop(context);
-          final old = store.currentProfile.settings.copyWith();
-          await store.currentProfile.saveSettings(settings);
-          store.echoSettingsChanged(old, settings);
+          normal() async {
+            if (settings == null) {
+              return;
+            }
+            final old = store.currentProfile.settings.copyWith();
+            await store.currentProfile.saveSettings(settings);
+            store.echoSettingsChanged(old, settings);
+          }
+
+          global() async {
+            final old = store.globalSettings.copyWith();
+            await store.saveGlobalSettings(globalSettings);
+            store.echoGlobalSettingsChanged(old, globalSettings);
+          }
+
+          await Future.wait([normal(), global()]);
         },
       ),
     );
