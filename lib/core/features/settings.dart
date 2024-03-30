@@ -39,3 +39,31 @@ class Settings {
   }
 }
 
+class GlobalSettings {
+  bool keepAwake;
+
+  GlobalSettings({
+    required this.keepAwake,
+  });
+
+  factory GlobalSettings.empty() => GlobalSettings(
+        keepAwake: true,
+      );
+
+  factory GlobalSettings.fromJson(Map<String, dynamic> json) => GlobalSettings(
+        keepAwake: json['keepAwake'] as bool? ?? true,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'keepAwake': keepAwake,
+      };
+
+  GlobalSettings copyWith({
+    bool? keepAwake,
+  }) {
+    return GlobalSettings(
+      keepAwake: keepAwake ?? this.keepAwake,
+    );
+  }
+}
+

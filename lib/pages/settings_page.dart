@@ -7,24 +7,27 @@ class SettingsPage extends StatefulWidget {
   const SettingsPage({
     super.key,
     required this.settings,
+    required this.globalSettings,
     required this.onSave,
   });
 
-  final Settings settings;
-  final void Function(Settings) onSave;
+  final Settings? settings;
+  final GlobalSettings globalSettings;
+  final void Function(Settings?, GlobalSettings) onSave;
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
 }
 
 class _SettingsPageState extends State<SettingsPage> with GameStoreStateMixin {
-  late Settings settings;
+  late Settings? settings;
+  late GlobalSettings globalSettings;
 
   @override
   void initState() {
     super.initState();
-    settings = widget.settings.copyWith();
-    debugPrint('SettingsPage.initState, ${settings.showTimestamps}');
+    settings = widget.settings?.copyWith();
+    globalSettings = widget.globalSettings.copyWith();
   }
 
   @override
@@ -38,33 +41,52 @@ class _SettingsPageState extends State<SettingsPage> with GameStoreStateMixin {
           width: 600,
           child: ListView(
             children: [
-              TextFormField(
-                initialValue: settings.commandSeparator,
-                onChanged: (value) => settings.commandSeparator = value,
-                maxLength: 1,
-                decoration: const InputDecoration(
-                  labelText: 'Command Separator',
-                  helperText:
-                      'The character that separates commands. To send it literally, use it twice.',
+              if (settings != null) ...[
+                Text('Profile Settings',
+                    style: Theme.of(context).textTheme.titleMedium),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: TextFormField(
+                    initialValue: settings!.commandSeparator,
+                    onChanged: (value) => settings!.commandSeparator = value,
+                    maxLength: 1,
+                    decoration: const InputDecoration(
+                      labelText: 'Command Separator',
+                      helperText:
+                          'The character that separates commands.\nTo send it literally, use it twice.',
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              CheckboxListTile.adaptive(
-                value: settings.echoCommands,
-                onChanged: (value) =>
-                    setState(() => settings.echoCommands = value!),
-                title: const Text('Echo Commands'),
-                subtitle: const Text(
-                  'Whether to echo commands to the screen as they are sent.',
+                const SizedBox(height: 16),
+                CheckboxListTile.adaptive(
+                  value: settings!.echoCommands,
+                  onChanged: (value) =>
+                      setState(() => settings!.echoCommands = value!),
+                  title: const Text('Echo Commands'),
+                  subtitle: const Text(
+                    'Whether to echo commands to the screen as they are sent.',
+                  ),
                 ),
-              ),
+                CheckboxListTile.adaptive(
+                  value: settings!.showTimestamps,
+                  onChanged: (value) =>
+                      setState(() => settings!.showTimestamps = value!),
+                  title: const Text('Show Timestamps'),
+                  subtitle: const Text(
+                    'Whether to show timestamps on messages received from the server.',
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+              Text('Global Settings',
+                  style: Theme.of(context).textTheme.titleMedium),
               CheckboxListTile.adaptive(
-                value: settings.showTimestamps,
+                value: globalSettings.keepAwake,
                 onChanged: (value) =>
-                    setState(() => settings.showTimestamps = value!),
-                title: const Text('Show Timestamps'),
+                    setState(() => globalSettings.keepAwake = value!),
+                title: const Text('Keep Screen Awake'),
                 subtitle: const Text(
-                  'Whether to show timestamps on messages received from the server.',
+                  'Enabling this will make sure the screen doesn\'t turn off while a session is running.',
                 ),
               ),
             ],
@@ -72,7 +94,7 @@ class _SettingsPageState extends State<SettingsPage> with GameStoreStateMixin {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => widget.onSave(settings),
+        onPressed: () => widget.onSave(settings, globalSettings),
         child: const Icon(Icons.save),
       ),
     );

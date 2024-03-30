@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart' as path;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../core/features/settings.dart';
 import '../core/profile_presets.dart';
@@ -45,6 +46,7 @@ class GameStore extends ChangeNotifier {
   MUDProfile? _currentProfile;
   bool _clientReady = false;
   final storage = ProfileStorage('');
+  late GlobalSettings globalSettings;
 
   String get commandSeparator => currentProfile.settings.commandSeparator;
 
@@ -65,6 +67,7 @@ class GameStore extends ChangeNotifier {
     debugPrint('GameStore.init');
     await storage.init();
     debugPrint('storage.init $storage');
+    loadGlobalSettings();
     loadAllProfiles();
     return this;
   }
@@ -122,6 +125,7 @@ class GameStore extends ChangeNotifier {
           break;
       }
     }
+    WakelockPlus.toggle(enable: globalSettings.keepAwake);
   }
 
   Future<void> disconnect() {
@@ -129,6 +133,7 @@ class GameStore extends ChangeNotifier {
   }
 
   void onDisconnect() {
+    WakelockPlus.disable();
     _subscription.cancel();
     echoSystem('Disconnected');
   }
@@ -489,6 +494,15 @@ class GameStore extends ChangeNotifier {
     notifyListeners();
   }
 
+  void loadGlobalSettings() async {
+    final settings = await storage.readFile('settings');
+    if (settings != null) {
+      globalSettings = GlobalSettings.fromJson(settings);
+    } else {
+      globalSettings = GlobalSettings.empty();
+    }
+  }
+
   void loadAllProfiles() async {
     final list = await storage.readDirectory('.');
     debugPrint('Existing profiles: $list');
@@ -512,6 +526,7 @@ class GameStore extends ChangeNotifier {
     }
   }
 
+// TODO move to [Settings]
   void echoSettingsChanged(Settings old, Settings updated) {
     echoSystem('Settings updated:');
     var updateCount = 0;
@@ -532,6 +547,21 @@ class GameStore extends ChangeNotifier {
         'To escape when sending, use it twice like so: '
         '"${updated.commandSeparator}${updated.commandSeparator}"',
       );
+    }
+    if (updateCount == 0) {
+      echoSystem('<no changes>');
+    }
+    echoSystem('');
+  }
+
+  // TODO move to [GlobalSettings]
+  void echoGlobalSettingsChanged(GlobalSettings old, GlobalSettings updated) {
+    echoSystem('Settings updated:');
+    var updateCount = 0;
+    if (updated.keepAwake != old.keepAwake) {
+      updateCount++;
+      echoSystem(
+          'Keep Screen Awake is now ${updated.keepAwake ? 'enabled' : 'disabled'}');
     }
     if (updateCount == 0) {
       echoSystem('<no changes>');
@@ -620,6 +650,11 @@ class GameStore extends ChangeNotifier {
 
   void saveVariable(String name, String value) {
     currentProfile.saveVariable(name, value);
+  }
+
+  Future<void> saveGlobalSettings(GlobalSettings settings) async {
+    globalSettings = settings;
+    storage.writeFile('settings', settings.toJson());
   }
 }
 

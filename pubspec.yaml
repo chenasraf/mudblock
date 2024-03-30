@@ -28,9 +28,9 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-  # ctelnet: ^0.1.6
-  ctelnet:
-    path: ../ctelnet
+  ctelnet: ^0.2.0
+  # ctelnet:
+  #   path: ../ctelnet
   flutter:
     sdk: flutter
 
@@ -54,6 +54,7 @@ dependencies:
   awesome_notifications_core: 0.8.0
   awesome_notifications: any
   permission_handler: ^11.0.1
+  wakelock_plus: ^1.2.1
   # permission_handler: ^11.0.0
 
 dev_dependencies:
