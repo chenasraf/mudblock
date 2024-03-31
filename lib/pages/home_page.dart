@@ -125,7 +125,7 @@ class HomePageState extends State<HomePage>
                   controller: store.input,
                   onSubmitted: store.submitAsInput,
                   onTap: store.selectInput,
-                  style: consoleStyle.copyWith(color: Colors.black),
+                  style: consoleStyle.copyWith(color: Theme.of(context).colorScheme.onSurface),
                   decoration: InputDecoration(
                     hintText: 'Enter command',
                     border: const OutlineInputBorder(),

@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:mudblock/core/background_service.dart';
-import 'package:window_manager/window_manager.dart';
 
 import 'core/platform_utils.dart';
 import 'core/routes.dart';
@@ -52,6 +51,15 @@ class MudblockApp extends StatelessWidget {
       navigatorKey: navigatorKey,
       builder: (context, child) {
         return GameStore.provider(
+          builder: (context, child) {
+            final store = GameStore.of(context);
+            return MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                textScaler: TextScaler.linear(store.globalSettings.gameTextScale),
+              ),
+              child: child!,
+            );
+          },
           child: Container(
             color: darkTheme.colorScheme.background,
             child: Padding(

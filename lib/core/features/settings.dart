@@ -41,28 +41,35 @@ class Settings {
 
 class GlobalSettings {
   bool keepAwake;
+  double gameTextScale;
 
   GlobalSettings({
     required this.keepAwake,
+    required this.gameTextScale,
   });
 
   factory GlobalSettings.empty() => GlobalSettings(
         keepAwake: true,
+        gameTextScale: 1.0,
       );
 
   factory GlobalSettings.fromJson(Map<String, dynamic> json) => GlobalSettings(
         keepAwake: json['keepAwake'] as bool? ?? true,
+        gameTextScale: json['gameTextScale'] as double? ?? 1.0,
       );
 
   Map<String, dynamic> toJson() => {
         'keepAwake': keepAwake,
+        'gameTextScale': gameTextScale,
       };
 
   GlobalSettings copyWith({
     bool? keepAwake,
+    double? gameTextScale,
   }) {
     return GlobalSettings(
       keepAwake: keepAwake ?? this.keepAwake,
+      gameTextScale: gameTextScale ?? this.gameTextScale,
     );
   }
 }
