@@ -28,11 +28,12 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-  ctelnet: ^0.3.0
+  ctelnet: any
   # ctelnet:
   #   path: ../ctelnet
-  terminal_color_parser:
-    path: ../terminal_color_parser
+  terminal_color_parser: any
+  # terminal_color_parser:
+  #   path: ../terminal_color_parser
   flutter:
     sdk: flutter
 

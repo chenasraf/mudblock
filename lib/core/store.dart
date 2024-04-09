@@ -66,8 +66,8 @@ class GameStore extends ChangeNotifier {
   Future<GameStore> init() async {
     debugPrint('GameStore.init');
     await storage.init();
+    await loadGlobalSettings();
     debugPrint('storage.init $storage');
-    loadGlobalSettings();
     loadAllProfiles();
     return this;
   }
@@ -494,7 +494,7 @@ class GameStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  void loadGlobalSettings() async {
+  Future<void> loadGlobalSettings() async {
     final settings = await storage.readFile('settings');
     if (settings != null) {
       globalSettings = GlobalSettings.fromJson(settings);
@@ -556,12 +556,20 @@ class GameStore extends ChangeNotifier {
 
   // TODO move to [GlobalSettings]
   void echoGlobalSettingsChanged(GlobalSettings old, GlobalSettings updated) {
-    echoSystem('Settings updated:');
+    echoSystem('Global Settings updated:');
     var updateCount = 0;
     if (updated.keepAwake != old.keepAwake) {
       updateCount++;
       echoSystem(
           'Keep Screen Awake is now ${updated.keepAwake ? 'enabled' : 'disabled'}');
+    }
+    if (updated.uiTextScale != old.uiTextScale) {
+      updateCount++;
+      echoSystem('UI Text Scale is now ${updated.gameTextScale}');
+    }
+    if (updated.gameTextScale != old.gameTextScale) {
+      updateCount++;
+      echoSystem('Game Output Text Scale is now ${updated.gameTextScale}');
     }
     if (updateCount == 0) {
       echoSystem('<no changes>');
@@ -654,6 +662,7 @@ class GameStore extends ChangeNotifier {
 
   Future<void> saveGlobalSettings(GlobalSettings settings) async {
     globalSettings = settings;
+    notifyListeners();
     storage.writeFile('settings', settings.toJson());
   }
 }

@@ -32,6 +32,7 @@ class _SettingsPageState extends State<SettingsPage> with GameStoreStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final baseFontSize = Theme.of(context).textTheme.bodyText1!.fontSize!;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
@@ -87,6 +88,56 @@ class _SettingsPageState extends State<SettingsPage> with GameStoreStateMixin {
                 title: const Text('Keep Screen Awake'),
                 subtitle: const Text(
                   'Enabling this will make sure the screen doesn\'t turn off while a session is running.',
+                ),
+              ),
+              ListTile(
+                title: const Text('UI Font Size'),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Change the font size of the entire UI.'),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Slider(
+                            value: globalSettings.uiTextScale,
+                            onChanged: (value) => setState(
+                                () => globalSettings.uiTextScale = value),
+                            min: 0.5,
+                            max: 2.0,
+                            divisions: 15,
+                          ),
+                        ),
+                        Text(
+                            '${(globalSettings.uiTextScale * baseFontSize).toStringAsFixed(0)}pt (${(globalSettings.uiTextScale * 100).toStringAsFixed(0)}%)'),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              ListTile(
+                title: const Text('Game Output Font Size'),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Change the font size of the game output text.'),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Slider(
+                            value: globalSettings.gameTextScale,
+                            onChanged: (value) => setState(
+                                () => globalSettings.gameTextScale = value),
+                            min: 0.5,
+                            max: 2.0,
+                            divisions: 15,
+                          ),
+                        ),
+                        Text(
+                            '${(globalSettings.gameTextScale * baseFontSize).toStringAsFixed(0)}pt (${(globalSettings.gameTextScale*100).toStringAsFixed(0)}%)'),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ],

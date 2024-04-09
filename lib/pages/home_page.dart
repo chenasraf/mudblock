@@ -76,41 +76,50 @@ class HomePageState extends State<HomePage>
               Expanded(
                 child: Material(
                   color: Colors.black,
-                  child: Consumer<GameStore>(
+                  child: GameStore.consumer(
                     builder: (context, store, child) {
                       final lines = store.lines;
-                      return Theme(
-                        data: Theme.of(context).copyWith(
-                          textSelectionTheme: TextSelectionThemeData(
-                            cursorColor: Colors.white,
-                            selectionColor: Colors.white.withOpacity(0.3),
-                            selectionHandleColor: Colors.white,
+                      return MediaQuery(
+                        data: MediaQuery.of(context).copyWith(
+                          textScaler: TextScaler.linear(
+                            store.globalSettings.gameTextScale,
                           ),
                         ),
-                        child: Stack(
-                          children: [
-                            GestureDetector(
-                              behavior: HitTestBehavior.translucent,
-                              onTap: store.selectInput,
-                              child: SingleChildScrollView(
-                                controller: store.scrollController,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Focus(
-                                    child: _buildGameOutput(lines),
+                        child: Theme(
+                          data: Theme.of(context).copyWith(
+                            textSelectionTheme: TextSelectionThemeData(
+                              cursorColor: Colors.white,
+                              selectionColor: Colors.white.withOpacity(0.3),
+                              selectionHandleColor: Colors.white,
+                            ),
+                          ),
+                          child: Stack(
+                            children: [
+                              Positioned.fill(
+                                child: GestureDetector(
+                                  behavior: HitTestBehavior.translucent,
+                                  onTap: store.selectInput,
+                                  child: SingleChildScrollView(
+                                    controller: store.scrollController,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Focus(
+                                        child: _buildGameOutput(lines),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            if (store.connected)
-                              for (final buttonSet in store
-                                  .currentProfile.buttonSets
-                                  .where((b) => b.enabled))
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: GameButtonSet(data: buttonSet),
-                                )
-                          ],
+                              if (store.connected)
+                                for (final buttonSet in store
+                                    .currentProfile.buttonSets
+                                    .where((b) => b.enabled))
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: GameButtonSet(data: buttonSet),
+                                  )
+                            ],
+                          ),
                         ),
                       );
                     },
@@ -125,7 +134,8 @@ class HomePageState extends State<HomePage>
                   controller: store.input,
                   onSubmitted: store.submitAsInput,
                   onTap: store.selectInput,
-                  style: consoleStyle.copyWith(color: Theme.of(context).colorScheme.onSurface),
+                  style: consoleStyle.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface),
                   decoration: InputDecoration(
                     hintText: 'Enter command',
                     border: const OutlineInputBorder(),
@@ -140,7 +150,7 @@ class HomePageState extends State<HomePage>
     );
   }
 
-  SelectableText _buildGameOutput(List<String> lines) {
+  Widget _buildGameOutput(List<String> lines) {
     return SelectableText.rich(
       TextSpan(
         children: [

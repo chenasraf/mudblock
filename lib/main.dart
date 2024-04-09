@@ -52,23 +52,26 @@ class MudblockApp extends StatelessWidget {
       builder: (context, child) {
         return GameStore.provider(
           builder: (context, child) {
-            final store = GameStore.of(context);
-            return MediaQuery(
-              data: MediaQuery.of(context).copyWith(
-                textScaler: TextScaler.linear(store.globalSettings.gameTextScale),
+            return GameStore.consumer(
+              builder: (context, store, child) => MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                  textScaler:
+                      TextScaler.linear(store.globalSettings.uiTextScale),
+                ),
+                child: child!,
               ),
-              child: child!,
+              child: Container(
+                color: darkTheme.colorScheme.background,
+                child: Padding(
+                  padding: PlatformUtils.isDesktop
+                      ? EdgeInsets.only(top: Platform.isMacOS ? 28.0 : 32.0)
+                      : EdgeInsets.zero,
+                  child: child,
+                ),
+              ),
             );
           },
-          child: Container(
-            color: darkTheme.colorScheme.background,
-            child: Padding(
-              padding: PlatformUtils.isDesktop
-                  ? EdgeInsets.only(top: Platform.isMacOS ? 28.0 : 32.0)
-                  : EdgeInsets.zero,
-              child: child!,
-            ),
-          ),
+          child: child,
         );
       },
       initialRoute: Paths.home,
