@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ctelnet/ctelnet.dart';
+import 'package:terminal_color_parser/terminal_color_parser.dart';
 
 class ColorUtils {
   static stripColor(String text) {
@@ -56,9 +56,7 @@ class ColoredText extends ColorToken {
     required super.text,
     required super.fgColor,
     required super.bgColor,
-    super.bold = false,
-    super.italic = false,
-    super.underline = false,
+    super.styles,
     super.xterm256 = false,
   });
 
@@ -69,9 +67,7 @@ class ColoredText extends ColorToken {
         text: token.text,
         fgColor: token.fgColor,
         bgColor: token.bgColor,
-        bold: token.bold,
-        italic: token.italic,
-        underline: token.underline,
+        styles: token.styles,
         xterm256: token.xterm256,
       );
 

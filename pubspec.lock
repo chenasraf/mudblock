@@ -116,10 +116,9 @@ packages:
   ctelnet:
     dependency: "direct main"
     description:
-      name: ctelnet
-      sha256: fdcf9fb1d940855e8bc4ab4a065eee9c17a59ce2a254f1e5b5e8880d7fc23657
-      url: "https://pub.dev"
-    source: hosted
+      path: "../ctelnet"
+      relative: true
+    source: path
     version: "0.2.0"
   cupertino_icons:
     dependency: "direct main"
@@ -526,7 +525,7 @@ packages:
       path: "../script_runner"
       relative: true
     source: path
-    version: "0.7.3"
+    version: "0.7.4"
   shared_preferences:
     dependency: "direct main"
     description:
@@ -636,6 +635,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.1"
+  terminal_color_parser:
+    dependency: "direct main"
+    description:
+      path: "../terminal_color_parser"
+      relative: true
+    source: path
+    version: "0.5.0"
   test_api:
     dependency: transitive
     description:
