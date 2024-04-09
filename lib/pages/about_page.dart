@@ -8,7 +8,9 @@ class AboutPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final logo = SizedBox.square(
-        dimension: 288, child: Image.asset('assets/images/logo/logo@4x.png'));
+      dimension: 288,
+      child: Image.asset('assets/images/logo/logo@4x.png'),
+    );
     final title = ListTile(
       title: Text(
         'Mudblock',
@@ -68,17 +70,20 @@ class AboutPage extends StatelessWidget {
               ListTile(
                 title: const Text('GitHub'),
                 subtitle: const Text('View the source code on GitHub'),
-                onTap: () => launchUrl(Uri.parse('https://github.com/chenasraf/mudblock')),
+                onTap: () => launchUrl(
+                    Uri.parse('https://github.com/chenasraf/mudblock')),
               ),
               ListTile(
                 title: const Text('Discord'),
                 subtitle: const Text('Join our Discord server'),
-                onTap: () => launchUrl(Uri.parse('https://discord.gg/22XRWSyK')),
+                onTap: () =>
+                    launchUrl(Uri.parse('https://discord.gg/22XRWSyK')),
               ),
               ListTile(
                 title: const Text('Privacy Policy'),
                 subtitle: const Text('https://mudblock.app/privacy'),
-                onTap: () => launchUrl(Uri.parse('https://mudblock.app/privacy')),
+                onTap: () =>
+                    launchUrl(Uri.parse('https://mudblock.app/privacy')),
               ),
             ],
           ),
