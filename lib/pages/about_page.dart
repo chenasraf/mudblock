@@ -32,6 +32,7 @@ class AboutPage extends StatelessWidget {
         ),
       ),
     );
+    final width = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
         title: const Text('About Mudblock'),
@@ -41,12 +42,12 @@ class AboutPage extends StatelessWidget {
           width: 800,
           child: ListView(
             children: [
-              if (MediaQuery.of(context).size.width <= 600) ...[
+              if (width <= 600) ...[
                 logo,
                 title,
                 version,
               ],
-              if (MediaQuery.of(context).size.width > 600) ...[
+              if (width > 600) ...[
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.max,

@@ -7,6 +7,7 @@ import 'core/platform_utils.dart';
 import 'core/routes.dart';
 import 'core/storage/shared_prefs.dart';
 import 'core/store.dart';
+import 'core/theme.dart';
 import 'core/window_manager.dart';
 
 void main() async {
@@ -28,22 +29,8 @@ class MudblockApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const baseColor = Colors.blueGrey;
-
-    final darkTheme = ThemeData(
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: baseColor,
-        brightness: Brightness.dark,
-      ),
-      useMaterial3: true,
-    );
-    // ignore: unused_local_variable
-    final lightTheme = ThemeData(
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: baseColor,
-        brightness: Brightness.light,
-      ),
-      useMaterial3: true,
-    );
+    final darkTheme =
+        createTheme(seedColor: baseColor, brightness: Brightness.dark);
 
     return MaterialApp(
       title: 'Mudblock',

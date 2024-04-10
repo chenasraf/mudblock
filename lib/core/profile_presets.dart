@@ -21,6 +21,7 @@ final profilePresets = [
     host: 'aardmud.org',
     port: 23,
     authMethod: AuthMethod.diku,
+    authPostSend: true,
   ),
   MUDProfile(
     id: 'batmud',

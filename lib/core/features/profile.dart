@@ -18,6 +18,7 @@ class MUDProfile extends PluginBase {
   String username;
   String password;
   AuthMethod authMethod;
+  bool authPostSend;
 
   Settings settings = Settings.empty();
   KeyboardShortcutMap keyboardShortcuts = KeyboardShortcutMap.empty();
@@ -36,6 +37,7 @@ class MUDProfile extends PluginBase {
     this.username = '',
     this.password = '',
     this.authMethod = AuthMethod.none,
+    this.authPostSend = false,
   }) : _storage = ProfileStorage(id);
 
   factory MUDProfile.empty() => MUDProfile(
@@ -54,6 +56,7 @@ class MUDProfile extends PluginBase {
     String? username,
     String? password,
     AuthMethod? authMethod,
+    bool? authPostSend,
   }) =>
       MUDProfile(
         id: id ?? this.id,
@@ -64,6 +67,7 @@ class MUDProfile extends PluginBase {
         username: username ?? this.username,
         password: password ?? this.password,
         authMethod: authMethod ?? this.authMethod,
+        authPostSend: authPostSend ?? this.authPostSend,
       );
 
   factory MUDProfile.fromJson(Map<String, dynamic> json) {
@@ -80,6 +84,7 @@ class MUDProfile extends PluginBase {
         (e) => e.name == json['authMethod'],
         orElse: () => AuthMethod.none,
       ),
+      authPostSend: json['authPostSend'] ?? false,
     );
   }
 
@@ -92,6 +97,7 @@ class MUDProfile extends PluginBase {
         'username': username,
         'password': encrypt(password),
         'authMethod': authMethod.name,
+        'authPostSend': authPostSend,
       };
 
   @override
@@ -192,7 +198,6 @@ class MUDProfile extends PluginBase {
       return password;
     }
   }
-
 }
 
 enum AuthMethod {

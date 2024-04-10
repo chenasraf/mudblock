@@ -120,6 +120,10 @@ class GameStore extends ChangeNotifier {
           send(currentProfile.username);
           await Future.delayed(const Duration(milliseconds: 100));
           send(currentProfile.password);
+          if (currentProfile.authPostSend) {
+            await Future.delayed(const Duration(milliseconds: 100));
+            send('');
+          }
           break;
         case AuthMethod.none:
           break;

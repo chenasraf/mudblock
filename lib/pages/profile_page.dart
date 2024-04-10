@@ -109,6 +109,29 @@ class _ProfilePageState extends State<ProfilePage> {
                       'Authentication',
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 24),
+                      child: DropdownMenu(
+                        label: const Text('Authentication Method'),
+                        initialSelection: profile.authMethod,
+                        onSelected: (value) {
+                          setDirty();
+                          setState(() {
+                            profile.authMethod = value as AuthMethod;
+                          });
+                        },
+                        dropdownMenuEntries: const [
+                          DropdownMenuEntry(
+                            value: AuthMethod.none,
+                            label: 'None',
+                          ),
+                          DropdownMenuEntry(
+                            value: AuthMethod.diku,
+                            label: 'Diku-style',
+                          ),
+                        ],
+                      ),
+                    ),
                     TextField(
                       controller: TextEditingController(text: profile.username),
                       decoration: const InputDecoration(
@@ -131,25 +154,16 @@ class _ProfilePageState extends State<ProfilePage> {
                       },
                     ),
                     const SizedBox(height: 24),
-                    DropdownMenu(
-                      label: const Text('Authentication Method'),
-                      initialSelection: profile.authMethod,
-                      onSelected: (value) {
+                    CheckboxListTile.adaptive(
+                      value: profile.authPostSend,
+                      title: const Text('Send an empty command after logging in'),
+                      subtitle: const Text('Useful for servers that have an MOTD or require login confirmation.'),
+                      onChanged: (value) {
                         setDirty();
                         setState(() {
-                          profile.authMethod = value as AuthMethod;
+                          profile.authPostSend = value ?? false;
                         });
                       },
-                      dropdownMenuEntries: const [
-                        DropdownMenuEntry(
-                          value: AuthMethod.none,
-                          label: 'None',
-                        ),
-                        DropdownMenuEntry(
-                          value: AuthMethod.diku,
-                          label: 'Diku-style',
-                        ),
-                      ],
                     ),
                   ],
                 ),

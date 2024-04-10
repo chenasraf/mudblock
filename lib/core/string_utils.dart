@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:uuid/uuid.dart';
 
 const _uuid = Uuid();
@@ -22,7 +23,9 @@ extension StringExtension on String {
   String capitalize() {
     return _capitalize(this);
   }
+
   String trimMultiline() {
     return split('\n').map((e) => e.trim()).join('\n').trim();
   }
 }
+
