@@ -11,7 +11,15 @@ class ColorUtils {
       final result = <ColoredText>[];
       final tokens = ColorParser(line).parse();
 
-      for (final token in tokens) {
+      for (final (i, token) in tokens.indexed) {
+        if (i > 0) {
+          if (!token.styles.contains(TermStyle.reset)) {
+            final prev = tokens[i - 1];
+            if (token.fgColor == 0) {
+              token.fgColor = prev.fgColor;
+            }
+          }
+        }
         result.add(ColoredText.fromToken(token));
       }
 

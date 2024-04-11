@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mudblock/core/platform_utils.dart';
 
 import '../core/features/settings.dart';
 import '../core/store.dart';
@@ -33,7 +34,7 @@ class _SettingsPageState extends State<SettingsPage> with GameStoreStateMixin {
     pageController.addListener(_notify);
     // pageController.animateToPage(0, duration: Duration.zero, curve: Curves.easeInOut);
     // HACK otherwise build is not notified of pageController clients
-    Future.delayed(const Duration(milliseconds: 300)).then((_) => _notify());
+    Future.delayed(const Duration(milliseconds: 1)).then((_) => _notify());
   }
 
   void _notify() {
@@ -48,8 +49,7 @@ class _SettingsPageState extends State<SettingsPage> with GameStoreStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    debugPrint('clients: ${pageController.hasClients}');
+    // final width = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
@@ -85,15 +85,16 @@ class _SettingsPageState extends State<SettingsPage> with GameStoreStateMixin {
     final baseFontSize = Theme.of(context).textTheme.bodyMedium!.fontSize!;
     return ListView(
       children: [
-        CheckboxListTile.adaptive(
-          value: globalSettings.keepAwake,
-          onChanged: (value) =>
-              setState(() => globalSettings.keepAwake = value!),
-          title: const Text('Keep Screen Awake'),
-          subtitle: const Text(
-            'Enabling this will make sure the screen doesn\'t turn off while a session is running.',
+        if (PlatformUtils.isMobile)
+          CheckboxListTile.adaptive(
+            value: globalSettings.keepAwake,
+            onChanged: (value) =>
+                setState(() => globalSettings.keepAwake = value!),
+            title: const Text('Keep Screen Awake'),
+            subtitle: const Text(
+              'Enabling this will make sure the screen doesn\'t turn off while a session is running.',
+            ),
           ),
-        ),
         ListTile(
           title: const Text('UI Font Size'),
           subtitle: Column(
@@ -195,36 +196,33 @@ class _SettingsPageState extends State<SettingsPage> with GameStoreStateMixin {
     );
   }
 
+  Map<String, String> get _sections => {
+        if (settings != null) 'profile': 'Profile Settings',
+        'ui': 'UI Settings',
+      };
+
   SizedBox _buildSidebar() {
     final drawerTitleStyle = Theme.of(context).textTheme.titleMedium;
-    final globalIndex = settings != null ? 1 : 0;
 
     return SizedBox(
       width: 300,
       child: ListView(
-        children: [
-          if (settings != null)
-            ListTile(
-              title: Text('Profile Settings', style: drawerTitleStyle),
-              selected: pageController.page?.round() == 0,
-              onTap: () => pageController.animateToPage(
-                0,
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeInOut,
-              ),
-            ),
-          ListTile(
-            title: Text('Global Settings', style: drawerTitleStyle),
-            selected: pageController.page?.round() == globalIndex,
-            onTap: () {
-              pageController.animateToPage(
-                globalIndex,
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeInOut,
-              );
-            },
-          ),
-        ],
+        children: _sections.entries.map(
+          (entry) {
+            final index = _sections.keys.toList().indexOf(entry.key);
+            return ListTile(
+              title: Text(entry.value, style: drawerTitleStyle),
+              selected: pageController.page?.round() == index,
+              onTap: () {
+                pageController.animateToPage(
+                  index,
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeInOut,
+                );
+              },
+            );
+          },
+        ).toList(),
       ),
     );
   }

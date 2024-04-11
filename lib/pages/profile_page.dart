@@ -156,8 +156,10 @@ class _ProfilePageState extends State<ProfilePage> {
                     const SizedBox(height: 24),
                     CheckboxListTile.adaptive(
                       value: profile.authPostSend,
-                      title: const Text('Send an empty command after logging in'),
-                      subtitle: const Text('Useful for servers that have an MOTD or require login confirmation.'),
+                      title:
+                          const Text('Send an empty command after logging in'),
+                      subtitle: const Text(
+                          'Useful for servers that have an MOTD or require login confirmation.'),
                       onChanged: (value) {
                         setDirty();
                         setState(() {

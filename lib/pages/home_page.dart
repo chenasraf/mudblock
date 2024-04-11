@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../core/color_utils.dart';
@@ -60,16 +59,32 @@ class HomePageState extends State<HomePage>
     height: 1,
   );
   TextStyle get inputStyle => consoleStyle.copyWith(color: Colors.grey);
+  final keyboardActionsMap = {
+    KeyboardIntent: KeyboardAction(),
+  };
+  final keyboardIntentMap = {
+    ...numpadKeysIntentMap,
+    ...arrowKeysIntentMap,
+  };
 
   @override
   Widget build(BuildContext context) {
     return Shortcuts(
-      shortcuts: numpadKeysIntentMap,
+      shortcuts: keyboardIntentMap,
       child: Actions(
-        actions: {
-          KeyboardIntent: KeyboardAction(),
-        },
+        actions: keyboardActionsMap,
         child: Focus(
+          // onKeyEvent: (node, event) {
+          //   debugPrint("Key event: ${event.logicalKey}");
+          //   final intent = KeyboardIntent(event.logicalKey);
+          //   final action = keyboardActionsMap[intent.runtimeType];
+          //   debugPrint("Action: $action");
+          //   if (action != null && action.isEnabled(intent, context)) {
+          //     action.invoke(intent, context);
+          //     return KeyEventResult.handled;
+          //   }
+          //   return KeyEventResult.ignored;
+          // },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

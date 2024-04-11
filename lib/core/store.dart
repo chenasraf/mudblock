@@ -7,6 +7,7 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:ctelnet/ctelnet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mudblock/core/features/keyboard_shortcuts.dart';
 import 'package:path/path.dart' as path;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
@@ -47,6 +48,8 @@ class GameStore extends ChangeNotifier {
   bool _clientReady = false;
   final storage = ProfileStorage('');
   late GlobalSettings globalSettings;
+  final List<String> _commandHistory = [];
+  int historyIndex = -1;
 
   String get commandSeparator => currentProfile.settings.commandSeparator;
 
@@ -129,7 +132,9 @@ class GameStore extends ChangeNotifier {
           break;
       }
     }
-    WakelockPlus.toggle(enable: globalSettings.keepAwake);
+    if (PlatformUtils.isMobile) {
+      WakelockPlus.toggle(enable: globalSettings.keepAwake);
+    }
   }
 
   Future<void> disconnect() {
@@ -407,9 +412,15 @@ class GameStore extends ChangeNotifier {
     // if (!_clientReady || !_client.connected) {
     //   return;
     // }
+    addToCommandHistory(text);
+    historyIndex = -1;
     execute(text);
     scrollToEnd();
     selectInput();
+  }
+
+  void addToCommandHistory(String text) {
+    _commandHistory.add(text);
   }
 
   void scrollToEnd() {
@@ -521,12 +532,43 @@ class GameStore extends ChangeNotifier {
     loadSavedProfiles();
   }
 
+  final auxillaryIntents = {
+    const KeyboardIntent(LogicalKeyboardKey.arrowUp),
+    const KeyboardIntent(LogicalKeyboardKey.arrowDown),
+  };
+
   void onShortcut(BuildContext context, LogicalKeyboardKey key,
       [LogicalKeyboardKey? modifier]) {
     final action = currentProfile.keyboardShortcuts.getAction(modifier, key);
+
     if (action.isNotEmpty) {
       submitAsInput(action);
       selectInput();
+      return;
+    }
+
+    switch (key) {
+      case LogicalKeyboardKey.arrowUp:
+        if (_commandHistory.isNotEmpty &&
+            historyIndex < _commandHistory.length - 1) {
+          historyIndex++;
+          input.text = _commandHistory.reversed.elementAt(historyIndex);
+        }
+        break;
+      case LogicalKeyboardKey.arrowDown:
+        if (_commandHistory.isNotEmpty && historyIndex > 0) {
+          historyIndex--;
+          input.text = _commandHistory.reversed.elementAt(historyIndex);
+        }
+      default:
+        // selectInput();
+        // final label = key.keyLabel.replaceAll('Numpad ', '');
+        // if (label.length == 1) {
+        //   setInput(
+        //     input.text + label,
+        //   );
+        // }
+        break;
     }
   }
 

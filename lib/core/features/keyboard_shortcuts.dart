@@ -10,23 +10,18 @@ class KeyboardIntent extends Intent {
   final LogicalKeyboardKey? modifier;
 }
 
+/// An action that can be invoked by a [KeyboardIntent].
 class KeyboardAction extends ContextAction<KeyboardIntent> with GameStoreMixin {
   @override
   void invoke(covariant KeyboardIntent intent, [BuildContext? context]) {
     if (context == null) {
       return;
     }
-    final store = storeOf(context);
-    if (store.currentProfile.keyboardShortcuts
-        .getAction(intent.modifier, intent.key)
-        .isNotEmpty) {
-      store.onShortcut(context, intent.key, intent.modifier);
-    } else {
-      store.selectInput();
-      store.setInput(
-        store.input.text + intent.key.keyLabel.replaceAll('Numpad ', ''),
-      );
+    if (!isEnabled(intent, context)) {
+      return;
     }
+    final store = storeOf(context);
+    store.onShortcut(context, intent.key, intent.modifier);
   }
 
   @override
@@ -35,9 +30,16 @@ class KeyboardAction extends ContextAction<KeyboardIntent> with GameStoreMixin {
       return false;
     }
     final store = storeOf(context);
-    if (store.currentProfile.keyboardShortcuts
-        .getAction(intent.modifier, intent.key)
-        .isEmpty) {
+    final action = store.currentProfile.keyboardShortcuts
+        .getAction(intent.modifier, intent.key);
+    bool isAux = false;
+    for (final key in store.auxillaryIntents) {
+      if (key.key == intent.key) {
+        isAux = true;
+        break;
+      }
+    }
+    if (action.isEmpty && !isAux) {
       return false;
     }
     return super.isEnabled(intent, context);
@@ -469,6 +471,11 @@ const numpadKeysIntentMap = <ShortcutActivator, Intent>{
       KeyboardIntent(LogicalKeyboardKey.numpadDecimal, LogicalKeyboardKey.alt),
   SingleActivator(LogicalKeyboardKey.numpadEnter, alt: true):
       KeyboardIntent(LogicalKeyboardKey.numpadEnter, LogicalKeyboardKey.alt),
+};
+
+const arrowKeysIntentMap = <ShortcutActivator, Intent>{
+  SingleActivator(LogicalKeyboardKey.arrowUp): KeyboardIntent(LogicalKeyboardKey.arrowUp),
+  SingleActivator(LogicalKeyboardKey.arrowDown): KeyboardIntent(LogicalKeyboardKey.arrowDown),
 };
 
 final numpadKeyLabels = {
