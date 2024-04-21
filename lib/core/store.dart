@@ -636,6 +636,7 @@ class GameStore extends ChangeNotifier {
       debugPrint('Background service not running');
       return;
     }
+
     final notifAllowed = await requestNotificationPermissions();
     final alarmAllowed = await requestSchedulePermissions();
     if (!notifAllowed || !alarmAllowed) {
@@ -698,8 +699,8 @@ class GameStore extends ChangeNotifier {
     return permission.isGranted;
   }
 
-  static GameStore of(BuildContext context) {
-    return Provider.of<GameStore>(context, listen: false);
+  static GameStore of(BuildContext context, {bool listen = false}) {
+    return Provider.of<GameStore>(context, listen: listen);
   }
 
   void saveVariable(String name, String value) {
@@ -718,7 +719,7 @@ mixin GameStoreMixin {
 }
 
 mixin GameStoreStateMixin<T extends StatefulWidget> on State<T> {
-  GameStore get store => Provider.of<GameStore>(context, listen: false);
+  GameStore get store => GameStore.of(context);
 }
 
 final gameStore = GameStore();

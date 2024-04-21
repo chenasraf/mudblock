@@ -166,30 +166,29 @@ class HomePageState extends State<HomePage>
   }
 
   Widget _buildGameOutput(List<String> lines) {
+    int? lastFgColor;
+    final List<TextSpan> spans = [];
+    for (final (lineIdx, line) in lines.indexed) {
+      for (final segment
+          in ColorUtils.split(line, lineIdx > 0 ? lastFgColor : null)) {
+        spans.add(
+          TextSpan(
+            text: segment.text,
+            style: consoleStyle.copyWith(
+              color: Color(segment.themedFgColor),
+              backgroundColor: Color(segment.themedBgColor),
+              fontWeight: segment.bold ? FontWeight.w900 : FontWeight.w400,
+              fontStyle: segment.italic ? FontStyle.italic : null,
+              decoration: segment.underline ? TextDecoration.underline : null,
+            ),
+          ),
+        );
+        lastFgColor = segment.fgColor;
+      }
+    }
+
     return SelectableText.rich(
-      TextSpan(
-        children: [
-          for (final line in lines) ...[
-            for (final segment in ColorUtils.split(line))
-              TextSpan(
-                text: segment.text,
-                style: consoleStyle.copyWith(
-                  color: Color(segment.themedFgColor),
-                  backgroundColor: Color(segment.themedBgColor),
-                  fontWeight: segment.bold ? FontWeight.w900 : FontWeight.w400,
-                  fontStyle: segment.italic ? FontStyle.italic : null,
-                  decoration:
-                      segment.underline ? TextDecoration.underline : null,
-                ),
-              ),
-            // const TextSpan(
-            //   text: newline,
-            //   style:
-            //       consoleStyle, // .copyWith(fontSize: 1),
-            // ),
-          ],
-        ],
-      ),
+      TextSpan(children: spans),
       enableInteractiveSelection: true,
       selectionWidthStyle: BoxWidthStyle.tight,
       selectionHeightStyle: BoxHeightStyle.max,

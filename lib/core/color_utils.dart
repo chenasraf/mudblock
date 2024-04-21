@@ -6,29 +6,25 @@ class ColorUtils {
     return split(text).map((e) => e.text).join();
   }
 
-  static Iterable<ColoredText> split(String line) {
+  static Iterable<ThemedToken> split(String line, [int? prevFgColor]) {
     try {
-      final result = <ColoredText>[];
+      final result = <ThemedToken>[];
       final tokens = ColorParser(line).parse();
 
       for (final (i, token) in tokens.indexed) {
-        if (i > 0) {
-          if (!token.styles.contains(TermStyle.reset)) {
-            final prev = tokens[i - 1];
-            if (token.fgColor == 0) {
-              token.fgColor = prev.fgColor;
-            }
-          }
+        // preserve color from previous line (if any was set)
+        if (i == 0 && prevFgColor != null && token.fgColor == 0) {
+          token.fgColor = prevFgColor;
         }
-        result.add(ColoredText.fromToken(token));
+        result.add(ThemedToken.fromToken(token));
       }
 
       return result;
     } catch (e, stack) {
-      debugPrint('Error at line: $line');
-      debugPrint('Split error: $e $stack');
+      debugPrint('Split error at line: $line');
+      debugPrint('Error: $e $stack');
       return [
-        ColoredText.defaultColor(line),
+        ThemedToken.defaultColor(line),
       ];
     }
   }
@@ -59,8 +55,8 @@ class ColorUtils {
   static bool isLight(Color color) => getBrightness(color) == Brightness.light;
 }
 
-class ColoredText extends ColorToken {
-  ColoredText({
+class ThemedToken extends ColorToken {
+  ThemedToken({
     required super.text,
     required super.fgColor,
     required super.bgColor,
@@ -68,10 +64,10 @@ class ColoredText extends ColorToken {
     super.xterm256 = false,
   });
 
-  factory ColoredText.empty() => ColoredText(text: '', fgColor: 0, bgColor: 0);
-  factory ColoredText.defaultColor(String text) =>
-      ColoredText(text: text, fgColor: 0, bgColor: 0);
-  factory ColoredText.fromToken(ColorToken token) => ColoredText(
+  factory ThemedToken.empty() => ThemedToken(text: '', fgColor: 0, bgColor: 0);
+  factory ThemedToken.defaultColor(String text) =>
+      ThemedToken(text: text, fgColor: 0, bgColor: 0);
+  factory ThemedToken.fromToken(ColorToken token) => ThemedToken(
         text: token.text,
         fgColor: token.fgColor,
         bgColor: token.bgColor,
