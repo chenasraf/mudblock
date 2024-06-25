@@ -183,7 +183,7 @@ class HomePageState extends State<HomePage>
             ),
           ),
         );
-        lastFgColor = segment.fgColor;
+        lastFgColor = segment.reset ? null : segment.fgColor;
       }
     }
 

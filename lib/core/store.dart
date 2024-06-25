@@ -186,12 +186,12 @@ class GameStore extends ChangeNotifier {
     }
   }
 
-  void processIncoming(String text, {int? color}) {
+  void processIncoming(String text, {int? colorize}) {
     final lines = text.split(incomingMsgSplitPattern);
     // ignore: unused_local_variable
     for (var (i, line) in lines.indexed) {
-      if (color != null && !line.startsWith('$esc[')) {
-        line = '$esc[${color}m$line';
+      if (colorize != null && !line.startsWith('$esc[')) {
+        line = '$esc[${colorize}m$line$esc[0m';
       }
       onIncomingLine(
         line,
@@ -201,12 +201,12 @@ class GameStore extends ChangeNotifier {
     }
   }
 
-  void processOutgoing(String text, {int? color}) {
+  void processOutgoing(String text, {int? colorize}) {
     final lines = text.split(incomingMsgSplitPattern);
     // ignore: unused_local_variable
     for (var (i, line) in lines.indexed) {
-      if (color != null && !line.startsWith('$esc[')) {
-        line = '$esc[${color}m$line';
+      if (colorize != null && !line.startsWith('$esc[')) {
+        line = '$esc[${colorize}m$line$esc[0m';
       }
       onOutgoingLine(
         line,
@@ -330,12 +330,12 @@ class GameStore extends ChangeNotifier {
 
   /// echoOwn - same as echo, but with predefined color
   void echoOwn(String line) {
-    processIncoming(line, color: 93);
+    processIncoming(line, colorize: 93);
   }
 
   /// echoSystem - same as echo, but with predefined color
   void echoSystem(String line) {
-    processIncoming(line, color: 96);
+    processIncoming(line, colorize: 96);
   }
 
   /// echoError - same as echo, but with predefined color
