@@ -381,3 +381,49 @@ final movementPreset = GameButtonSetData(
   ],
 );
 
+final oneBtnMovementPreset = GameButtonSetData(
+  id: uuid(),
+  name: '1-Button Movement',
+  type: GameButtonSetType.grid,
+  crossAxisCount: 3,
+  alignment: Alignment.bottomRight,
+  buttons: [
+    null,
+    null,
+    null,
+    null,
+    GameButtonData(
+      id: uuid(),
+      label: GameButtonLabelData(
+        icon: Icons.gamepad_rounded,
+        iconName: 'gamepad_rounded',
+      ),
+      pressAction: MUDAction('look'),
+      labelUp: GameButtonLabelData(
+        icon: Icons.keyboard_arrow_up,
+        iconName: 'keyboard_arrow_up',
+      ),
+      dragUpAction: MUDAction('north'),
+      labelDown: GameButtonLabelData(
+        icon: Icons.keyboard_arrow_down,
+        iconName: 'keyboard_arrow_down',
+      ),
+      dragDownAction: MUDAction('south'),
+      labelLeft: GameButtonLabelData(
+        icon: Icons.keyboard_arrow_left,
+        iconName: 'keyboard_arrow_left',
+      ),
+      dragLeftAction: MUDAction('west'),
+      labelRight: GameButtonLabelData(
+        icon: Icons.keyboard_arrow_right,
+        iconName: 'keyboard_arrow_right',
+      ),
+      dragRightAction: MUDAction('east'),
+    ),
+    null,
+    null,
+    null,
+    null,
+  ],
+);
+

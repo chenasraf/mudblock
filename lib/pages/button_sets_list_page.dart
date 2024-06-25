@@ -36,6 +36,10 @@ class ButtonSetListPage extends StatelessWidget with GameStoreMixin {
                 value: 'navigation_preset',
                 child: Text('Create: Navigation Preset'),
               ),
+              const PopupMenuItem(
+                value: '1_btn_navigation_preset',
+                child: Text('Create: 1-Button Navigation Preset'),
+              ),
             ];
           },
           onSelected: (value) async {
@@ -46,6 +50,17 @@ class ButtonSetListPage extends StatelessWidget with GameStoreMixin {
                   context,
                   Paths.buttonSet,
                   arguments: movementPreset,
+                );
+                if (data != null) {
+                  store.currentProfile.saveButtonSet(data as GameButtonSetData);
+                  store.currentProfile.loadButtonSets();
+                }
+                break;
+              case '1_btn_navigation_preset':
+                final data = await Navigator.pushNamed(
+                  context,
+                  Paths.buttonSet,
+                  arguments: oneBtnMovementPreset,
                 );
                 if (data != null) {
                   store.currentProfile.saveButtonSet(data as GameButtonSetData);
