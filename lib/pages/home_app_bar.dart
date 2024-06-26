@@ -47,7 +47,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
               ? '${store.currentProfile.name} - Mudblock'
               : 'Mudblock',
           textScaler:
-              TextScaler.linear(store.globalSettings.uiTextScale * 0.85),
+              TextScaler.linear(store.globalSettings.uiTextScale.value * 0.85),
         ),
       ],
     );

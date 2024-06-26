@@ -97,7 +97,7 @@ class HomePageState extends State<HomePage>
                       return MediaQuery(
                         data: MediaQuery.of(context).copyWith(
                           textScaler: TextScaler.linear(
-                            store.globalSettings.gameTextScale,
+                            store.globalSettings.gameTextScale.value,
                           ),
                         ),
                         child: Theme(

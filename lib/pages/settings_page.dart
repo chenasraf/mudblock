@@ -87,9 +87,9 @@ class _SettingsPageState extends State<SettingsPage> with GameStoreStateMixin {
       children: [
         if (PlatformUtils.isMobile)
           CheckboxListTile.adaptive(
-            value: globalSettings.keepAwake,
+            value: globalSettings.keepAwake.value,
             onChanged: (value) =>
-                setState(() => globalSettings.keepAwake = value!),
+                setState(() => globalSettings.keepAwake.value = value!),
             title: const Text('Keep Screen Awake'),
             subtitle: const Text(
               'Enabling this will make sure the screen doesn\'t turn off while a session is running.',
@@ -105,16 +105,16 @@ class _SettingsPageState extends State<SettingsPage> with GameStoreStateMixin {
                 children: [
                   Expanded(
                     child: Slider(
-                      value: globalSettings.uiTextScale,
+                      value: globalSettings.uiTextScale.value,
                       onChanged: (value) =>
-                          setState(() => globalSettings.uiTextScale = value),
+                          setState(() => globalSettings.uiTextScale.value = value),
                       min: 0.5,
                       max: 2.0,
                       divisions: 15,
                     ),
                   ),
                   Text(
-                    _formatFontSize(baseFontSize, globalSettings.uiTextScale),
+                    _formatFontSize(baseFontSize, globalSettings.uiTextScale.value),
                   ),
                 ],
               ),
@@ -131,16 +131,16 @@ class _SettingsPageState extends State<SettingsPage> with GameStoreStateMixin {
                 children: [
                   Expanded(
                     child: Slider(
-                      value: globalSettings.gameTextScale,
+                      value: globalSettings.gameTextScale.value,
                       onChanged: (value) =>
-                          setState(() => globalSettings.gameTextScale = value),
+                          setState(() => globalSettings.gameTextScale.value = value),
                       min: 0.5,
                       max: 2.0,
                       divisions: 15,
                     ),
                   ),
                   Text(
-                    _formatFontSize(baseFontSize, globalSettings.gameTextScale),
+                    _formatFontSize(baseFontSize, globalSettings.gameTextScale.value),
                   ),
                 ],
               ),
@@ -163,8 +163,8 @@ class _SettingsPageState extends State<SettingsPage> with GameStoreStateMixin {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: TextFormField(
-            initialValue: settings!.commandSeparator,
-            onChanged: (value) => settings!.commandSeparator = value,
+            initialValue: settings!.commandSeparator.value,
+            onChanged: (value) => settings!.commandSeparator.value = value,
             maxLength: 1,
             decoration: const InputDecoration(
               labelText: 'Command Separator',
@@ -175,17 +175,17 @@ class _SettingsPageState extends State<SettingsPage> with GameStoreStateMixin {
         ),
         const SizedBox(height: 16),
         CheckboxListTile.adaptive(
-          value: settings!.echoCommands,
-          onChanged: (value) => setState(() => settings!.echoCommands = value!),
+          value: settings!.echoCommands.value,
+          onChanged: (value) => setState(() => settings!.echoCommands.value = value!),
           title: const Text('Echo Commands'),
           subtitle: const Text(
             'Whether to echo commands to the screen as they are sent.',
           ),
         ),
         CheckboxListTile.adaptive(
-          value: settings!.showTimestamps,
+          value: settings!.showTimestamps.value,
           onChanged: (value) =>
-              setState(() => settings!.showTimestamps = value!),
+              setState(() => settings!.showTimestamps.value = value!),
           title: const Text('Show Timestamps'),
           subtitle: const Text(
             'Whether to show timestamps on messages received from the server.',

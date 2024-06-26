@@ -1,7 +1,12 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+
 class Settings {
-  String commandSeparator;
-  bool echoCommands;
-  bool showTimestamps;
+  Setting<String> commandSeparator;
+  Setting<bool> echoCommands;
+  Setting<bool> showTimestamps;
+
+  List<Setting> get all => [commandSeparator, echoCommands, showTimestamps];
 
   Settings({
     required this.commandSeparator,
@@ -10,26 +15,26 @@ class Settings {
   });
 
   factory Settings.empty() => Settings(
-        commandSeparator: ';',
-        echoCommands: true,
-        showTimestamps: false,
+        commandSeparator: commandSeparatorSetting.fromValue(';'),
+        echoCommands: echoCommandsSetting.fromValue(true),
+        showTimestamps: showTimestampsSetting.fromValue(false),
       );
 
   factory Settings.fromJson(Map<String, dynamic> json) => Settings(
-        commandSeparator: json['commandSeparator'] as String,
-        echoCommands: json['echoCommands'] as bool? ?? true,
-        showTimestamps: json['showTimestamps'] as bool? ?? false,
+        commandSeparator: commandSeparatorSetting.fromValue(json['commandSeparator']),
+        echoCommands: echoCommandsSetting.fromValue(json['echoCommands']),
+        showTimestamps: showTimestampsSetting.fromValue(json['showTimestamps']),
       );
 
   Map<String, dynamic> toJson() => {
-        'commandSeparator': commandSeparator,
-        'echoCommands': echoCommands,
-        'showTimestamps': showTimestamps,
+        'commandSeparator': commandSeparator.value,
+        'echoCommands': echoCommands.value,
+        'showTimestamps': showTimestamps.value,
       };
 
   Settings copyWith({
-    String? commandSeparator,
-    bool? echoCommands,
+    Setting<String>? commandSeparator,
+    Setting<bool>? echoCommands,
   }) {
     return Settings(
       commandSeparator: commandSeparator ?? this.commandSeparator,
@@ -40,9 +45,11 @@ class Settings {
 }
 
 class GlobalSettings {
-  bool keepAwake;
-  double gameTextScale;
-  double uiTextScale;
+  Setting<bool> keepAwake;
+  Setting<double> gameTextScale;
+  Setting<double> uiTextScale;
+
+  List<Setting> get all => [keepAwake, gameTextScale, uiTextScale];
 
   GlobalSettings({
     required this.keepAwake,
@@ -51,33 +58,77 @@ class GlobalSettings {
   });
 
   factory GlobalSettings.empty() => GlobalSettings(
-        keepAwake: true,
-        gameTextScale: 1.0,
-        uiTextScale: 1.0,
+        keepAwake: keepAwakeSetting.fromValue(true),
+        gameTextScale: gameTextScaleSetting.fromValue(1.0),
+        uiTextScale: uiTextScaleSetting.fromValue(1.0),
       );
 
   factory GlobalSettings.fromJson(Map<String, dynamic> json) => GlobalSettings(
-        keepAwake: json['keepAwake'] as bool? ?? true,
-        gameTextScale: json['gameTextScale'] as double? ?? 1.0,
-        uiTextScale: json['uiTextScale'] as double? ?? 1.0,
+        keepAwake: keepAwakeSetting.fromValue(json['keepAwake']),
+        gameTextScale: gameTextScaleSetting.fromValue(json['gameTextScale']),
+        uiTextScale: uiTextScaleSetting.fromValue(json['uiTextScale']),
       );
 
   Map<String, dynamic> toJson() => {
-        'keepAwake': keepAwake,
-        'gameTextScale': gameTextScale,
-        'uiTextScale': uiTextScale,
+        'keepAwake': keepAwake.value,
+        'gameTextScale': gameTextScale.value,
+        'uiTextScale': uiTextScale.value,
       };
 
   GlobalSettings copyWith({
-    bool? keepAwake,
-    double? gameTextScale,
-    double? uiTextScale,
+    Setting<bool>? keepAwake,
+    Setting<double>? gameTextScale,
+    Setting<double>? uiTextScale,
   }) {
     return GlobalSettings(
       keepAwake: keepAwake ?? this.keepAwake,
       gameTextScale: gameTextScale ?? this.gameTextScale,
       uiTextScale: uiTextScale ?? this.uiTextScale,
     );
+  }
+}
+
+// Global
+final keepAwakeSetting = SettingFactory<bool>('keepAwake', 'Keep Awake', true);
+final gameTextScaleSetting =
+    SettingFactory<double>('gameTextScale', 'Game Text Scale', 1.0);
+final uiTextScaleSetting =
+    SettingFactory<double>('uiTextScale', 'UI Text Scale', 1.0);
+
+// Profile
+final echoCommandsSetting =
+    SettingFactory<bool>('echoCommands', 'Echo Commands', true);
+final showTimestampsSetting =
+    SettingFactory<bool>('showTimestamps', 'Show Timestamps', false);
+final commandSeparatorSetting =
+    SettingFactory<String>('commandSeparator', 'Command Separator', ';');
+
+class SettingFactory<T> {
+  final String key;
+  final String description;
+  final T defaultValue;
+  SettingFactory(this.key, this.description, this.defaultValue);
+  Setting<T> create() => Setting<T>(key, description, defaultValue);
+  Setting<T> fromValue(T? value) =>
+      Setting<T>(key, description, value ?? defaultValue);
+}
+
+class Setting<T> {
+  final String key;
+  final String description;
+  final ValueNotifier<T> _value;
+  bool _modified = false;
+
+  Setting(this.key, this.description, T value)
+      : _value = ValueNotifier<T>(value);
+
+  T get value => _value.value;
+
+  bool get modified => _modified;
+
+  set value(T value) {
+    _value.value = value;
+    _modified = true;
   }
 }
 

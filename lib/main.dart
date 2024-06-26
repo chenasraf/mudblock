@@ -43,7 +43,7 @@ class MudblockApp extends StatelessWidget {
               builder: (context, store, child) => MediaQuery(
                 data: MediaQuery.of(context).copyWith(
                   textScaler:
-                      TextScaler.linear(store.globalSettings.uiTextScale),
+                      TextScaler.linear(store.globalSettings.uiTextScale.value),
                 ),
                 child: child!,
               ),

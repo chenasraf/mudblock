@@ -23,6 +23,7 @@ import 'features/alias.dart';
 import 'features/builtin_command.dart';
 import 'features/profile.dart';
 import 'features/trigger.dart';
+import 'number_utils.dart';
 import 'platform_utils.dart';
 import 'routes.dart';
 
@@ -51,7 +52,7 @@ class GameStore extends ChangeNotifier {
   final List<String> _commandHistory = [];
   int historyIndex = -1;
 
-  String get commandSeparator => currentProfile.settings.commandSeparator;
+  String get commandSeparator => currentProfile.settings.commandSeparator.value;
 
   /// accepts csp but NOT double csp
   RegExp get outgoingMsgSplitPattern =>
@@ -133,7 +134,7 @@ class GameStore extends ChangeNotifier {
       }
     }
     if (PlatformUtils.isMobile) {
-      WakelockPlus.toggle(enable: globalSettings.keepAwake);
+      WakelockPlus.toggle(enable: globalSettings.keepAwake.value);
     }
   }
 
@@ -320,7 +321,8 @@ class GameStore extends ChangeNotifier {
 
   /// echo - echo to screen, DOES NOT split by msgSplitPattern, is not send to server
   void echo(String line, {bool newLine = true}) {
-    if (_currentProfile != null && currentProfile.settings.showTimestamps) {
+    if (_currentProfile != null &&
+        currentProfile.settings.showTimestamps.value) {
       line = '[${DateTime.now().toIso8601String()}] $line';
     }
     _lines.add('$line${newLine ? '\n' : ''}');
@@ -385,7 +387,8 @@ class GameStore extends ChangeNotifier {
       debugPrint('processing aliases for: $line');
       var result = Alias.processLine(this, aliases, line);
       if (!result.lineRemoved &&
-          (_currentProfile == null || currentProfile.settings.echoCommands)) {
+          (_currentProfile == null ||
+              currentProfile.settings.echoCommands.value)) {
         echoOwn(line);
       }
       if (!result.processed) {
@@ -398,12 +401,11 @@ class GameStore extends ChangeNotifier {
     final pattern = _currentProfile != null
         ? outgoingMsgSplitPattern
         : _outgoingMsgSplitPattern(';');
-    final csp = _currentProfile != null
-        ? currentProfile.settings.commandSeparator
-        : ';';
+    final csp = commandSeparatorSetting
+        .fromValue(_currentProfile?.settings.commandSeparator.value);
     return line
         .split(pattern)
-        .map((l) => l.replaceAll('$csp$csp', csp))
+        .map((l) => l.replaceAll('$csp$csp', csp.value))
         .toList();
   }
 
@@ -575,24 +577,17 @@ class GameStore extends ChangeNotifier {
 // TODO move to [Settings]
   void echoSettingsChanged(Settings old, Settings updated) {
     echoSystem('Settings updated:');
-    var updateCount = 0;
-    if (updated.showTimestamps != old.showTimestamps) {
-      updateCount++;
-      echoSystem(
-          'Timestamps are now ${updated.showTimestamps ? 'enabled' : 'disabled'}');
-    }
-    if (updated.echoCommands != old.echoCommands) {
-      updateCount++;
-      echoSystem(
-          'Echoing own commands is now ${updated.echoCommands ? 'enabled' : 'disabled'}');
-    }
-    if (updated.commandSeparator != old.commandSeparator) {
-      updateCount++;
-      echoSystem(
-        'Command separator is now "${updated.commandSeparator}". '
-        'To escape when sending, use it twice like so: '
-        '"${updated.commandSeparator}${updated.commandSeparator}"',
-      );
+    const defaultTpl = "[Settings] {key} set to {value}";
+    final tplOverrides = {
+      'commandSeparator': "[Settings] Command Separator set to '{value}'. "
+          "To escape when sending, use it twice like so: '{value}{value}'"
+    };
+    final updateCount = sum(updated.all.map((x) => x.modified ? 1 : 0));
+    for (final changed in updated.all.where((x) => x.modified)) {
+      final tpl = tplOverrides[changed.key] ?? defaultTpl;
+      echoSystem(tpl
+          .replaceAll('{key}', changed.key)
+          .replaceAll('{value}', changed.value));
     }
     if (updateCount == 0) {
       echoSystem('<no changes>');
@@ -603,19 +598,15 @@ class GameStore extends ChangeNotifier {
   // TODO move to [GlobalSettings]
   void echoGlobalSettingsChanged(GlobalSettings old, GlobalSettings updated) {
     echoSystem('Global Settings updated:');
-    var updateCount = 0;
-    if (updated.keepAwake != old.keepAwake) {
-      updateCount++;
-      echoSystem(
-          'Keep Screen Awake is now ${updated.keepAwake ? 'enabled' : 'disabled'}');
+    const tpl = "[Settings] {key} set to {value}";
+    final updateCount = sum(updated.all.map((x) => x.modified ? 1 : 0));
+    for (final changed in updated.all.where((x) => x.modified)) {
+      echoSystem(tpl
+          .replaceAll('{key}', changed.key)
+          .replaceAll('{value}', changed.value));
     }
-    if (updated.uiTextScale != old.uiTextScale) {
-      updateCount++;
-      echoSystem('UI Text Scale is now ${updated.gameTextScale}');
-    }
-    if (updated.gameTextScale != old.gameTextScale) {
-      updateCount++;
-      echoSystem('Game Output Text Scale is now ${updated.gameTextScale}');
+    if (updateCount == 0) {
+      echoSystem('<no changes>');
     }
     if (updateCount == 0) {
       echoSystem('<no changes>');
